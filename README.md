@@ -28,3 +28,4 @@ Finally, this library aims to use GAS in an idiomatic way. It's used extensively
 - [Data Driven Gameplay](https://dev.epicgames.com/documentation/en-us/unreal-engine/data-driven-gameplay-elements-in-unreal-engine?application_version=5.4)
 - [GAS, Top-level Docs](https://docs.unrealengine.com/4.27/en-US/InteractiveExperiences/GameplayAbilitySystem/)
 - [Data Registries](https://dev.epicgames.com/documentation/en-us/unreal-engine/data-registries-in-unreal-engine)
+- [Unofficial Companion](https://github.com/tranek/GASDocumentation)
