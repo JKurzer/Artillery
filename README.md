@@ -13,7 +13,7 @@ This plugin will:
    
 ## Design   
 This plugin has five main design goals:  
-- All data is managed through Data-Driven Gameplay Elements or configs.
+- All data is managed through Data-Driven Gameplay Elements, Registries or Configs.
 - Abilities are kept small and atomic, intended for use by composition rather than as monolithic abilities.  
 - Map simply and elegantly to designs that could be found in ANY OR ALL OF: borderlands 2, Vampire Survivors, Destiny 2.  
 - Cleanly express weapon-centric design patterns AND character-centric design patterns. When picking, prefer weapons.  
