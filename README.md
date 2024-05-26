@@ -1,7 +1,7 @@
 # Artillery
+Guns & Abilities Plugin for Lions
 
-Guns, GAS, and shields!
-
+## Content and purpose
 Complexity and access management primitives married to the core set of basic weapon abilities used to bind to a weapon actor. 
 Built on top of GAS. And yes, I know the beetle is actually the bombardier beetle, formally.
 
@@ -10,7 +10,7 @@ in a more composition oriented way that'll hopefully ease the dependency managem
 with using Game Feature Plugins.
   
 ## Networking  
-This plugin will need to accomplish four major goals:   
+This plugin will:   
 - Disable replication and RPCs for all played or used abilities TO the server.   
 - Accept push updates from the server. As a result, replication FROM the server must still work.   
 - Integrate with the reconciliation logic needed to do an eventually consistent server auth game. See 2.   
