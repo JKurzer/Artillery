@@ -1,9 +1,5 @@
 # Artillery: Guns & Abilities Plugin for Lions
-Complexity and access management primitives married to the core set of basic weapon abilities used to bind to a weapon or character actor in a compositional and elegant way. Built on top of GAS.
-
-https://github.com/tranek/GASDocumentation is a really useful place to start for understanding GAS. We're using it very slightly differently,
-in a more composition oriented way that'll hopefully ease the dependency management and granularity issues we ran into at Riot if we go
-with using Game Feature Plugins.
+Complexity and access management primitives married to the core set of basic weapon abilities used to bind to a weapon or character actor in a compositional and elegant way. Artillery is built on top of GAS, and is generally a fairly thin layer over it, providing convenience functions, ECS-like capabilities, and making a few changes to ensure that we can keep debug complexity in the networked case to a minimum. GAS is used in fortnite, among other major titles, including a number of Vampire Survivor successors. Artillery will also serve to insulate our other tech from spaghetti usage of GAS, in case we do decide to use another tooling for ability and gun composing. [This guide](https://github.com/tranek/GASDocumentation) is a really useful place to start for understanding GAS. We're using it very slightly differently, in a more composition oriented way that'll hopefully ease the dependency management and granularity issues we ran into at Riot if we go with using Game Feature Plugins.
   
 ## Networking  
 This plugin will:   
