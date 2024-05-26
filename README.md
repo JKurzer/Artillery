@@ -19,7 +19,7 @@ This plugin will need to accomplish four major goals:
    
 ## Design   
 This plugin has five main design goals:  
-- All data is managed through Data-Driven Gameplay Elements or configs. See https://dev.epicgames.com/documentation/en-us/unreal-engine/data-driven-gameplay-elements-in-unreal-engine?application_version=5.4 for more.  
+- All data is managed through Data-Driven Gameplay Elements or configs.
 - Abilities are kept small and atomic, intended for use by composition rather than as monolithic abilities.  
 - Map simply and elegantly to designs that could be found in ANY OR ALL OF: borderlands 2, Vampire Survivors, Destiny 2.  
 - Cleanly express weapon-centric design patterns AND character-centric design patterns. When picking, prefer weapons.  
@@ -28,4 +28,9 @@ This plugin has five main design goals:
   
 To meet these needs, we anticipate a mix of components and gameplay abilities, with relatively few tags and relatively few cues. Cues should, as much as possible, be used only for presentation layer effects. If a cue triggers something that has a physics engine interaction, it could produce some very very unpleasant bugs during the process of attempting reconciliation and replication. The GAS library goes to great pains to prevent this, but fundamentally, evented systems are difficult to express in a way that is deterministically ordered without additional primitives that would overcomplicate GAS.  
   
-  Finally, this library aims to use GAS in an idiomatic way. It's used extensively for games very much like ours, by very good designers and very smart engineers. 
+Finally, this library aims to use GAS in an idiomatic way. It's used extensively for games very much like ours, by very good designers and very smart engineers. 
+
+## Reference Matter
+- Data Driven Gameplay   : https://dev.epicgames.com/documentation/en-us/unreal-engine/data-driven-gameplay-elements-in-unreal-engine?application_version=5.4
+- GAS, Top-level Docs    : https://docs.unrealengine.com/4.27/en-US/InteractiveExperiences/GameplayAbilitySystem/
+- Data Registries        : https://dev.epicgames.com/documentation/en-us/unreal-engine/data-registries-in-unreal-engine
