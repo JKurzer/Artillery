@@ -18,6 +18,7 @@ This plugin has five main design goals:
 - Map simply and elegantly to designs that could be found in ANY OR ALL OF: borderlands 2, Vampire Survivors, Destiny 2.  
 - Cleanly express weapon-centric design patterns AND character-centric design patterns. When picking, prefer weapons.  
 - Avoid tight coupling between characters, abilities, weapons, spawnables, and pickups. Failure to do this will be excruciating later.
+- Where necessary, integrate with Thistle via a hard API boundary and use of Cues. Minimize this.
    
   
 To meet these needs, we anticipate a mix of components and gameplay abilities, with relatively few tags and relatively few cues. Cues should, as much as possible, be used only for presentation layer effects. If a cue triggers something that has a physics engine interaction, it could produce some very very unpleasant bugs during the process of attempting reconciliation and replication. The GAS library goes to great pains to prevent this, but fundamentally, evented systems are difficult to express in a way that is deterministically ordered without additional primitives that would overcomplicate GAS.  
@@ -28,4 +29,7 @@ Finally, this library aims to use GAS in an idiomatic way. It's used extensively
 - [Data Driven Gameplay](https://dev.epicgames.com/documentation/en-us/unreal-engine/data-driven-gameplay-elements-in-unreal-engine?application_version=5.4)
 - [GAS, Top-level Docs](https://docs.unrealengine.com/4.27/en-US/InteractiveExperiences/GameplayAbilitySystem/)
 - [Data Registries](https://dev.epicgames.com/documentation/en-us/unreal-engine/data-registries-in-unreal-engine)
-- [Unofficial Companion](https://github.com/tranek/GASDocumentation)
+- [Unofficial Companion](https://github.com/tranek/GASDocumentation) - probably THE best actual guide to how GAS and why GAS
+- [Procedural Animation With Character](https://www.youtube.com/watch?v=KPoeNZZ6H4s) - useful for missiles, turning turrets, etc.
+- [Momentum in Sonic](https://www.youtube.com/watch?v=w1CEN5gVs5Q)
+- [JUICE IT OR LOSE IT](https://www.youtube.com/watch?v=Fy0aCDmgnxg)
