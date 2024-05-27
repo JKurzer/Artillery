@@ -2,17 +2,23 @@
 Complexity and access management primitives married to a core set of basic weapon abilities used to bind to a weapon or character actor in a compositional and elegant way, compatible with GAS. Artillery is built on top of GAS, and is generally a fairly thin layer over it, providing convenience functions and ECS-like capabilities. Critically, Artillery is also used for making a few changes to ensure that we can keep debug complexity in the networked case to a minimum.   
   
 GAS is used in fortnite, among other major titles, including a number of Vampire Survivor successors. Artillery will also serve to insulate our other tech from spaghetti usage of GAS, in case we do decide to use another tooling for ability and gun composing. [This guide](https://github.com/tranek/GASDocumentation) is a really useful place to start for understanding GAS. We're using it very slightly differently, in a more composition oriented way that'll hopefully ease the dependency management and granularity issues we ran into at Riot if we go with using Game Feature Plugins.  
+
   
-      
-![Yellow_Alert](https://github.com/JKurzer/Artillery/assets/7749511/c4fe6e1b-e402-4a0e-8d73-638896b9f79f)  
-**HEADS UP - AS OF THE TRANEK DOCUMENTATION IT APPEARS THAT WE MAY HAVE ISSUES WITH [REPLICATION](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#concepts-asc) FOR THE [ASC](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#concepts-asc) AND [ATTRIBUTESETS](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#concepts-as).** This is because Bristlecone streams remote player input to all clients, allowing the remote player proxies to execute abilities and requiring the local client to fully simulate them. This is a meaningful breach of expectations, and a potential pain point which might lead us to seriously consider the Network Prediction Plugin. I would Really like to avoid using it, as it is extremely unfinished. The obvious immediate implications are as follows...
+||Oh Boy!||      
+:---|:---:|---:|
+||![Yellow_Alert](https://github.com/JKurzer/Artillery/assets/7749511/c4fe6e1b-e402-4a0e-8d73-638896b9f79f)||
+||Oh Boy!||  
+**HEADS UP** 
+As of the Tranek docs' updates, we MAY have issues [REPLICATION](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#concepts-asc) FOR THE [ASC](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#concepts-asc) AND [ATTRSETS](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#concepts-as).** This is because Bristlecone streams remote player input to all clients, allowing the remote player proxies to execute abilities and requiring the local client to fully simulate them. This is a meaningful breach of expectations, and a potential pain point which might lead us to seriously consider the Network Prediction Plugin. I would Really like to avoid using it, as it is extremely unfinished. The obvious immediate implications are as follows...
 - **REQUIREMENT: CUES MUST BE COSMETIC ONLY.**
 - **REQUIREMENT: UPDATES TO GAMEPLAY STATE MUST BE REPLICATED VIA STATE REPLICATION, NOT CUE EXECUTION.**
 - **REQUIREMENT: WE MUST HAVE A WAY TO ENSURE AT-MOST-ONCE EXECUTION OF GAMEPLAY CUES.**
 - **REQUIREMENT: ATTRIBUTE STATE REPLICATION MUST BE RECONCILED, NOT JUST BLINDLY APPLIED.**
    
 GAS is Iris enabled, so we may be able to solve this with some delicate but fairly simple work here in artillery. I'm pretty anxious about it. I think we can get away with simply not replicating cues except in a push-to-client model with our single authoritative server and meeting the above requirements. I'm much more worried about how to figure out the case where we have newer player input than the state update was based on BUT are also missing one of the inputs it was based on. I'm worried deterministic rollback will be necessary, because that's cripplingly slow for games with high numbers of entities. I can almost see a solution though, and we'll need to pretty much embody that solution here in artillery.
-  
+
+To finish out the fun, we may also have an issue with how and where and when ASCs and ATTRSETS can be instantiated. I'm hoping we can skirt this stuff, to be honest. I really want to be able to use GAS but I'm still assessing if that's optimism or intellect talking.  
+
 ## Networking  
 This plugin will:   
 - Disable replication and RPCs for all played or used abilities FROM CLIENT TO SERVER. Clients trigger GAS abilities based on input and on replication from the server.
