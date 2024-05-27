@@ -5,7 +5,15 @@ GAS is used in fortnite, among other major titles, including a number of Vampire
   
 ## Networking  
 This plugin will:   
-- Disable replication and RPCs for all played or used abilities TO the server.   
+- Disable replication and RPCs for all played or used abilities FROM CLIENT TO SERVER. Clients trigger GAS abilities based on input and on replication from the server.
+  - We are **fully server authoritative** AND clients **do not** push cues to the server.
+  - HOWEVER clients do FULLY simulate all player characters down to their ability systems.
+  - This is because the cloned input from bristlecone is used to literally control those actors, out of band from the replication system.
+  - This means that MOST of the time, when attributes and transforms are replicated from the server, they represent no changes or imperceptible changes.
+  - Cues and tags are replicated FROM the server in the PUSH model.
+  - Cues MUST only have cosmetic effects.
+  - Cues that have attribute changes associated with them WILL cause bugs.
+  - We will need to enforce an At-Most-Once rule for Cues triggering visual effects, as remote player input representing an action may arrive LONG before the cues it would generate.
 - Accept push updates from the server. As a result, replication FROM the server must still work.   
 - Integrate with the reconciliation logic needed to do an eventually consistent server auth game. See 2.   
 - Prevent known issues around latency and cooldown misbehavior in the normal up-replication by offlining it entirely if needed.   
