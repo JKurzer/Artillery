@@ -30,7 +30,8 @@ Finally, this library aims to use GAS in an idiomatic way. It's used extensively
 - [Data Driven Gameplay](https://dev.epicgames.com/documentation/en-us/unreal-engine/data-driven-gameplay-elements-in-unreal-engine?application_version=5.4)
 - [GAS, Top-level Docs](https://docs.unrealengine.com/4.27/en-US/InteractiveExperiences/GameplayAbilitySystem/)
 - [Data Registries](https://dev.epicgames.com/documentation/en-us/unreal-engine/data-registries-in-unreal-engine)
-- [Unofficial Companion](https://github.com/tranek/GASDocumentation) - probably THE best actual guide to how GAS and why GAS
+- [Unofficial Companion](https://github.com/tranek/GASDocumentation) - probably THE best actual guide to how GAS and why GAS. VERY dated in some places, be careful!
+  - [How to do damage](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#433-meta-attributes) 
 - [Procedural Animation With Character](https://www.youtube.com/watch?v=KPoeNZZ6H4s) - useful for missiles, turning turrets, etc.
 - [Momentum in Sonic](https://www.youtube.com/watch?v=w1CEN5gVs5Q)
 - [JUICE IT OR LOSE IT](https://www.youtube.com/watch?v=Fy0aCDmgnxg)
