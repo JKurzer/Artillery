@@ -9,7 +9,7 @@ GAS is used in fortnite, among other major titles, including a number of Vampire
 ||![Yellow_Alert](https://github.com/JKurzer/Artillery/assets/7749511/c4fe6e1b-e402-4a0e-8d73-638896b9f79f)||
 ||Oh Boy!||  
 
-**HEADS UP**   
+  
 As of the Tranek docs' updates, we MAY have issues [REPLICATION](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#concepts-asc) FOR THE [ASC](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#concepts-asc) AND [ATTRSETS](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#concepts-as).** This is because Bristlecone streams remote player input to all clients, allowing the remote player proxies to execute abilities and requiring the local client to fully simulate them. This is a meaningful breach of expectations, and a potential pain point which might lead us to seriously consider the Network Prediction Plugin. I would Really like to avoid using it, as it is extremely unfinished. The obvious immediate implications are as follows...
 - **REQUIREMENT: CUES MUST BE COSMETIC ONLY.**
 - **REQUIREMENT: UPDATES TO GAMEPLAY STATE MUST BE REPLICATED VIA STATE REPLICATION, NOT CUE EXECUTION.**
