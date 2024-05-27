@@ -6,16 +6,15 @@ GAS is used in fortnite, among other major titles, including a number of Vampire
 ||Oh Boy!||      
 :---|:---:|---:|
 ||![Yellow_Alert](https://github.com/JKurzer/Artillery/assets/7749511/c4fe6e1b-e402-4a0e-8d73-638896b9f79f)||
-||Oh Boy!||  
+||Required Prior Reading: (Official Replication Discussion)[https://dev.epicgames.com/documentation/en-us/unreal-engine/understanding-the-unreal-engine-gameplay-ability-system]||  
 
   
 As of the Tranek docs' updates, we MAY have issues [REPLICATION](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#concepts-asc) for the [Ability System Component (ASC)](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#concepts-asc) and [AttributeSets (AtSets)](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#concepts-as). Much of this centers on how cues work, but attribute data isn't really exempt either. This is because Bristlecone streams remote player input to all clients, allowing the remote player proxies to execute abilities and requiring the local client to fully simulate them. This is a meaningful breach of expectations, and a potential pain point which might lead us to seriously consider the Network Prediction Plugin. I would Really like to avoid using it, as it is extremely unfinished. The obvious immediate implications are as follows...
-- **REQUIREMENT: CUES MUST BE COSMETIC ONLY.**
-- **REQUIREMENT: UPDATES TO GAMEPLAY STATE MUST BE REPLICATED VIA STATE REPLICATION, NOT CUE EXECUTION.**
+- **REQUIREMENT: CUES MUST BE COSMETIC ONLY.** This is already the norm.
 - **REQUIREMENT: WE MUST HAVE A WAY TO ENSURE AT-MOST-ONCE EXECUTION OF GAMEPLAY CUES.**
 - **REQUIREMENT: ATTRIBUTE STATE REPLICATION MUST BE RECONCILED, NOT JUST BLINDLY APPLIED.**
    
-GAS is Iris enabled, so we may be able to solve this with some delicate but fairly simple work here in artillery. I'm pretty anxious about it. I think we can get away with simply not replicating cues except in a push-to-client model with our single authoritative server and meeting the above requirements. I'm much more worried about how to figure out the case where we have newer player input than the state update was based on BUT are also missing one of the inputs it was based on. I'm worried deterministic rollback will be necessary, because that's cripplingly slow for games with high numbers of entities. I can almost see a solution though, and we'll need to pretty much embody that solution here in artillery.
+Thankfully, it looks like 5.x has made progress on this and the tranek docs may be out of date. I'll update as I go. GAS is Iris enabled, so we may ALSO be able to solve this with some delicate but fairly simple work here in artillery with custom replication fragments. I'm pretty anxious about it. I think we can get away with simply not replicating cues except in a push-to-client model with our single authoritative server and meeting the above requirements. I'm much more worried about how to figure out the case where we have newer player input than the state update was based on BUT are also missing one of the inputs it was based on. I'm worried deterministic rollback will be necessary, because that's cripplingly slow for games with high numbers of entities. I can almost see a solution though, and we'll need to pretty much embody that solution here in artillery.
 
 To finish out the fun, we may also have an issue with how and where and when ASCs and AtSets can be instantiated. I'm hoping we can skirt this stuff, to be honest. I really want to be able to use GAS but I'm still assessing if that's optimism or intellect talking.  
 
