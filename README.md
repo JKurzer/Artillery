@@ -2,8 +2,7 @@
 Complexity and access management primitives married to a core set of basic weapon abilities used to bind to a weapon or character actor in a compositional and elegant way, compatible with GAS. Artillery is built on top of GAS, and is generally a fairly thin layer over it, providing convenience functions and ECS-like capabilities. Critically, Artillery is also used for making a few changes to ensure that we can keep debug complexity in the networked case to a minimum.   
   
 GAS is used in fortnite, among other major titles, including a number of Vampire Survivor successors. Artillery will also serve to insulate our other tech from spaghetti usage of GAS, in case we do decide to use another tooling for ability and gun composing. [This guide](https://github.com/tranek/GASDocumentation) is a really useful place to start for understanding GAS. We're using it very slightly differently, in a more composition oriented way that'll hopefully ease the dependency management and granularity issues we ran into at Riot if we go with using Game Feature Plugins.  
-  \n
-  \n
+
 ||Oh Boy!||      
 :---|:---:|---:|
 ||![Yellow_Alert](https://github.com/JKurzer/Artillery/assets/7749511/c4fe6e1b-e402-4a0e-8d73-638896b9f79f)||
