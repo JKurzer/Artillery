@@ -8,7 +8,8 @@ GAS is used in fortnite, among other major titles, including a number of Vampire
 - **REQUIREMENT: CUES MUST BE COSMETIC ONLY.**
 - **REQUIREMENT: UPDATES TO GAMEPLAY STATE MUST BE REPLICATED VIA STATE REPLICATION, NOT CUE EXECUTION.**
 - **REQUIREMENT: WE MUST HAVE A WAY TO ENSURE AT-MOST-ONCE EXECUTION OF GAMEPLAY CUES.**
-- **REQUIREMENT: ATTRIBUTE STATE REPLICATION MUST BE RECONCILED, NOT JUST BLINDLY APPLIED.**  
+- **REQUIREMENT: ATTRIBUTE STATE REPLICATION MUST BE RECONCILED, NOT JUST BLINDLY APPLIED.**
+   
 GAS is Iris enabled, so we may be able to solve this with some delicate but fairly simple work here in artillery. I'm pretty anxious about it. I think we can get away with simply not replicating cues except in a push-to-client model with our single authoritative server and meeting the above requirements. I'm much more worried about how to figure out the case where we have newer player input than the state update was based on BUT are also missing one of the inputs it was based on. I'm worried deterministic rollback will be necessary, because that's cripplingly slow for games with high numbers of entities. I can almost see a solution though, and we'll need to pretty much embody that solution here in artillery.
   
 ## Networking  
