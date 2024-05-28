@@ -6,7 +6,7 @@ GAS is used in fortnite, among other major titles, including a number of Vampire
 ||Oh Boy!||      
 :---|:---:|---:|
 ||![Yellow_Alert](https://github.com/JKurzer/Artillery/assets/7749511/c4fe6e1b-e402-4a0e-8d73-638896b9f79f)||
-||Required Prior Reading: (Official Replication Discussion)[https://dev.epicgames.com/documentation/en-us/unreal-engine/understanding-the-unreal-engine-gameplay-ability-system]||  
+||Required Prior Reading: [Official Replication Discussion](https://dev.epicgames.com/documentation/en-us/unreal-engine/understanding-the-unreal-engine-gameplay-ability-system)||  
 
   
 As of the Tranek docs' updates, we MAY have issues [REPLICATION](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#concepts-asc) for the [Ability System Component (ASC)](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#concepts-asc) and [AttributeSets (AtSets)](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#concepts-as). Much of this centers on how cues work, but attribute data isn't really exempt either. This is because Bristlecone streams remote player input to all clients, allowing the remote player proxies to execute abilities and requiring the local client to fully simulate them. This is a meaningful breach of expectations, and a potential pain point which might lead us to seriously consider the Network Prediction Plugin. I would Really like to avoid using it, as it is extremely unfinished. The obvious immediate implications are as follows...
@@ -23,7 +23,7 @@ Unlike regular unreal, we have powerful time synchronization primitives from bri
 
 By tracking the GAMEPLAY ABILITIES as EVENTS and then ZIPPING them together like this, we can determine if an ability or cue would be a double trigger easily within a very high margin of precision by combining Bristlecone cycle, Bristlecone time, and the event properties. I'm not exactly sure what form this will need to take, and it's not clear to me yet what the best approach is for reconciliation, but we do have the primitives needed to actually perform it.
 
-I intend to expand the conserved attribute to support timestamping its changes, allowing us to do a highly granular reconciliation with a very low actual bandwidth cost, assuming this reconciliation is delta compressed and occurs irregularly. There's still a bunch of questions here, but I now believe it to be tractable.
+I intend to expand the conserved attribute to support timestamping its changes, allowing us to do a highly granular reconciliation with a very low actual bandwidth cost, assuming this reconciliation is delta compressed and occurs irregularly. There's still a bunch of questions here, but I now believe it to be tractable. I think there's actually already some stuff for preventing double triggers of cues in Unreal, but I haven't refreshed my memory yet. Now it feels like it's just a matter of sorting the puzzle pieces.
 
 ## Networking  
 This plugin will:   
