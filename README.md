@@ -18,6 +18,13 @@ Thankfully, it looks like 5.x has made progress on this and the tranek docs may 
 
 To finish out the fun, we may also have an issue with how and where and when ASCs and AtSets can be instantiated. I'm hoping we can skirt this stuff, to be honest. I really want to be able to use GAS but I'm still assessing if that's optimism or intellect talking.  
 
+## Solution Design
+Unlike regular unreal, we have powerful time synchronization primitives from bristlecone and a concept of subframe accuracy. This allows us to quickly compose updates by simply zipping them together using the timestamp. Gameplay Cues remain an outstanding question, but with the concept of zip-and-reconcile available to us, we have a way to do exact state recovery without needing true determinism OR a full gamestate transmission.
+
+By tracking the GAMEPLAY ABILITIES as EVENTS and then ZIPPING them together like this, we can determine if an ability or cue would be a double trigger easily within a very high margin of precision by combining Bristlecone cycle, Bristlecone time, and the event properties. I'm not exactly sure what form this will need to take, and it's not clear to me yet what the best approach is for reconciliation, but we do have the primitives needed to actually perform it.
+
+I intend to expand the conserved attribute to support timestamping its changes, allowing us to do a highly granular reconciliation with a very low actual bandwidth cost, assuming this reconciliation is delta compressed and occurs irregularly. There's still a bunch of questions here, but I now believe it to be tractable.
+
 ## Networking  
 This plugin will:   
 - Disable replication and RPCs for all played or used abilities FROM CLIENT TO SERVER. Clients trigger GAS abilities based on input and on replication from the server.
