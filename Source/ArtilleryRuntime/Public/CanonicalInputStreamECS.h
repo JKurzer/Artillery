@@ -29,6 +29,21 @@ typedef long BristleTime;//this will become uint32. don't bitbash this.
 typedef BristleTime ArtilleryTime;
 typedef uint32_t InputStreamKey;
 
+//TODO: finish adding the input streams, replace the local handling in Bristle54 character with references to the input stream ecs
+//TODO: begin work on the conceptual frame for reconciling and assessing what input does and does not exist.
+//AXIOMS: Input we send is real. Input we get in the batches represents the full knowledge of the server.
+//AXIOM: A missed batch means we could be starting to desynchronize.
+//AXIOM: Bristlecone Time + the fixed cadencing allows us to know when something SHOULD arrive.
+//FACT: A batch missing input of OURS that we believe should be there could mean we are starting to desynchronize.
+//FACT: A batch containing input of OURS that we believe should have been in an EARLIER batch could mean we are starting to desynchronize.
+//FACT: The server will always have less of our input than we do.
+//FACT: We may see input from other players before the server processes it.
+//FACT: However, if it's missing from a batch, the server hasn't seen it yet.
+//FACT: We may get server update pushes older than our input and/or older than the newest batch we have.
+//FACT: We may have different orderings.
+//FACT: we can determine the correct ordering and we all know the correct ordering of all input that made it into batches.
+
+
 UCLASS()
 class ARTILLERYRUNTIME_API UCanonicalInputStreamECS : public UTickableWorldSubsystem
 {
