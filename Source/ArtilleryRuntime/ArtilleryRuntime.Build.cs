@@ -28,7 +28,12 @@ public class ArtilleryRuntime : ModuleRules
 			new string[]
 			{
 				"Core",
-
+				"CoreUObject",
+				"Engine",
+				"Slate",
+				"SlateCore",
+				"GameplayAbilities",
+				"Bristlecone"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -42,6 +47,8 @@ public class ArtilleryRuntime : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+				"GameplayAbilities",
+				"Bristlecone"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
