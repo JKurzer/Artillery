@@ -8,7 +8,7 @@
 #include "Engine/DataTable.h"
 #include "AttributeSet.h"
 #include "Containers/CircularBuffer.h"
-#include "ConservedAttribute.generated.h"
+//#include "ConservedMergeableAttribute.generated.h"
 /**
  * Conserved mergeable attributes record their values in a buffer when changed during runtime
  * and to disk when changed in editor outside of PIE. This may actually require an overload of

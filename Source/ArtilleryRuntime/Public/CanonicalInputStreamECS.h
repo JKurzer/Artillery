@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 
-#include "BristleconeCommonTypes.h"
 #include "Templates/SubclassOf.h"
 #include "UObject/UnrealType.h"
 #include "Engine/DataTable.h"
@@ -13,8 +12,8 @@
 #include "Containers/CircularBuffer.h"
 #include "BristleconeCommonTypes.h"
 #include "UBristleconeWorldSubsystem.h"
-#include "ConservedAttribute.generated.h"
 #include <optional>
+#include <ArtilleryShell.h>
 #include "CanonicalInputStreamECS.generated.h"
 
 
@@ -22,11 +21,7 @@
 /**
  * Component for managing input streams in an ECS-like way, where any controller can request any stream.
  */
-
-typedef TheCone::PacketElement ArtilleryShell; //Do not rely on using this. Factor any use into helpers. It will be hidden soon and only unpacked input will be available.
 typedef TheCone::Packet_tpl* INNNNCOMING;
-typedef long BristleTime;//this will become uint32. don't bitbash this.
-typedef BristleTime ArtilleryTime;
 typedef uint32_t InputStreamKey;
 
 //TODO: finish adding the input streams, replace the local handling in Bristle54 character with references to the input stream ecs
@@ -50,12 +45,12 @@ class ARTILLERYRUNTIME_API UCanonicalInputStreamECS : public UTickableWorldSubsy
 	GENERATED_BODY()
 
 /**
- * Conserved input streams record their last 8,192 inputs. Yes, that's a few megs. No, it doesn't really seem to matter.
+ * Conserved input streams record their last 8,192 inputs. Yes, that's a few megs across all streams. No, it doesn't really seem to matter.
  * Currently, this is for debug purposes, but we can use it with some additional features to provide a really expressive
  * model for rollback at a SUPER granular level if needed. UE has existing rollback tech, though so...
  */
 public:
-	static ArtilleryTime Now()
+	ArtilleryTime Now()
 	{
 		return MySquire->Now();
 	};
@@ -63,9 +58,7 @@ public:
 	class ARTILLERYRUNTIME_API FConservedInputStream
 	{
 	public:
-		TCircularBuffer<ArtilleryShell> CurrentHistory = TCircularBuffer<ArtilleryShell>(8192); //these two should be one buffer of a shared type, but that makes using them harder
-		TCircularBuffer<BristleTime> SendStamps = TCircularBuffer<BristleTime>(8192);				//and we also want to have some type insulation here. note that type is stripped.
-		TCircularBuffer<uint32_t> ReceiptStamps = TCircularBuffer<uint32_t>(8192); //this could cause a caching perf issue, but I think it'll be fine.
+		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(8192); //these two should be one buffer of a shared type, but that makes using them harder
 		InputStreamKey MyKey; //in case, god help us, we need a lookup based on this for something else. that should NOT happen.
 
 
@@ -73,30 +66,30 @@ public:
 		void add(INNNNCOMING shells)
 		{
 			long indexInput = shells->GetCycleMeta() + 3; //faster than 3xabs or a branch.
-			CurrentHistory[highestInput] = *(shells->GetPointerToElement(indexInput%3));
-			ReceiptStamps[highestInput] = UCISArty::Now();
-			SendStamps[highestInput] = shells->GetTransferTime();//this is gonna get weird after a couple refactors, but that's why we hide it here.
+			CurrentHistory[highestInput].MyInput = *(shells->GetPointerToElement(indexInput%3));
+			CurrentHistory[highestInput].ReachedArtilleryAt = ECSParent->Now();
+			CurrentHistory[highestInput].SentAt = shells->GetTransferTime();//this is gonna get weird after a couple refactors, but that's why we hide it here.
 			++highestInput;
 		};
 
-		std::optional<ArtilleryShell> get(uint64_t input)
+		std::optional<FArtilleryShell> get(uint64_t input)
 		{
 			// the highest input is a reserved write-slot.
 			// the bound of 8k instead of 8192 is just an old man's superstition, but it should prevent some scrobbles.
 			if (input >= highestInput || (highestInput - input) > 8000) 
 			{
-				return std::optional<ArtilleryShell>(
+				return std::optional<FArtilleryShell>(
 					std::nullopt
 				);
 			}
 			else {
-				return std::optional<ArtilleryShell>(CurrentHistory[input]);
+				return std::optional<FArtilleryShell>(CurrentHistory[input]);
 			}
 		};
 
 	protected:
 		uint64_t highestInput = 0;
-
+		UCanonicalInputStreamECS* ECSParent;
 	};
 
 protected:
@@ -109,7 +102,7 @@ protected:
 
 public:
 private:
-	static UBristleconeWorldSubsystem* MySquire;
+	UBristleconeWorldSubsystem* MySquire;
 
 };
 
