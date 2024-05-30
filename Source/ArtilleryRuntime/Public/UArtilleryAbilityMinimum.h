@@ -24,7 +24,7 @@
  * abilities in some REALLY cool ways, ensuring that most abilities can see really heavy reuse.
  * 
  * That's got downsides, too. Gonna have to be mindful. Anyway, that's what this would do.
- * 
+ * This doesn't seem trivial. I'd like to defer it. It's blocking the making of guns atm.
  * 
  */
 UCLASS()
