@@ -13,6 +13,7 @@
 #include "BristleconeCommonTypes.h"
 #include "UBristleconeWorldSubsystem.h"
 #include <optional>
+#include <unordered_map>
 #include <ArtilleryShell.h>
 #include "CanonicalInputStreamECS.generated.h"
 
@@ -23,6 +24,8 @@
  */
 typedef TheCone::Packet_tpl* INNNNCOMING;
 typedef uint32_t InputStreamKey;
+typedef uint32_t PlayerKey;
+typedef uint32_t ActorKey;
 
 //TODO: finish adding the input streams, replace the local handling in Bristle54 character with references to the input stream ecs
 //TODO: begin work on the conceptual frame for reconciling and assessing what input does and does not exist.
@@ -37,6 +40,13 @@ typedef uint32_t InputStreamKey;
 //FACT: We may get server update pushes older than our input and/or older than the newest batch we have.
 //FACT: We may have different orderings.
 //FACT: we can determine the correct ordering and we all know the correct ordering of all input that made it into batches.
+
+//Notes:
+/*
+Multiversus just relays input, it's all deterministic, and it records it.
+At the end of the game, if clients disagree, it spins up a simulation and replays the inputs,
+and uses that for the outcome (and presumably flags whoever disagreed for statistical detection).
+*/
 
 
 UCLASS()
@@ -54,29 +64,25 @@ public:
 	{
 		return MySquire->Now();
 	};
+	static const uint32_t InputConservationWindow = 8192;
+	static const uint32_t AddressableInputConservationWindow = InputConservationWindow - (2 * TheCone::LongboySendHertz);
 
 	class ARTILLERYRUNTIME_API FConservedInputStream
 	{
 	public:
-		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(8192); //these two should be one buffer of a shared type, but that makes using them harder
+		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(InputConservationWindow); //these two should be one buffer of a shared type, but that makes using them harder
 		InputStreamKey MyKey; //in case, god help us, we need a lookup based on this for something else. that should NOT happen.
 
 
-
-		void add(INNNNCOMING shells)
-		{
-			long indexInput = shells->GetCycleMeta() + 3; //faster than 3xabs or a branch.
-			CurrentHistory[highestInput].MyInput = *(shells->GetPointerToElement(indexInput%3));
-			CurrentHistory[highestInput].ReachedArtilleryAt = ECSParent->Now();
-			CurrentHistory[highestInput].SentAt = shells->GetTransferTime();//this is gonna get weird after a couple refactors, but that's why we hide it here.
-			++highestInput;
-		};
-
+		//Correct usage procedure is to null check then store a copy.
+		//Failure to follow this procedure will lead to eventual misery.
 		std::optional<FArtilleryShell> get(uint64_t input)
 		{
 			// the highest input is a reserved write-slot.
-			// the bound of 8k instead of 8192 is just an old man's superstition, but it should prevent some scrobbles.
-			if (input >= highestInput || (highestInput - input) > 8000) 
+			//the lower bound here ensures that there's always minimum two seconds worth of memory separating the readers
+			//and the writers. How safe is this? It's not! But it's insanely fast. Enjoy, future jake!
+			//TODO: Refactor this to use an atomic int instead of this hubristic madness.
+			if (input >= highestInput || (highestInput - input) > AddressableInputConservationWindow)
 			{
 				return std::optional<FArtilleryShell>(
 					std::nullopt
@@ -87,9 +93,37 @@ public:
 			}
 		};
 
+		InputStreamKey GetInputStreamKeyByPlayer(PlayerKey SessionLevelPlayerID)
+		{
+			return 0;
+		};
+
+		InputStreamKey GetInputStreamKeyByLocalActorKey(ActorKey LocalLevelActorID)
+		{
+			return 0;
+		};
+
 	protected:
-		uint64_t highestInput = 0;
+		volatile uint64_t highestInput = 0; // volatile is utterly useless for its intended purpose. 
 		UCanonicalInputStreamECS* ECSParent;
+		
+		//Add can only be used by the Artillery Worker Thread through the methods of the UCISArty.
+		void add(INNNNCOMING shells)
+		{
+			long indexInput = shells->GetCycleMeta() + 3; //faster than 3xabs or a branch.
+			CurrentHistory[highestInput].MyInput = *(shells->GetPointerToElement(indexInput % 3));
+			CurrentHistory[highestInput].ReachedArtilleryAt = ECSParent->Now();
+			CurrentHistory[highestInput].SentAt = shells->GetTransferTime();//this is gonna get weird after a couple refactors, but that's why we hide it here.
+
+			// reading, adding one, and storing are all separate ops. a slice here is never dangerous but can be erroneous.
+			// because this is a volatile variable, it cannot be optimized away and most compilers will not reorder it.
+			// however, volatile is basically useless normally. it doesn't provoke a memory fence, so it doesn't
+			// normally help. There's a special case which is a monotonically increasing value that is only ever
+			// incremented by one thread with a single call site for the increment. In this case, you can still get
+			// interleaved but the value will always be either k or k+1. If it's stale in cache, the worst case
+			// is that the newest input won't be legible yet
+			++highestInput;
+		};
 	};
 
 protected:
@@ -102,9 +136,13 @@ protected:
 
 public:
 private:
+	std::unordered_map < InputStreamKey, TSharedPtr<FConservedInputStream>>* InternalMapping;
+	std::unordered_map <PlayerKey, InputStreamKey>* SessionPlayerToStreamMapping;
+	std::unordered_map <ActorKey, InputStreamKey>* LocalActorToStreamMapping;
 	UBristleconeWorldSubsystem* MySquire;
 
 };
+
 
 typedef UCanonicalInputStreamECS UCISArty;
 typedef UCISArty::FConservedInputStream ArtilleryControlStream;
