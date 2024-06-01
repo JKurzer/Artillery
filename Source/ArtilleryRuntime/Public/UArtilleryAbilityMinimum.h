@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include <unordered_map>
 #include "Abilities/GameplayAbility.h"
 #include "UArtilleryAbilityMinimum.generated.h"
 
@@ -11,31 +12,26 @@
  * I think the simplest way to fix a lot of our problems is to add two concepts to GAS:
  * ActivateLate and AtMostOnce GameplayCues to make sure things don't get re-fired.
  * 
- * ActivateLate comes in three forms:
- * ActivateOneLate
- * ActivateTwoLate
- * ActivateInstantly
  * 
+ * 
+ * AtMostOnce:
  * To ensure gameplay cues only activate once, I think we can do just some pretty simple trickery.
  * All Abilities in artillery are required to parent from this class.
  * 
- * I want to make sure that OneLate and TwoLate implementation isn't a burden. That'll need
- * some serious thought put into it. What's really nice, though, is that this lets you compose
- * abilities in some REALLY cool ways, ensuring that most abilities can see really heavy reuse.
- * 
- * That's got downsides, too. Gonna have to be mindful. Anyway, that's what this would do.
- * This doesn't seem trivial. I'd like to defer it. It's blocking the making of guns atm.
- * 
  */
 UCLASS()
-class ARTILLERYRUNTIME_API UArtilleryAbilityMinimum : public UGameplayAbility
+class ARTILLERYRUNTIME_API UArtilleryInstancedAbilityMinimum : public UGameplayAbility
 {
 	GENERATED_BODY()
-	/*
-	virtual ActivateOneLate
-	virtual ActivateTwoLate
-	virtual ActivateInstantly
-		would all be pure virtual.	
-	*/
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Latency Hiding")
+	bool RerunDueToReconcile = false;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Latency Hiding")
+	int AvailableDallyFrames = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Latency Hiding")
+	int DallyFramesToOmit = 0;
 
 };
