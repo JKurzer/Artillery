@@ -41,7 +41,7 @@
  * All Abilities in artillery are required to parent from this class.
  * 
  */
-UCLASS()
+UCLASS(NotBlueprintable)
 class ARTILLERYRUNTIME_API UArtilleryAbilitySequence : public UGameplayAbility
 {
 	GENERATED_BODY()

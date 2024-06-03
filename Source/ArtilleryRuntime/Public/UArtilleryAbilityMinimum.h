@@ -41,7 +41,7 @@
  * All Abilities in artillery are required to parent from this class.
  * 
  */
-UCLASS(NotBlueprintable)
+UCLASS()
 class ARTILLERYRUNTIME_API UArtilleryUninstancedAbilityMinimum : public UGameplayAbility
 {
 	GENERATED_BODY()
@@ -50,6 +50,10 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Latency Hiding")
 	int AvailableDallyFrames = 0;
+	
 
-
+	UArtilleryUninstancedAbilityMinimum()
+	{
+		InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
+	};
 };

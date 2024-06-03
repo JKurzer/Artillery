@@ -27,11 +27,13 @@ class ARTILLERYRUNTIME_API UArtilleryGun : public UActorComponent
 
 public:	
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		TObjectPtr<UArtilleryUninstancedAbilityMinimum> Prefire;
+		TObjectPtr<UArtilleryUninstancedAbilityMinimum> CosmeticPrefire;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		TObjectPtr<UArtilleryUninstancedAbilityMinimum> WindUp;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		TObjectPtr<UArtilleryUninstancedAbilityMinimum> Fire;
+		UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		TObjectPtr<UArtilleryUninstancedAbilityMinimum> CosmeticFire;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		TObjectPtr<UArtilleryUninstancedAbilityMinimum> WindDown;
 
