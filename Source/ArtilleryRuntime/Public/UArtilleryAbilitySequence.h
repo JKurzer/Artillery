@@ -9,7 +9,7 @@
 
 #include "GameplayEffect.h"
 #include "Abilities/GameplayAbility.h"
-#include "UArtilleryAbilityMinimum.generated.h"
+#include "UArtilleryAbilitySequence.generated.h"
 
 /**
  * This is more of a note with the idea embodied in code. Still not sure I love it, but...
@@ -41,15 +41,11 @@
  * All Abilities in artillery are required to parent from this class.
  * 
  */
-UCLASS(NotBlueprintable)
-class ARTILLERYRUNTIME_API UArtilleryUninstancedAbilityMinimum : public UGameplayAbility
+UCLASS()
+class ARTILLERYRUNTIME_API UArtilleryAbilitySequence : public UGameplayAbility
 {
 	GENERATED_BODY()
 
 public:
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Latency Hiding")
-	int AvailableDallyFrames = 0;
-
 
 };
