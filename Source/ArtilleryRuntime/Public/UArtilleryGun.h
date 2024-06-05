@@ -20,6 +20,7 @@
  * https://github.com/lucoiso/UEElementusModules/tree/main/Modules/Source/ElementusAbilitySystem/Public
  * is prolly the thing to harvest.
  */
+
 UCLASS()
 class ARTILLERYRUNTIME_API UArtilleryGun : public UActorComponent
 {
@@ -44,5 +45,5 @@ public:
 		bool RerunDueToReconcile = false;
 
 private:
-	UArtilleryAbilitySequence EncapsulatedGASMachinery;
+	TObjectPtr <UArtilleryAbilitySequence> EncapsulatedGASMachinery;
 };
