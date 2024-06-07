@@ -30,7 +30,7 @@ public:
 	//Mapping from keys to gameplay outcomes (functions) happens outside of Artillery.
 	//this means that you can reliably re-execute remote input without needing their control mappings, and is fairly essential
 	//to maintaining sanity. 
-	TheCone::PacketElement MyInput; 
+	TheCone::PacketElement MyInputActions; 
 	BristleTime SentAt;
 	ArtilleryTime ReachedArtilleryAt;
 	bool RunAtLeastOnce = false; // if this is set, all artillery abilities spawned by running this input will be treated as having run at least once, and will not spawn cosmetic cues. Some animations may still play.

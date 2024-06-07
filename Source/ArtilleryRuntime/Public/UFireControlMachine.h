@@ -12,7 +12,9 @@
 
 #include "UAbilityFireControl.generated.h"
 
-class ARTILLERYRUNTIME_API UAbilityFireControl : public 
+//dynamic constructed statemachine for matching patterns in action records to triggering abilities.
+
+class ARTILLERYRUNTIME_API UFireControlMachine : public 
 
 {
 public:	

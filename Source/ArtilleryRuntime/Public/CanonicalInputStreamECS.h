@@ -111,7 +111,7 @@ public:
 		void add(INNNNCOMING shells)
 		{
 			long indexInput = shells->GetCycleMeta() + 3; //faster than 3xabs or a branch.
-			CurrentHistory[highestInput].MyInput = *(shells->GetPointerToElement(indexInput % 3));
+			CurrentHistory[highestInput].MyInputActions = *(shells->GetPointerToElement(indexInput % 3));
 			CurrentHistory[highestInput].ReachedArtilleryAt = ECSParent->Now();
 			CurrentHistory[highestInput].SentAt = shells->GetTransferTime();//this is gonna get weird after a couple refactors, but that's why we hide it here.
 
