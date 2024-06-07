@@ -42,7 +42,7 @@
  * 
  */
 UCLASS(NotBlueprintable)
-class ARTILLERYRUNTIME_API UArtilleryAbilitySequence : public UGameplayAbility
+class ARTILLERYRUNTIME_API UArtilleryAbilitySequence : public UArtilleryUninstancedAbilityMinimum
 {
 	GENERATED_BODY()
 

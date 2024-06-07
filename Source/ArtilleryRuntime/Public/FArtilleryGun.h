@@ -8,7 +8,6 @@
 #include "GameplayEffectTypes.h"
 #include "GameplayEffect.h"
 #include "Abilities/GameplayAbility.h"
-#include "UArtilleryGun.generated.h"
 
 /**
  * This class will be a data-driven instance of a gun that encapsulates a generic structured ability,
@@ -19,13 +18,16 @@
  * 
  * https://github.com/lucoiso/UEElementusModules/tree/main/Modules/Source/ElementusAbilitySystem/Public
  * is prolly the thing to harvest.
+ * 
+ * Artillery gun is a not a UObject. This allows us to safely interact with it off the game thread.
+ * Triggering the abilities is likely a no-go off the thread, but we can modify the attributes as needed.
+ * This allows us to do some very very powerful stuff to ensure that we always have the most up to date data.
+ * Some dark things.
  */
-
-UCLASS()
-class ARTILLERYRUNTIME_API UArtilleryGun : public UActorComponent
+class UArtilleryGun;
+class ARTILLERYRUNTIME_API FArtilleryGun 
 {
-	GENERATED_BODY()
-
+	friend class UArtilleryGun;
 public:	
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		TObjectPtr<UArtilleryUninstancedAbilityMinimum> CosmeticPrefire;
@@ -44,6 +46,7 @@ public:
 		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Latency Hiding")
 		bool RerunDueToReconcile = false;
 
-private:
+protected:
 	TObjectPtr <UArtilleryAbilitySequence> EncapsulatedGASMachinery;
 };
+

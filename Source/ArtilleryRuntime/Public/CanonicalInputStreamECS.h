@@ -121,7 +121,7 @@ public:
 			// normally help. There's a special case which is a monotonically increasing value that is only ever
 			// incremented by one thread with a single call site for the increment. In this case, you can still get
 			// interleaved but the value will always be either k or k+1. If it's stale in cache, the worst case
-			// is that the newest input won't be legible yet
+			// is that the newest input won't be legible yet and this can be resolved by repolling.
 			++highestInput;
 		};
 	};
