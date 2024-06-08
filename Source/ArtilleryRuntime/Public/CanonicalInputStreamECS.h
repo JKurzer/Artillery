@@ -63,8 +63,8 @@ class ARTILLERYRUNTIME_API UCanonicalInputStreamECS : public UTickableWorldSubsy
  * single producer, single consumer, multiple observer. I don't recommend that, due to the need to mark records as played for cosmetics.
  * 
  * It is possible that an observer might end up with a stale view of if a record's cosmetic effects have been applied, in this circumstance.
- * This is DONE DURING THE GET.
- * That can lead to an unholy mess. If you need an observer, ensure that it does not regard cosmetics as important and add a PEEK.
+ * This is DONE DURING THE GET. That can lead to an unholy mess. If you need an observer, ensure that it does not regard cosmetics as important
+ * AND use a PEEK.
  */
 public:
 	ArtilleryTime Now()
@@ -98,6 +98,26 @@ public:
 			}
 			else {
 				CurrentHistory[input].RunAtLeastOnce = true; //this is the only risky op in here from a threading perspective.
+				return std::optional<FArtilleryShell>(CurrentHistory[input]);
+			}
+		};
+
+		//THE ONLY DIFFERENCE WITH PEEK IS THAT IT DOES NOT SET RUNATLEASTONCE.
+		//PEEK IS PROVIDED ONLY AS AN EMERGENCY OPTION, AND IF YOU FIND YOURSELF USING IT
+		//MAY GOD HAVE MERCY ON YOUR SOUL.
+		std::optional<FArtilleryShell> peek(uint64_t input)
+		{
+			// the highest input is a reserved write-slot.
+			//the lower bound here ensures that there's always minimum two seconds worth of memory separating the readers
+			//and the writers. How safe is this? It's not! But it's insanely fast. Enjoy, future jake!
+			//TODO: Refactor this to use an atomic int instead of this hubristic madness.
+			if (input >= highestInput || (highestInput - input) > AddressableInputConservationWindow)
+			{
+				return std::optional<FArtilleryShell>(
+					std::nullopt
+				);
+			}
+			else {
 				return std::optional<FArtilleryShell>(CurrentHistory[input]);
 			}
 		};
