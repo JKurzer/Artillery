@@ -3,12 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CoreTypes.h"
 #include <unordered_map>
 
 #include "GameplayEffectTypes.h"
 #include "GameplayEffect.h"
 #include "Abilities/GameplayAbility.h"
 #include "UArtilleryAbilityMinimum.h"
+#include "UArtilleryAbilitySequence.h"
+#include "FArtilleryGun.generated.h"
 
 /**
  * This class will be a data-driven instance of a gun that encapsulates a generic structured ability,
@@ -25,8 +28,10 @@
  * This allows us to do some very very powerful stuff to ensure that we always have the most up to date data.
  * Some dark things.
  */
-class ARTILLERYRUNTIME_API FArtilleryGun 
+USTRUCT(BlueprintType)
+struct ARTILLERYRUNTIME_API FArtilleryGun 
 {
+	GENERATED_BODY()
 public:	
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		TObjectPtr<UArtilleryUninstancedAbilityMinimum> CosmeticPrefire;
