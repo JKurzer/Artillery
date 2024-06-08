@@ -11,7 +11,7 @@
 #include "Abilities/GameplayAbility.h"
 #include "Containers/CircularQueue.h"
 #include <bitset>
-#include "UAbilityFireControl.generated.h"
+#include "UFireControlMachine.generated.h"
 
 //dynamic constructed statemachine for matching patterns in action records to triggering abilities.
 
@@ -35,12 +35,15 @@ class FActionPattern
 class ARTILLERYRUNTIME_API UFireControlMachine : public UActorComponent
 
 {
+
+	GENERATED_BODY()
+
 public:	
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		TMap<FGunKey, FArtilleryGun> MyManagedGuns;
 		UAttributeSet MyAttributes; // might want to defactor this to an ECS, but I actually quite like it here.
 		UAbilitySystemComponent* SystemComponentToBind;
-		bool pushPatternToRunner(FActionPattern ToBind, FActionBitMask ToSeek, FGunKey ToFire)
+		bool pushPatternToRunner(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
 		{
 			return false;
 		};
@@ -51,8 +54,11 @@ public:
 		};
 		
 		void BeginPlay() override {
-			Super();
+			Super::BeginPlay();
 			//likely want to manage system component bind here by checking for actor parent.
-			UActorComponent::GetOwner();
+			//right now, we can push all our patterns here as well, and we can use a static set of patterns for
+			//each of our fire control machines. you can basically think of a fire control machine as a full set
+			//of related abilities, their attributes, and similar required to, you know, actually fire a gun.
+			//There's a bit more blueprint exposure work to do here as a result.
 		};
 };

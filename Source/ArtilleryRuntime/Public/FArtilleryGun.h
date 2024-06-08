@@ -8,6 +8,7 @@
 #include "GameplayEffectTypes.h"
 #include "GameplayEffect.h"
 #include "Abilities/GameplayAbility.h"
+#include "UArtilleryAbilityMinimum.h"
 
 /**
  * This class will be a data-driven instance of a gun that encapsulates a generic structured ability,
@@ -24,10 +25,8 @@
  * This allows us to do some very very powerful stuff to ensure that we always have the most up to date data.
  * Some dark things.
  */
-class UArtilleryGun;
 class ARTILLERYRUNTIME_API FArtilleryGun 
 {
-	friend class UArtilleryGun;
 public:	
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		TObjectPtr<UArtilleryUninstancedAbilityMinimum> CosmeticPrefire;

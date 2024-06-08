@@ -31,7 +31,9 @@ public class ArtilleryRuntime : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"Slate",
-				"SlateCore",
+				"ApplicationCore",
+				"InputCore",
+                "SlateCore",
 				"GameplayAbilities",
 				"Bristlecone"
 				// ... add other public dependencies that you statically link with here ...
