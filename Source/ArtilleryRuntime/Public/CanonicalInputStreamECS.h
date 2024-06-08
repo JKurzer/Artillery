@@ -58,6 +58,13 @@ class ARTILLERYRUNTIME_API UCanonicalInputStreamECS : public UTickableWorldSubsy
  * Conserved input streams record their last 8,192 inputs. Yes, that's a few megs across all streams. No, it doesn't really seem to matter.
  * Currently, this is for debug purposes, but we can use it with some additional features to provide a really expressive
  * model for rollback at a SUPER granular level if needed. UE has existing rollback tech, though so...
+ * 
+ * These streams are designed for single reader, single producer, but it is hypothetically possible to have a format where you do
+ * single producer, single consumer, multiple observer. I don't recommend that, due to the need to mark records as played for cosmetics.
+ * 
+ * It is possible that an observer might end up with a stale view of if a record's cosmetic effects have been applied, in this circumstance.
+ * This is DONE DURING THE GET.
+ * That can lead to an unholy mess. If you need an observer, ensure that it does not regard cosmetics as important and add a PEEK.
  */
 public:
 	ArtilleryTime Now()
@@ -76,6 +83,7 @@ public:
 
 		//Correct usage procedure is to null check then store a copy.
 		//Failure to follow this procedure will lead to eventual misery.
+		//This has a side-effect of marking the record as played at least once.
 		std::optional<FArtilleryShell> get(uint64_t input)
 		{
 			// the highest input is a reserved write-slot.
@@ -89,6 +97,7 @@ public:
 				);
 			}
 			else {
+				CurrentHistory[input].RunAtLeastOnce = true; //this is the only risky op in here from a threading perspective.
 				return std::optional<FArtilleryShell>(CurrentHistory[input]);
 			}
 		};
@@ -117,8 +126,10 @@ public:
 
 			// reading, adding one, and storing are all separate ops. a slice here is never dangerous but can be erroneous.
 			// because this is a volatile variable, it cannot be optimized away and most compilers will not reorder it.
-			// however, volatile is basically useless normally. it doesn't provoke a memory fence, so it doesn't
-			// normally help. There's a special case which is a monotonically increasing value that is only ever
+			// however, volatile is basically useless normally. it doesn't provoke a memory fence, and for a variety of reasons
+			// it's not suitable for most driver applications. However.
+			// 
+			// There's a special case which is a monotonically increasing value that is only ever
 			// incremented by one thread with a single call site for the increment. In this case, you can still get
 			// interleaved but the value will always be either k or k+1. If it's stale in cache, the worst case
 			// is that the newest input won't be legible yet and this can be resolved by repolling.
