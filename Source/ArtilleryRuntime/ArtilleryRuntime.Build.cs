@@ -8,7 +8,7 @@ public class ArtilleryRuntime : ModuleRules
 {
 	public ArtilleryRuntime(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+		PCHUsage = ModuleRules.PCHUsageMode.UseSharedPCHs;
 
 		PublicIncludePaths.AddRange(
 			new string[] {
