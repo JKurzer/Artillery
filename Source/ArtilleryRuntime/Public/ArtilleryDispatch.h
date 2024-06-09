@@ -6,6 +6,8 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "UBristleconeWorldSubsystem.h"
 #include "UCablingWorldSubsystem.h"
+#include "ArtilleryCommonTypes.h"
+#include "FArtilleryBusyWorker.h"
 #include "ArtilleryDispatch.generated.h"
 
 
@@ -26,6 +28,9 @@ protected:
 	virtual TStatId GetStatId() const override;
 
 public:
+	bool registerPattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire);
+	bool removePattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire);
+	FGunKey getNewGunInstance(FString GunDefinitionID);
 
 	std::atomic_bool UseNetworkInput;
 	TheCone::RecvQueue InputRingBuffer;
@@ -33,5 +38,7 @@ public:
 	bool missedPrior = false;
 	bool burstDropDetected = false;
 private:
+	FArtilleryBusyWorker ArtilleryAsyncWorldSim;
 
+	TUniquePtr<FRunnableThread> WorldSim_Thread;
 };
