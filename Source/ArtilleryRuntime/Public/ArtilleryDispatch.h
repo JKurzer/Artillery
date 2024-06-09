@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "UBristleconeWorldSubsystem.h"
+#include "UCablingWorldSubsystem.h"
 #include "ArtilleryDispatch.generated.h"
+
 
 /**
  * Component for separating UI dependencies.
@@ -24,6 +27,11 @@ protected:
 
 public:
 
+	std::atomic_bool UseNetworkInput;
+	TheCone::RecvQueue InputRingBuffer;
+	TheCone::SendQueue InputSwapSlot;
+	bool missedPrior = false;
+	bool burstDropDetected = false;
 private:
 
 };
