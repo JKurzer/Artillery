@@ -8,6 +8,7 @@
 #include "UCablingWorldSubsystem.h"
 #include "ArtilleryCommonTypes.h"
 #include "FArtilleryBusyWorker.h"
+#include "CanonicalInputStreamECS.h"
 #include "ArtilleryDispatch.generated.h"
 
 
@@ -39,6 +40,8 @@ public:
 	bool burstDropDetected = false;
 private:
 	FArtilleryBusyWorker ArtilleryAsyncWorldSim;
-
 	TUniquePtr<FRunnableThread> WorldSim_Thread;
+
+	// TODO remove once ArtilleryWorker hooked up
+	ArtilleryControlStream controlStream;
 };

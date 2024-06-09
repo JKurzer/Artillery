@@ -12,6 +12,8 @@
 
 #include "ArtilleryShell.generated.h"
 
+
+
 /**
  Artillery provides an opaque storage optimized containerization for the bristlecone packed input, 
  effectively hiding the complexities from the rest of the system. We will need to refactor this to an abstract 

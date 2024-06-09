@@ -14,6 +14,7 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 	if ([[maybe_unused]] const UWorld* World = InWorld.GetWorld()) {
 		UE_LOG(LogTemp, Warning, TEXT("ArtilleryDispatch:Subsystem: World beginning play"));
 	}
+	// getting input from Bristle
 	UseNetworkInput.store(true);
 	UBristleconeWorldSubsystem* MySquire = GetWorld()->GetSubsystem<UBristleconeWorldSubsystem>();
 	InputRingBuffer = MakeShareable(new PacketQ(256));
@@ -21,6 +22,10 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 	UCablingWorldSubsystem* DirectLocalInputSystem = GetWorld()->GetSubsystem<UCablingWorldSubsystem>();
 	InputSwapSlot = MakeShareable(new IncQ(256));
 	DirectLocalInputSystem->DestructiveChangeLocalOutboundQueue(InputSwapSlot);
+
+	// pushing input somewhere
+	// TODO how do we get PlayerKey?
+	// controlStream = 
 }
 
 void UArtilleryDispatch::Deinitialize()
@@ -34,7 +39,6 @@ void UArtilleryDispatch::Tick(float DeltaTime)
 	//Super::Tick(DeltaTime);
 	TheCone::PacketElement current = 0;
 	bool input = false;
-	std::vector<TheCone::PacketElement> m = std::vector<TheCone::PacketElement>();
 
 	if (UseNetworkInput.load())
 	{
@@ -42,13 +46,14 @@ void UArtilleryDispatch::Tick(float DeltaTime)
 		{
 			const TheCone::Packet_tpl* packedInput = InputRingBuffer.Get()->Peek();
 			auto indexInput = packedInput->GetCycleMeta() + 3; //faster than 3xabs or a branch.
-			m.push_back(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement(indexInput % 3));
+			// TODO move to ... worker?
+			controlStream.add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement(indexInput % 3));
 			if (missedPrior)
 			{
-				m.push_back(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 1) % 3));
+				controlStream.add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 1) % 3));
 				if (burstDropDetected)
 				{
-					m.push_back(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 2) % 3));
+					controlStream.add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 2) % 3));
 				}
 			}
 			input = true;
@@ -61,26 +66,18 @@ void UArtilleryDispatch::Tick(float DeltaTime)
 		{
 			current = *InputSwapSlot.Get()->Peek();
 			//TODO, move this into unpackstick, replace int call with enum, make stick non-static instance-only
-			m.push_back(current);
+			controlStream.add(current);
 			input = true;
 			InputSwapSlot.Get()->Dequeue();
 		}
 	}
 	if (input == true)
 	{
-		for (int i = 0; i < m.size(); ++i)
-		{
-			// TODO push into stream
-			DoLeftStickMove(m[i], m.size(), ratio);
-		}
 		missedPrior = false;
 		burstDropDetected = false;
 	}
 	else
 	{
-
-		AddMovementInput(GetActorForwardVector(), previousY * ratio);
-		AddMovementInput(GetActorRightVector(), previousX * ratio);
 		if (burstDropDetected)
 		{
 			//add rolling average switch-over here
