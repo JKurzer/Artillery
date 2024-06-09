@@ -4,6 +4,7 @@
 #include "CoreTypes.h"
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
+#include "AttributeSet.h"
 #include <unordered_map>
 
 #include "GameplayEffectTypes.h"
@@ -14,7 +15,9 @@
 #include "Containers/CircularQueue.h"
 #include "CanonicalInputStreamECS.h"
 #include <bitset>
+#include "ArtilleryDispatch.h"
 #include "ArtilleryCommonTypes.h"
+#include "Components/ActorComponent.h"
 #include "UFireControlMachine.generated.h"
 
 //dynamic constructed statemachine for matching patterns in action records to triggering abilities.
@@ -45,22 +48,23 @@ class ARTILLERYRUNTIME_API UFireControlMachine : public UActorComponent
 	GENERATED_BODY()
 
 public:	
+		UArtilleryDispatch* MySquire;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		TMap<FGunKey, FArtilleryGun> MyManagedGuns;
 		//this needs to be replicated in iris, interestin'ly.
 		TObjectPtr <UAttributeSet> MyAttributes; // might want to defactor this to an ECS, but I actually quite like it here.
 		//still wondering who owns the input streams...
 		TObjectPtr<UAbilitySystemComponent> SystemComponentToBind;
-
+		
 		//Should this include the input stream key? probably?
 		bool pushPatternToRunner(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
 		{
-			return false;
+			return MySquire->registerPattern(ToBind, ToSeek, ToFire);
 		};
 
 		bool popPatternFromRunner(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
 		{
-			return false;
+			return MySquire->removePattern(ToBind, ToSeek, ToFire);
 		};
 
 
@@ -71,7 +75,7 @@ public:
 		
 		void BeginPlay() override {
 			Super::BeginPlay();
-
+			MySquire = GetOwner()->GetWorld()->GetSubsystem<UArtilleryDispatch>();
 			//likely want to manage system component bind here by checking for actor parent.
 			//right now, we can push all our patterns here as well, and we can use a static set of patterns for
 			//each of our fire control machines. you can basically think of a fire control machine as a full set

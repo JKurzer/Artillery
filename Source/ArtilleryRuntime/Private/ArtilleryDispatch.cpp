@@ -31,3 +31,18 @@ TStatId UArtilleryDispatch::GetStatId() const
 {
 	RETURN_QUICK_DECLARE_CYCLE_STAT(UArtilleryDispatch, STATGROUP_Tickables);
 }
+
+bool UArtilleryDispatch::registerPattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
+{
+	return false;
+}
+
+bool UArtilleryDispatch::removePattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
+{
+	return false;
+}
+
+FGunKey UArtilleryDispatch::getNewGunInstance(FString GunDefinitionID)
+{
+	return FGunKey();
+}

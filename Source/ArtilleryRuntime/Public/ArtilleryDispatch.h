@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "ArtilleryCommonTypes.h"
+#include "FArtilleryBusyWorker.h"
 #include "ArtilleryDispatch.generated.h"
 
 /**
@@ -23,7 +25,12 @@ protected:
 	virtual TStatId GetStatId() const override;
 
 public:
+	bool registerPattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire);
+	bool removePattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire);
+	FGunKey getNewGunInstance(FString GunDefinitionID);
 
 private:
+	FArtilleryBusyWorker ArtilleryAsyncWorldSim;
 
+	TUniquePtr<FRunnableThread> WorldSim_Thread;
 };
