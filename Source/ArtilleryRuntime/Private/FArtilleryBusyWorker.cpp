@@ -76,12 +76,24 @@ uint32 FArtilleryBusyWorker::Run() {
 		}
 
 		
-		//work goes here.
+		/*
+		* 
+		* Movement processing calls go here.
+		* The busy worker shouldn't do the movement, but... it could?
+		* Still trying to decide what to do on the main thread and what to do here.
+		* 
+		* 
+		*/
 
+#define ARTILLERY_FIRE_CONTROL_MACHINE_HANDLING (false)
 		/*
 		* 
 		* Pattern matching will go here.
+		* artillery fire control machines bind their input search patterns to this thread
+		* hence their names, they're effectively facades for a larger finite state machine 
+		* found here.
 		* 
+		* this emits events that the artillery fire control machines use as triggers
 		* 
 		* 
 		*/

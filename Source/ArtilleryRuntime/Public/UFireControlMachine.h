@@ -55,7 +55,11 @@ public:
 		TObjectPtr <UAttributeSet> MyAttributes; // might want to defactor this to an ECS, but I actually quite like it here.
 		//still wondering who owns the input streams...
 		TObjectPtr<UAbilitySystemComponent> SystemComponentToBind;
-		
+
+		//*******************************************************************************************
+		//patterns are run in ArtilleryBusyWorker. Search for ARTILLERY_FIRE_CONTROL_MACHINE_HANDLING
+		//*******************************************************************************************
+
 		//Should this include the input stream key? probably?
 		bool pushPatternToRunner(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
 		{
