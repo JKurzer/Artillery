@@ -21,7 +21,7 @@ To finish out the fun, we may also have an issue with how and where and when ASC
 ## Solution Design
 Unlike regular unreal, we have powerful time synchronization primitives from bristlecone and a concept of subframe accuracy. This allows us to quickly compose updates by simply zipping them together using the timestamp. Gameplay Cues remain an outstanding question, but with the concept of zip-and-reconcile available to us, we have a way to do exact state recovery without needing true determinism OR a full gamestate transmission.
 
-##**[Final Architecture](https://miro.com/app/board/uXjVK9qqzUc=/)**  
+## **[Final Architecture](https://miro.com/app/board/uXjVK9qqzUc=/)**  
 By tracking the GAMEPLAY ABILITIES as EVENTS and then ZIPPING them together like this - effectively eventual consistency via event sourcing, a la kafka - we can determine if an ability or cue would be a double trigger easily within a very high margin of precision by combining Bristlecone cycle, Bristlecone time, and the event properties. I'm not exactly sure what form this will need to take, and it's not clear to me yet what the best approach is for reconciliation, but we do have the primitives needed to actually perform it.
 
 I intend to expand the conserved attribute to support timestamping its changes, allowing us to do a highly granular reconciliation with a very low actual bandwidth cost, assuming this reconciliation is delta compressed and occurs irregularly. There's still a bunch of questions here, but I now believe it to be tractable. I think there's actually already some stuff for preventing double triggers of cues in Unreal, but I haven't refreshed my memory yet. Now it feels like it's just a matter of sorting the puzzle pieces.
