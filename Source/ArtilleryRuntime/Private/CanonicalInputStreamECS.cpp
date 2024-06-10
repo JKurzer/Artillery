@@ -42,3 +42,9 @@ bool UCanonicalInputStreamECS::removePattern(TSharedPtr<FActionPattern> ToBind, 
 {
 	return false;
 }
+
+ActorKey UCanonicalInputStreamECS::registerFCMKeyToParentActorMapping(AActor* parent, FireControlKey MyKey)
+{
+	//todo, registration goes here.
+	return 0;
+}

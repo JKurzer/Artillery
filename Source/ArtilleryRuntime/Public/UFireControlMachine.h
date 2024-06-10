@@ -52,6 +52,7 @@ public:
 		TObjectPtr <UAttributeSet> MyAttributes; // might want to defactor this to an ECS, but I actually quite like it here.
 		//still wondering who owns the input streams...
 		TObjectPtr<UAbilitySystemComponent> SystemComponentToBind;
+		FireControlKey MyKey;
 		//*******************************************************************************************
 		//patterns are run in ArtilleryBusyWorker. Search for ARTILLERY_FIRE_CONTROL_MACHINE_HANDLING
 		//*******************************************************************************************
@@ -78,12 +79,12 @@ public:
 			UActorComponent::BeginPlay(); // using this over the looser super atm. TODO: validate!!!!!
 			MySquire = GetOwner()->GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 			MyKey = UFireControlMachine::orderInFirstBeginPlay++;
+			MySquire->registerFCMKeyToParentActorMapping(GetOwner(), MyKey);
 			//likely want to manage system component bind here by checking for actor parent.
 			//right now, we can push all our patterns here as well, and we can use a static set of patterns for
 			//each of our fire control machines. you can basically think of a fire control machine as a full set
 			//of related abilities, their attributes, and similar required to, you know, actually fire a gun.
 			//There's a bit more blueprint exposure work to do here as a result.
 		};
-private:
-	int MyKey;
+
 };

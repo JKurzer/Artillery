@@ -72,6 +72,7 @@ public:
 	
 	bool registerPattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor);
 	bool removePattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor);
+	ActorKey registerFCMKeyToParentActorMapping(AActor* parent, FireControlKey MyKey);
 	class ARTILLERYRUNTIME_API FConservedInputStream
 	{
 	friend class FArtilleryBusyWorker;
