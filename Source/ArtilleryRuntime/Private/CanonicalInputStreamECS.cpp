@@ -14,6 +14,7 @@ void UCanonicalInputStreamECS::OnWorldBeginPlay(UWorld& InWorld)
 	if ([[maybe_unused]] const UWorld* World = InWorld.GetWorld()) {
 		UE_LOG(LogTemp, Warning, TEXT("Artillery::CanonicalInputStream is Operational"));
 		MySquire = GetWorld()->GetSubsystem<UBristleconeWorldSubsystem>();
+		SingletonPatternMatcher = MakeShareable<UCanonicalInputStreamECS::FConservedInputPatternMatcher>( new UCanonicalInputStreamECS::FConservedInputPatternMatcher());
 	}
 }
 
@@ -35,11 +36,14 @@ TStatId UCanonicalInputStreamECS::GetStatId() const
 
 bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor)
 {
+
+	//this should modify the singleton PatternMatcher
 	return false;
 }
 
 bool UCanonicalInputStreamECS::removePattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor)
 {
+	//this should modify the singleton PatternMatcher
 	return false;
 }
 

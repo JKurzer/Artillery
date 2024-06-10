@@ -26,6 +26,7 @@ typedef uint32_t FireControlKey;
 #include <bitset>
 #include "Containers/CircularBuffer.h"
 #include "FGunKey.h"
+constexpr int ArtilleryInputSearchWindow = 70;
 struct FActionPatternParams
 {
 public:

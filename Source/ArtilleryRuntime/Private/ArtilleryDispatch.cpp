@@ -13,15 +13,17 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 {
 	if ([[maybe_unused]] const UWorld* World = InWorld.GetWorld()) {
 		UE_LOG(LogTemp, Warning, TEXT("ArtilleryDispatch:Subsystem: World beginning play"));
+		// getting input from Bristle
+		UseNetworkInput.store(true);
+		UBristleconeWorldSubsystem* MySquire = GetWorld()->GetSubsystem<UBristleconeWorldSubsystem>();
+		ArtilleryAsyncWorldSim.InputRingBuffer = MakeShareable(new PacketQ(256));
+		MySquire->QueueOfReceived = ArtilleryAsyncWorldSim.InputRingBuffer;
+		UCablingWorldSubsystem* DirectLocalInputSystem = GetWorld()->GetSubsystem<UCablingWorldSubsystem>();
+		ArtilleryAsyncWorldSim.InputSwapSlot = MakeShareable(new IncQ(256));
+		DirectLocalInputSystem->DestructiveChangeLocalOutboundQueue(ArtilleryAsyncWorldSim.InputSwapSlot);
+		ArtilleryAsyncWorldSim.MyPatternMatcher = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>()->SingletonPatternMatcher;
 	}
-	// getting input from Bristle
-	UseNetworkInput.store(true);
-	UBristleconeWorldSubsystem* MySquire = GetWorld()->GetSubsystem<UBristleconeWorldSubsystem>();
-	ArtilleryAsyncWorldSim.InputRingBuffer = MakeShareable(new PacketQ(256));
-	MySquire->QueueOfReceived = ArtilleryAsyncWorldSim.InputRingBuffer;
-	UCablingWorldSubsystem* DirectLocalInputSystem = GetWorld()->GetSubsystem<UCablingWorldSubsystem>();
-	ArtilleryAsyncWorldSim.InputSwapSlot = MakeShareable(new IncQ(256));
-	DirectLocalInputSystem->DestructiveChangeLocalOutboundQueue(ArtilleryAsyncWorldSim.InputSwapSlot);
+
 
 	// Q: how do we get PlayerKey?
 	// ANS: Currently, we don't. 

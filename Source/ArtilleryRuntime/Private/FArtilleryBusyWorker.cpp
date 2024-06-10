@@ -98,6 +98,9 @@ uint32 FArtilleryBusyWorker::Run() {
 		* 
 		*/
 
+		//Pattern Matcher runs patterns here.
+		//START HERE AND WORK YOUR WAY OUT TO UNDERSTAND PATTERNS, MATCHING, AND INPUT FLOW.
+		MyPatternMatcher->runOneFrameWithSideEffects(true);
 		/*
 		* 
 		* Does rollback & reconciliation go here?

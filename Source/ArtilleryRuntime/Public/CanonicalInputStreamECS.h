@@ -69,6 +69,7 @@ public:
 	static const uint32_t InputConservationWindow = 8192;
 	static const uint32_t AddressableInputConservationWindow = InputConservationWindow - (2 * TheCone::LongboySendHertz);
 	friend class FArtilleryBusyWorker;
+	friend class UArtilleryDispatch;
 	
 	bool registerPattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor);
 	bool removePattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor);
@@ -166,25 +167,53 @@ public:
 	};
 
 	//Used in the busyworker
+	//There should only be one of these fuckers.
+	//This is really just a way of grouping some of the functionality
+	//of the overarching world subsystem together into an FClass that can
+	//be used safely off thread without any consideration. you can use Uclasses if you're careful but...
 	class ARTILLERYRUNTIME_API FConservedInputPatternMatcher
 	{
+		
 		friend class FArtilleryBusyWorker;
 	public:
-		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(InputConservationWindow); //these two should be one buffer of a shared type, but that makes using them harder
+		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(ArtilleryInputSearchWindow);
 		TSet<InputStreamKey> MyStreamKeys; //in case, god help us, we need a lookup based on this for something else. that should NOT happen.
 		
-		TMap<TSharedPtr<FActionPattern_InternallyStateless>, FActionPatternParams> AllPatterns; //broadly, at the moment, there is ONE pattern matcher running
+		TMap<TSharedPtr<FActionPattern_InternallyStateless>, TArray<FActionPatternParams>> AllPatternBinds; //broadly, at the moment, there is ONE pattern matcher running
+		TArray<TSharedPtr<FActionPattern_InternallyStateless>> AllPatterns;
+		void GlassCurrentHistory()
+		{
+			CurrentHistory = TCircularBuffer<FArtilleryShell>(ArtilleryInputSearchWindow); //expect the search window to be big.
+		};
 
-		//Correct usage procedure is to null check then store a copy.
-		//Failure to follow this procedure will lead to eventual misery.
-		//This has a side-effect of marking the record as played at least once.
+		//***********************************************************
+		//
+		// THIS IS THE IMPORTANT FUNCTION.
+		//
+		// ***********************************************************
+		//
+		// This makes things run. currently, it doesn't correctly handle really anything
+		// but it's come together now so that you can see what's happening.
+		// This has a side-effect of marking the record as played at least once.
 		bool runOneFrameWithSideEffects(bool isResim_Unimplemented)
 		{
-			if (isResim_Unimplemented)
+			if (!isResim_Unimplemented)
 			{
-				return false; //we don't do this yet.
+				UE_LOG(LogTemp, Display, TEXT("Still no resim, actually."));
 			}
 
+			for (int i = 0; i < AllPatterns.Num(); ++i)
+			{
+				//TODO: allpatternbinds gets used here soon.
+				//This will match patterns and push events up to the Fire Control Machines. There likely will only be 12 or 18 FCMs running
+				//EVER because I think we'll want to treat each AI faction pretty much as a single FCM except for a few bosses.
+
+				//we also need to do the movement control either here, or back in the busy worker separately.
+				//and that means we need an answer for how to do stick-flicks. they're such an unusual input
+				//that I'm really inclined to just hand-jam them as a sort of Weird Pattern you can subscribe to
+				//that secretly checks the sticks.
+
+			}
 			return true; //well take a nap ZEN fire ZE missiles.
 		};
 	protected:
@@ -192,6 +221,8 @@ public:
 	};
 
 protected:
+	//this will need to be triple buffered or synchroed soon. :/
+	TSharedPtr<UCanonicalInputStreamECS::FConservedInputPatternMatcher> SingletonPatternMatcher;
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
