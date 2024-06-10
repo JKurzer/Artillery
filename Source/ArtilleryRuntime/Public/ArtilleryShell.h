@@ -11,6 +11,9 @@
 #include "BristleconeCommonTypes.h"
 
 #include "ArtilleryShell.generated.h"
+
+
+
 /**
  Artillery provides an opaque storage optimized containerization for the bristlecone packed input, 
  effectively hiding the complexities from the rest of the system. We will need to refactor this to an abstract 
@@ -34,8 +37,15 @@ public:
 	BristleTime SentAt;
 	ArtilleryTime ReachedArtilleryAt;
 	bool RunAtLeastOnce = false; // if this is set, all artillery abilities spawned by running this input will be treated as having run at least once, and will not spawn cosmetic cues. Some animations may still play.
-
+	
+	uint32 GetStickLeftX();
+	uint32 GetStickLeftY();
+	uint32 GetStickRightX();
+	uint32 GetStickRightY();
+	bool GetInputAction(int inputActionIndex);
+	bool GetEvent(int eventIndex);
 private:
+	
 	//TODO ADD METHODS FOR GET STICKS, GET BUTTONS, GET EVENTS.
 	//DO NOT LET THE BITBASHING OUT OF THE BOX.
 
