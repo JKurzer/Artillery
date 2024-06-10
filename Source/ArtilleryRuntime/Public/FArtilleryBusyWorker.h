@@ -4,6 +4,7 @@
 #include "FControllerState.h"
 #include "SocketSubsystem.h"
 #include "CanonicalInputStreamECS.h"
+#include <thread>
 #include "BristleconeCommonTypes.h"
 
 

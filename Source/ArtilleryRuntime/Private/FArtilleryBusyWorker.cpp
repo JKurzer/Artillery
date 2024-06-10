@@ -75,7 +75,38 @@ uint32 FArtilleryBusyWorker::Run() {
 			InputSwapSlot.Get()->Dequeue();
 		}
 
+		
+		//work goes here.
 
+		/*
+		* 
+		* Pattern matching will go here.
+		* 
+		* 
+		* 
+		*/
+
+		/*
+		* 
+		* Does rollback & reconciliation go here?
+		* 
+		* 
+		*/
+
+		/*
+		*
+		* Jolt will go here. No point in updating if we need to reconcile first.
+		* Note: We also have Iris performing intermittent state stomps to recover from more serious desyncs.
+		* Ultimately, rollback can never solve everything. The windows just get too wide.
+		* 
+		*/
+		std::this_thread::yield();
+		/*
+		* 
+		* Or does rollback go here? Or do we want it in a separate thread? This one's getting crowded.
+		* I think jolt perf will be good enough....? I don't anticipate more than 200 bodies at a time.
+		* 
+		*/
 	}
 	return 0;
 }

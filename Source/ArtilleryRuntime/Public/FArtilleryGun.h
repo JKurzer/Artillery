@@ -31,7 +31,9 @@
 USTRUCT(BlueprintType)
 struct ARTILLERYRUNTIME_API FArtilleryGun 
 {
+
 	GENERATED_BODY()
+
 public:	
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		TObjectPtr<UArtilleryUninstancedAbilityMinimum> CosmeticPrefire;
@@ -49,6 +51,7 @@ public:
 		int DallyFramesToOmit = 0;
 		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Latency Hiding")
 		bool RerunDueToReconcile = false;
+
 
 protected:
 	TObjectPtr <UArtilleryAbilitySequence> EncapsulatedGASMachinery;
