@@ -7,8 +7,12 @@
 #include "UObject/UnrealType.h"
 #include "Engine/DataTable.h"
 #include "AttributeSet.h"
+
+#include "ArtilleryCommonTypes.h"
 #include <bitset>
 #include "Containers/CircularBuffer.h"
+
+
 
 class FActionPattern_InternallyStateless
 {
@@ -22,16 +26,3 @@ public:
 	) = 0;
 };
 typedef FActionPattern_InternallyStateless FActionPattern;
-
-class FActionPatternParams
-{
-public:
-	bool preferToMatch = false;
-	bool passThrough = false;
-	bool defaultBehavior = false;
-	bool FiresCosmetics = false;
-
-	FActionBitMask ToSeek;
-	InputStreamKey MyInputStream;
-	FireControlKey MyOrigin;
-};

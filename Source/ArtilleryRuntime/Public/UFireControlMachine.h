@@ -11,17 +11,14 @@
 #include "GameplayEffect.h"
 #include "FArtilleryGun.h"
 #include "Abilities/GameplayAbility.h"
-
-#include "Containers/CircularQueue.h"
 #include "CanonicalInputStreamECS.h"
+#include "Containers/CircularQueue.h"
 #include <bitset>
-#include "ArtilleryDispatch.h"
 #include "ArtilleryCommonTypes.h"
 #include "Components/ActorComponent.h"
 #include "UFireControlMachine.generated.h"
 
 //dynamic constructed statemachine for matching patterns in action records to triggering abilities.
-
 
 
 
@@ -39,35 +36,36 @@
 // 
 // Like "Guns," this class mostly exists to hide Artillery complexity from people familiar with GAS already.
 // Combined with the ACS, allows you to fully integrate artillery with your existing GAS designs.
+
 UCLASS()
 class ARTILLERYRUNTIME_API UFireControlMachine : public UActorComponent
-
 {
 
 	GENERATED_BODY()
 
 public:	
-		UArtilleryDispatch* MySquire;
+		static inline int orderInFirstBeginPlay = 0;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		TMap<FGunKey, FArtilleryGun> MyManagedGuns;
+		UCanonicalInputStreamECS* MySquire;
 		//this needs to be replicated in iris, interestin'ly.
 		TObjectPtr <UAttributeSet> MyAttributes; // might want to defactor this to an ECS, but I actually quite like it here.
 		//still wondering who owns the input streams...
 		TObjectPtr<UAbilitySystemComponent> SystemComponentToBind;
-
 		//*******************************************************************************************
 		//patterns are run in ArtilleryBusyWorker. Search for ARTILLERY_FIRE_CONTROL_MACHINE_HANDLING
 		//*******************************************************************************************
 
-		//Should this include the input stream key? probably?
-		bool pushPatternToRunner(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
+		//IF YOU DO NOT CALL THIS FROM THE GAMETHREAD, YOU WILL HAVE A BAD TIME.
+		void pushPatternToRunner(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
 		{
-			return MySquire->registerPattern(ToBind, ToSeek, ToFire);
+			MySquire->registerPattern(ToBind, ToSeek, ToFire, MyKey);
 		};
 
-		bool popPatternFromRunner(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
+		//IF YOU DO NOT CALL THIS FROM THE GAMETHREAD, YOU WILL HAVE A BAD TIME.
+		void popPatternFromRunner(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
 		{
-			return MySquire->removePattern(ToBind, ToSeek, ToFire);
+			MySquire->removePattern(ToBind, ToSeek, ToFire, MyKey);
 		};
 
 
@@ -77,12 +75,15 @@ public:
 		};
 		
 		void BeginPlay() override {
-			Super::BeginPlay();
-			MySquire = GetOwner()->GetWorld()->GetSubsystem<UArtilleryDispatch>();
+			UActorComponent::BeginPlay(); // using this over the looser super atm. TODO: validate!!!!!
+			MySquire = GetOwner()->GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
+			MyKey = UFireControlMachine::orderInFirstBeginPlay++;
 			//likely want to manage system component bind here by checking for actor parent.
 			//right now, we can push all our patterns here as well, and we can use a static set of patterns for
 			//each of our fire control machines. you can basically think of a fire control machine as a full set
 			//of related abilities, their attributes, and similar required to, you know, actually fire a gun.
 			//There's a bit more blueprint exposure work to do here as a result.
 		};
+private:
+	int MyKey;
 };

@@ -31,3 +31,14 @@ TStatId UCanonicalInputStreamECS::GetStatId() const
 {
 	RETURN_QUICK_DECLARE_CYCLE_STAT(UCanonicalInputStreamECS, STATGROUP_Tickables);
 }
+
+
+bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor)
+{
+	return false;
+}
+
+bool UCanonicalInputStreamECS::removePattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor)
+{
+	return false;
+}

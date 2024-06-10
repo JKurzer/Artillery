@@ -29,8 +29,7 @@ protected:
 	virtual TStatId GetStatId() const override;
 
 public:
-	bool registerPattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire);
-	bool removePattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire);
+
 	FGunKey getNewGunInstance(FString GunDefinitionID);
 
 	std::atomic_bool UseNetworkInput;

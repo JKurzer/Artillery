@@ -17,18 +17,10 @@
 #include <ArtilleryShell.h>
 #include "ArtilleryCommonTypes.h"
 #include "CanonicalInputStreamECS.generated.h"
-#include <UFireControlMachine.h>
 
 
 
-/**
- * Component for managing input streams in an ECS-like way, where any controller can request any stream.
- */
-typedef TheCone::PacketElement INNNNCOMING;
-typedef uint32_t InputStreamKey;
-typedef uint32_t PlayerKey;
-typedef uint32_t ActorKey;
-typedef uint32_t FireControlKey;
+
 
 //TODO: finish adding the input streams, replace the local handling in Bristle54 character with references to the input stream ecs
 //TODO: begin work on the conceptual frame for reconciling and assessing what input does and does not exist.
@@ -78,7 +70,8 @@ public:
 	static const uint32_t AddressableInputConservationWindow = InputConservationWindow - (2 * TheCone::LongboySendHertz);
 	friend class FArtilleryBusyWorker;
 	
-	
+	bool registerPattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor);
+	bool removePattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor);
 	class ARTILLERYRUNTIME_API FConservedInputStream
 	{
 	friend class FArtilleryBusyWorker;
@@ -179,7 +172,7 @@ public:
 		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(InputConservationWindow); //these two should be one buffer of a shared type, but that makes using them harder
 		TSet<InputStreamKey> MyStreamKeys; //in case, god help us, we need a lookup based on this for something else. that should NOT happen.
 		
-		TMap<FActionPattern_InternallyStateless, FActionPatternParams> AllPatterns; //broadly, at the moment, there is ONE pattern matcher running
+		TMap<TSharedPtr<FActionPattern_InternallyStateless>, FActionPatternParams> AllPatterns; //broadly, at the moment, there is ONE pattern matcher running
 
 		//Correct usage procedure is to null check then store a copy.
 		//Failure to follow this procedure will lead to eventual misery.
@@ -207,10 +200,9 @@ protected:
 
 public:
 private:
-	std::unordered_map < InputStreamKey, TSharedPtr<FConservedInputStream>>* InternalMapping;
+	std::unordered_map <InputStreamKey, TSharedPtr<FConservedInputStream>>* InternalMapping;
 	std::unordered_map <PlayerKey, InputStreamKey>* SessionPlayerToStreamMapping;
 	std::unordered_map <ActorKey, InputStreamKey>* LocalActorToStreamMapping;
-	std::unordered_map <FireControlKey, UFireControlMachine>* FireControlMachines;
 	UBristleconeWorldSubsystem* MySquire;
 
 };
