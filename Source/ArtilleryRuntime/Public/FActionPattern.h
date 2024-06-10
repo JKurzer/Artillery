@@ -10,8 +10,28 @@
 #include <bitset>
 #include "Containers/CircularBuffer.h"
 
-class FActionPattern 
+class FActionPattern_InternallyStateless
 {
+public:
+	virtual bool runPattern(
+		FActionPatternParams fireWith,
+		//USED TO DEFINE HOW TO HIDE LATENCY BY TRIMMING LEAD-IN FRAMES OF AN ARTILLERYGUN
+		uint32_t leftTrimFrames,
+		//USED TO DEFINE HOW TO SHORTEN ARTILLERYGUNS BY SHORTENING DELAYS, SUCH AS DELAYED EXPLOSIONS, TRAJECTORIES, OR SPAWNS, TO HIDE LATENCY.
+		uint32_t rightTrimFrames
+	) = 0;
+};
+typedef FActionPattern_InternallyStateless FActionPattern;
 
-	virtual bool runPattern(FActionBitMask ToSeek) = 0;
+class FActionPatternParams
+{
+public:
+	bool preferToMatch = false;
+	bool passThrough = false;
+	bool defaultBehavior = false;
+	bool FiresCosmetics = false;
+
+	FActionBitMask ToSeek;
+	InputStreamKey MyInputStream;
+	FireControlKey MyOrigin;
 };
