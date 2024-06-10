@@ -8,10 +8,15 @@
 #include "BristleconeCommonTypes.h"
 
 
-//this is a busy-style thread, which pulls work from each available component in a hierarchy,
-//constantly executing until it finds no work remaining. Generally, the goal is that it never
-//actually sleeps. 
-//This worker consumes asynchronous input from bristlecone, prepares
+//this is a busy-style thread, which runs preset bodies of work in a specified order. Generally, the goal is that it never
+//actually sleeps. In fact, it yields rather than sleeps, in general operation.
+// 
+// This is similar to but functionally very different from a work-stealing or task model like what we see in rust.
+// 
+// 
+// The artilleryworker needs to be kept fairly busy or it will melt one cpu core yield-cycling. to be honest, worth it.
+// no, seriously. with all the other sacrifices we've made occupying one core with game-sim physics, reconciliation,
+// rollbacks, and pattern matching is a pretty good bargain. we'll want to revisit this for servers, of course.
 class FArtilleryBusyWorker : public FRunnable {
 public:
 	FArtilleryBusyWorker();
