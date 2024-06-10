@@ -22,7 +22,7 @@
 /**
  * Component for managing input streams in an ECS-like way, where any controller can request any stream.
  */
-typedef TheCone::Packet_tpl* INNNNCOMING;
+typedef TheCone::PacketElement INNNNCOMING;
 typedef uint32_t InputStreamKey;
 typedef uint32_t PlayerKey;
 typedef uint32_t ActorKey;
@@ -73,9 +73,10 @@ public:
 	};
 	static const uint32_t InputConservationWindow = 8192;
 	static const uint32_t AddressableInputConservationWindow = InputConservationWindow - (2 * TheCone::LongboySendHertz);
-
+	friend class FArtilleryBusyWorker;
 	class ARTILLERYRUNTIME_API FConservedInputStream
 	{
+	friend class FArtilleryBusyWorker;
 	public:
 		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(InputConservationWindow); //these two should be one buffer of a shared type, but that makes using them harder
 		InputStreamKey MyKey; //in case, god help us, we need a lookup based on this for something else. that should NOT happen.
@@ -137,12 +138,11 @@ public:
 		UCanonicalInputStreamECS* ECSParent;
 		
 		//Add can only be used by the Artillery Worker Thread through the methods of the UCISArty.
-		void add(INNNNCOMING shells)
+		void add(INNNNCOMING shell, long SentAt)
 		{
-			long indexInput = shells->GetCycleMeta() + 3; //faster than 3xabs or a branch.
-			CurrentHistory[highestInput].MyInputActions = *(shells->GetPointerToElement(indexInput % 3));
+			CurrentHistory[highestInput].MyInputActions = shell;
 			CurrentHistory[highestInput].ReachedArtilleryAt = ECSParent->Now();
-			CurrentHistory[highestInput].SentAt = shells->GetTransferTime();//this is gonna get weird after a couple refactors, but that's why we hide it here.
+			CurrentHistory[highestInput].SentAt = SentAt;//this is gonna get weird after a couple refactors, but that's why we hide it here.
 
 			// reading, adding one, and storing are all separate ops. a slice here is never dangerous but can be erroneous.
 			// because this is a volatile variable, it cannot be optimized away and most compilers will not reorder it.
@@ -153,6 +153,15 @@ public:
 			// incremented by one thread with a single call site for the increment. In this case, you can still get
 			// interleaved but the value will always be either k or k+1. If it's stale in cache, the worst case
 			// is that the newest input won't be legible yet and this can be resolved by repolling.
+			++highestInput;
+		};
+
+		//Overload for local add via feed from cabling. don't use this unless you are CERTAIN.
+		void add(INNNNCOMING shell)
+		{
+			CurrentHistory[highestInput].MyInputActions = shell;
+			CurrentHistory[highestInput].ReachedArtilleryAt = ECSParent->Now();
+			CurrentHistory[highestInput].SentAt = ECSParent->Now();
 			++highestInput;
 		};
 	};

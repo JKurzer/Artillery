@@ -34,14 +34,10 @@ public:
 	FGunKey getNewGunInstance(FString GunDefinitionID);
 
 	std::atomic_bool UseNetworkInput;
-	TheCone::RecvQueue InputRingBuffer;
-	TheCone::SendQueue InputSwapSlot;
 	bool missedPrior = false;
 	bool burstDropDetected = false;
 private:
 	FArtilleryBusyWorker ArtilleryAsyncWorldSim;
 	TUniquePtr<FRunnableThread> WorldSim_Thread;
 
-	// TODO remove once ArtilleryWorker hooked up
-	ArtilleryControlStream controlStream;
 };
