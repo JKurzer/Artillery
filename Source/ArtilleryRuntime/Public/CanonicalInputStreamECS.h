@@ -181,8 +181,8 @@ public:
 		
 		//there's a bunch of reasons we use string_view here, but mostly, it's because we can make them constexprs!
 		//so this is... uh... pretty fast!
-		TMap<const std::string_view, TArray<FActionPatternParams>> AllPatternBinds; //broadly, at the moment, there is ONE pattern matcher running
-		TMap<const std::string_view, TSharedPtr<FActionPattern_InternallyStateless>> AllPatterns;
+		TMap<const FString, TArray<FActionPatternParams>> AllPatternBinds; //broadly, at the moment, there is ONE pattern matcher running
+		TMap<const FString, TSharedPtr<FActionPattern_InternallyStateless>> AllPatterns;
 		void GlassCurrentHistory()
 		{
 			CurrentHistory = TCircularBuffer<FArtilleryShell>(ArtilleryInputSearchWindow); //expect the search window to be big.

@@ -22,8 +22,8 @@ public:
 		FActionPatternParams fireWith
 	) = 0;
 
-	virtual const std::string_view getName() = 0;
-	static constexpr std::string_view Name = "InternallyStatelessPattern"; //you should never see this as getName is virtual.
+	virtual const FString getName() = 0;
+	static const inline FString Name = "InternallyStatelessPattern"; //you should never see this as getName is virtual.
 };
 
 typedef FActionPattern_InternallyStateless FActionPattern;
@@ -39,6 +39,6 @@ public:
 
 		return false;
 	};
-	const std::string_view getName() override { return Name; };
-	static constexpr std::string_view Name = "SingleFrameFirePattern";
+	const FString getName() override { return Name; };
+	static const inline FString Name = "SingleFrameFirePattern";
 };
