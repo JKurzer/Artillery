@@ -13,32 +13,112 @@
 #include "Containers/CircularBuffer.h"
 #include <string>
 
-
+//this is vulnerable to memoization but I can't think of a pretty way to do that which doesn't make rollback insane to debug.
+//as a result, these lil fellers are stateless. If you wanna do a memoized version, I recommend it strongly, but make sure profiling
+//shows that's actually necessary. I sincerely doubt it will be.
 
 class FActionPattern_InternallyStateless
 {
 public:
-	virtual bool runPattern(
-		FActionPatternParams fireWith
+	virtual uint32_t runPattern(
+		FActionPatternParams fireWith, uint64_t frameToRunBackFrom, uint32_t ToSeekUnion
 	) = 0;
 
 	virtual const FString getName() = 0;
-	static const inline FString Name = "InternallyStatelessPattern"; //you should never see this as getName is virtual.
+	static const inline FString Name = "FActionPattern_InternallyStatelessPattern"; //you should never see this as getName is virtual.
 };
 
 typedef FActionPattern_InternallyStateless FActionPattern;
 
+//TODO: ALWAYS customize this to the sample-rate you select for cabling. ALWAYS. Or your game will feel Real Bad.
+constexpr const inline int HoldSweepBack = 5; // this is literally the sin within the beast. 
+
 class FActionPattern_SingleFrameFire : public FActionPattern_InternallyStateless
 {
 public:
-	bool runPattern (
-		FActionPatternParams fireWith
+	virtual uint32_t runPattern (
+		FActionPatternParams fireWith, uint64_t frameToRunBackFrom, uint32_t ToSeekUnion
 	) 
 	override
 	{
-
-		return false;
+		// frameToRunBackFrom
+		return false; //& ToSeekUnion;
 	};
 	const FString getName() override { return Name; };
-	static const inline FString Name = "SingleFrameFirePattern";
+	static const inline FString Name = "FActionPattern_SingleFrameFirePattern";
+};
+
+
+class FActionPattern_ButtonHold : public FActionPattern_InternallyStateless
+{
+public:
+	virtual uint32_t runPattern(
+		FActionPatternParams fireWith, uint64_t frameToRunBackFrom, uint32_t ToSeekUnion
+	)
+		override
+	{
+		for (int i = HoldSweepBack; i >= 0; --i)
+		{
+			//frameToRunBackFrom - i
+		}
+		return false; //& ToSeekUnion;
+	};
+	const FString getName() override { return Name; };
+	static const inline FString Name = "FActionPattern_ButtonHoldPattern";
+};
+
+//TODO: make sure the right runPattern gets called. can't rem the inheritance rules and I don't have time to rabbit hole.
+class FActionPattern_ButtonReleaseNoDelay : public FActionPattern_ButtonHold 
+{
+public:
+	virtual uint32_t runPattern(
+		FActionPatternParams fireWith, uint64_t frameToRunBackFrom, uint32_t ToSeekUnion
+	)
+		override
+	{
+		//super::runpattern with frametorunbackfrom - 1
+		//using invert of ToSeekUnion
+		//runpattern frametorunbackfrom
+		//& results.
+		return false; //return results
+	};
+	const FString getName() override { return Name; };
+	static const inline FString Name = "FActionPattern_ButtonReleaseNoDelay";
+};
+
+//TODO: make sure the right runPattern gets called. can't rem the inheritance rules and I don't have time to rabbit hole.
+class FActionPattern_ButtonReleaseOneFrameDelay : public FActionPattern_ButtonReleaseNoDelay
+{
+public:
+	virtual uint32_t runPattern(
+		FActionPatternParams fireWith, uint64_t frameToRunBackFrom, uint32_t ToSeekUnion
+	)
+		override
+	{	//using toseekunion (super inverts)
+		//super::runpattern frametorunbackfrom - 1
+		//inverting toseekunion
+		//runpattern frametorunbackfrom
+		//& results.
+		return false; //return results
+	};
+	const FString getName() override { return Name; };
+	static const inline FString Name = "FActionPattern_ButtonReleaseOneFrameDelay";
+};
+
+class FActionPattern_StickFlick : public FActionPattern_InternallyStateless
+{
+public:
+	virtual uint32_t runPattern(
+		FActionPatternParams fireWith, uint64_t frameToRunBackFrom, uint32_t ToSeekUnion
+	)
+		override
+	{
+		//super::runpattern with frametorunbackfrom - 1
+		//using invert of ToSeekUnion
+		//runpattern frametorunbackfrom
+		//& results.
+		return false; //return results
+	};
+	const FString getName() override { return Name; };
+	static const inline FString Name = "FActionPattern_StickFlick";
 };

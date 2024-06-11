@@ -227,6 +227,8 @@ public:
 				UE_LOG(LogTemp, Display, TEXT("Still no resim, actually."));
 			}
 
+			//this needs to ALSO run per stream. I think maybe the pattern matcher will live on the input streams?
+			//Hard to really pin down if that's good.
 			for (FString Name : Names)
 			{
 				//note this checks BINDS. This is because our other mappings are _pure additive._
