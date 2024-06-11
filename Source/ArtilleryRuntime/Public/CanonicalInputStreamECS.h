@@ -49,18 +49,18 @@ class ARTILLERYRUNTIME_API UCanonicalInputStreamECS : public UTickableWorldSubsy
 {
 	GENERATED_BODY()
 
-/**
- * Conserved input streams record their last 8,192 inputs. Yes, that's a few megs across all streams. No, it doesn't really seem to matter.
- * Currently, this is for debug purposes, but we can use it with some additional features to provide a really expressive
- * model for rollback at a SUPER granular level if needed. UE has existing rollback tech, though so...
- * 
- * These streams are designed for single reader, single producer, but it is hypothetically possible to have a format where you do
- * single producer, single consumer, multiple observer. I don't recommend that, due to the need to mark records as played for cosmetics.
- * 
- * It is possible that an observer might end up with a stale view of if a record's cosmetic effects have been applied, in this circumstance.
- * This is DONE DURING THE GET. That can lead to an unholy mess. If you need an observer, ensure that it does not regard cosmetics as important
- * AND use a PEEK.
- */
+	/**
+	 * Conserved input streams record their last 8,192 inputs. Yes, that's a few megs across all streams. No, it doesn't really seem to matter.
+	 * Currently, this is for debug purposes, but we can use it with some additional features to provide a really expressive
+	 * model for rollback at a SUPER granular level if needed. UE has existing rollback tech, though so...
+	 *
+	 * These streams are designed for single reader, single producer, but it is hypothetically possible to have a format where you do
+	 * single producer, single consumer, multiple observer. I don't recommend that, due to the need to mark records as played for cosmetics.
+	 *
+	 * It is possible that an observer might end up with a stale view of if a record's cosmetic effects have been applied, in this circumstance.
+	 * This is DONE DURING THE GET. That can lead to an unholy mess. If you need an observer, ensure that it does not regard cosmetics as important
+	 * AND use a PEEK.
+	 */
 public:
 	ArtilleryTime Now()
 	{
@@ -70,13 +70,13 @@ public:
 	static const uint32_t AddressableInputConservationWindow = InputConservationWindow - (2 * TheCone::LongboySendHertz);
 	friend class FArtilleryBusyWorker;
 	friend class UArtilleryDispatch;
-	
+
 	bool registerPattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor);
 	bool removePattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor);
 	ActorKey registerFCMKeyToParentActorMapping(AActor* parent, FireControlKey MyKey);
 	class ARTILLERYRUNTIME_API FConservedInputStream
 	{
-	friend class FArtilleryBusyWorker;
+		friend class FArtilleryBusyWorker;
 	public:
 		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(InputConservationWindow); //these two should be one buffer of a shared type, but that makes using them harder
 		InputStreamKey MyKey; //in case, god help us, we need a lookup based on this for something else. that should NOT happen.
@@ -136,7 +136,7 @@ public:
 	protected:
 		volatile uint64_t highestInput = 0; // volatile is utterly useless for its intended purpose. 
 		UCanonicalInputStreamECS* ECSParent;
-		
+
 		//Add can only be used by the Artillery Worker Thread through the methods of the UCISArty.
 		void add(INNNNCOMING shell, long SentAt)
 		{
@@ -173,16 +173,29 @@ public:
 	//be used safely off thread without any consideration. you can use Uclasses if you're careful but...
 	class ARTILLERYRUNTIME_API FConservedInputPatternMatcher
 	{
-		
-		friend class FArtilleryBusyWorker;
+
+	friend class FArtilleryBusyWorker;
 	public:
 		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(ArtilleryInputSearchWindow);
 		TSet<InputStreamKey> MyStreamKeys; //in case, god help us, we need a lookup based on this for something else. that should NOT happen.
-		
+
 		//there's a bunch of reasons we use string_view here, but mostly, it's because we can make them constexprs!
 		//so this is... uh... pretty fast!
-		TMap<const FString, TArray<FActionPatternParams>> AllPatternBinds; //broadly, at the moment, there is ONE pattern matcher running
-		TMap<const FString, TSharedPtr<FActionPattern_InternallyStateless>> AllPatterns;
+		TMap<FString, TSharedPtr<TSet<FActionPatternParams>>> AllPatternBinds; //broadly, at the moment, there is ONE pattern matcher running
+
+
+		//this array is never made smaller.
+		//there should only ever be about 10 patterns max,
+		//and it's literally more expensive to remove them.
+		//As a result, we track what's actually live via the binds
+		//and this array is just lazy accumulative. it means we don't ever allocate a key array for TMap.
+		//has some other advantages, as well.
+		TArray<FString> Names;
+
+		//same with this set, actually. patterns are stateless, and few. it's inefficient to destroy them.
+		//instead we check binds.
+		TMap<FString, TSharedPtr<FActionPattern_InternallyStateless>> AllPatternsByName;
+
 		void GlassCurrentHistory()
 		{
 			CurrentHistory = TCircularBuffer<FArtilleryShell>(ArtilleryInputSearchWindow); //expect the search window to be big.
@@ -197,6 +210,10 @@ public:
 		// This makes things run. currently, it doesn't correctly handle really anything
 		// but it's come together now so that you can see what's happening.
 		// This has a side-effect of marking the record as played at least once.
+		//This will match patterns and push events up to the Fire Control Machines. There likely will only be 12 or 18 FCMs running
+		//EVER because I think we'll want to treat each AI faction pretty much as a single FCM except for a few bosses.
+		//hard to say. we might need to revisit this if the FCMs prove too heavy as full actor components.
+
 		bool runOneFrameWithSideEffects(bool isResim_Unimplemented,
 			//USED TO DEFINE HOW TO HIDE LATENCY BY TRIMMING LEAD-IN FRAMES OF AN ARTILLERYGUN
 			uint32_t leftTrimFrames,
@@ -210,18 +227,38 @@ public:
 				UE_LOG(LogTemp, Display, TEXT("Still no resim, actually."));
 			}
 
-			for (int i = 0; i < AllPatterns.Num(); ++i)
+			for (FString Name : Names)
 			{
-				//TODO: allpatternbinds gets used here soon.
-				//This will match patterns and push events up to the Fire Control Machines. There likely will only be 12 or 18 FCMs running
-				//EVER because I think we'll want to treat each AI faction pretty much as a single FCM except for a few bosses.
-
-				//we also need to do the movement control either here, or back in the busy worker separately.
-				//and that means we need an answer for how to do stick-flicks. they're such an unusual input
-				//that I'm really inclined to just hand-jam them as a sort of Weird Pattern you can subscribe to
-				//that secretly checks the sticks.
-
+				//note this checks BINDS. This is because our other mappings are _pure additive._
+				//this isn't a vanity thing. this idiosyncracy makes actual thread synchro much much easier.
+				//it's also why we aren't checking to see if the pointers are valid. if they _aren't_ then it's a lifecycle bug.
+				if (AllPatternBinds.Contains(Name))
+				{
+					TSharedPtr<TSet<FActionPatternParams>> AllParamsForPattern = AllPatternBinds[Name];
+					if (AllParamsForPattern->Num() < 0)
+					{
+						TSharedPtr<FActionPattern_InternallyStateless> currentPattern = AllPatternsByName[Name];
+						for (auto& Elem : *AllParamsForPattern)
+						{
+							//todo: add up all the masks for the pattern to produce the union of candidate codings.
+							//the runPattern should actually return a mask of the union of all
+							//candidate codings that matched fully. this will be necessary to avoid an N^3 op.
+							//we'll likely need EVERY artillery gun to have a default behavior for priority re: binds.
+							//if I didn't absolutely need this "true threaded" to be able to do reconciles fast with jolt,
+							//we would have used enhanced input. :/
+							if (currentPattern->runPattern(Elem))
+							{
+								//NOW the logic HERE in the MATCHER should handle which binds actually fire, using the bind params.
+							}
+						}
+					}
+				}
 			}
+
+			//we also need to do the movement control either here, or back in the busy worker separately.
+			//and that means we need an answer for how to do stick-flicks. they're such an unusual input
+			//that I'm really inclined to just hand-jam them as a sort of Weird Pattern you can subscribe to
+			//that secretly checks the sticks.
 			return true; //well take a nap ZEN fire ZE missiles.
 		};
 	protected:
