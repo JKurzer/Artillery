@@ -179,8 +179,10 @@ public:
 		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(ArtilleryInputSearchWindow);
 		TSet<InputStreamKey> MyStreamKeys; //in case, god help us, we need a lookup based on this for something else. that should NOT happen.
 		
-		TMap<TSharedPtr<FActionPattern_InternallyStateless>, TArray<FActionPatternParams>> AllPatternBinds; //broadly, at the moment, there is ONE pattern matcher running
-		TArray<TSharedPtr<FActionPattern_InternallyStateless>> AllPatterns;
+		//there's a bunch of reasons we use string_view here, but mostly, it's because we can make them constexprs!
+		//so this is... uh... pretty fast!
+		TMap<const std::string_view, TArray<FActionPatternParams>> AllPatternBinds; //broadly, at the moment, there is ONE pattern matcher running
+		TMap<const std::string_view, TSharedPtr<FActionPattern_InternallyStateless>> AllPatterns;
 		void GlassCurrentHistory()
 		{
 			CurrentHistory = TCircularBuffer<FArtilleryShell>(ArtilleryInputSearchWindow); //expect the search window to be big.
@@ -195,8 +197,14 @@ public:
 		// This makes things run. currently, it doesn't correctly handle really anything
 		// but it's come together now so that you can see what's happening.
 		// This has a side-effect of marking the record as played at least once.
-		bool runOneFrameWithSideEffects(bool isResim_Unimplemented)
+		bool runOneFrameWithSideEffects(bool isResim_Unimplemented,
+			//USED TO DEFINE HOW TO HIDE LATENCY BY TRIMMING LEAD-IN FRAMES OF AN ARTILLERYGUN
+			uint32_t leftTrimFrames,
+			//USED TO DEFINE HOW TO SHORTEN ARTILLERYGUNS BY SHORTENING TRAILING or INFIX DELAYS, SUCH AS DELAYED EXPLOSIONS, TRAJECTORIES, OR SPAWNS, TO HIDE LATENCY.
+			uint32_t rightTrimFrames
+		)
 		{
+
 			if (!isResim_Unimplemented)
 			{
 				UE_LOG(LogTemp, Display, TEXT("Still no resim, actually."));

@@ -34,16 +34,35 @@ TStatId UCanonicalInputStreamECS::GetStatId() const
 }
 
 
-bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor)
+bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern_InternallyStateless> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor)
 {
-
 	//this should modify the singleton PatternMatcher
+	if (SingletonPatternMatcher->AllPatternBinds.Contains(ToBind->Name))
+	{
+
+
+	}
+	else
+	{
+
+
+	}
 	return false;
 }
 
-bool UCanonicalInputStreamECS::removePattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor)
+bool UCanonicalInputStreamECS::removePattern(TSharedPtr<FActionPattern_InternallyStateless> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor)
 {
 	//this should modify the singleton PatternMatcher
+	if (SingletonPatternMatcher->AllPatternBinds.Contains(ToBind->getName()))
+	{
+
+
+	}
+	else
+	{
+
+
+	}
 	return false;
 }
 

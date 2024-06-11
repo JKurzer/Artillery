@@ -11,6 +11,7 @@
 #include "ArtilleryCommonTypes.h"
 #include <bitset>
 #include "Containers/CircularBuffer.h"
+#include <string>
 
 
 
@@ -18,11 +19,26 @@ class FActionPattern_InternallyStateless
 {
 public:
 	virtual bool runPattern(
-		FActionPatternParams fireWith,
-		//USED TO DEFINE HOW TO HIDE LATENCY BY TRIMMING LEAD-IN FRAMES OF AN ARTILLERYGUN
-		uint32_t leftTrimFrames,
-		//USED TO DEFINE HOW TO SHORTEN ARTILLERYGUNS BY SHORTENING TRAILING or INFIX DELAYS, SUCH AS DELAYED EXPLOSIONS, TRAJECTORIES, OR SPAWNS, TO HIDE LATENCY.
-		uint32_t rightTrimFrames
+		FActionPatternParams fireWith
 	) = 0;
+
+	virtual const std::string_view getName() = 0;
+	static constexpr std::string_view Name = "InternallyStatelessPattern"; //you should never see this as getName is virtual.
 };
+
 typedef FActionPattern_InternallyStateless FActionPattern;
+
+class FActionPattern_SingleFrameFire : public FActionPattern_InternallyStateless
+{
+public:
+	bool runPattern (
+		FActionPatternParams fireWith
+	) 
+	override
+	{
+
+		return false;
+	};
+	const std::string_view getName() override { return Name; };
+	static constexpr std::string_view Name = "SingleFrameFirePattern";
+};
