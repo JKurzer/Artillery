@@ -249,6 +249,8 @@ public:
 							if (currentPattern->runPattern(Elem))
 							{
 								//NOW the logic HERE in the MATCHER should handle which binds actually fire, using the bind params.
+								//actually, we might need to aggregate everything from the union matches THEN determine what happens
+								//because we might have a pattern's input get eaten.
 							}
 						}
 					}
