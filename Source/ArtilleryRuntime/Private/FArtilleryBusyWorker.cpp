@@ -29,22 +29,37 @@ uint32 FArtilleryBusyWorker::Run() {
 			const TheCone::Packet_tpl* packedInput = InputRingBuffer.Get()->Peek();
 			auto indexInput = packedInput->GetCycleMeta() + 3; //faster than 3xabs or a branch.
 			{
-				BristleconeControlStream.add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement(indexInput % 3),
-					((TheCone::Packet_tpl*)(packedInput))->GetTransferTime());
+				//unlike the old design, we use an array of inputs from first -> current
+				//so we want to add oldest first, then next, then next.
+				//we'll need to amend this to handle correct defaulting of missing input,
+				//which we can detect by both cycle skips and arrival window misses.
+				//we then need a way, during rollbacks, to perform the rewrite.
+				//right now, we just wait until we get the remote input.
+				//honestly, bristle is fast enough and reliable enough that this might be fine?
+				//flats don't have a recovery window, anyway, but we do get two tries.
+				// tho otoh, I'm still wondering if no recovery window was a good idea.
+				// maybe just a window of two? I'll need to check the bandwidth.
+				//right now, we don't batch into flats. we'll want to wrap this in ifdefs
+				//instead of removing it, though, because I don't think fighting games will use batched flats
+				//and I'm wondering how much use they are, personally
 				if (missedPrior)
 				{
-					BristleconeControlStream.add(
-						*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 1) % 3),
-						((TheCone::Packet_tpl*)(packedInput))->GetTransferTime()
-					);
 					if (burstDropDetected)
 					{
 						//
 						BristleconeControlStream.add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 2) % 3),
 							((TheCone::Packet_tpl*)(packedInput))->GetTransferTime());
 					}
+					BristleconeControlStream.add(
+						*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 1) % 3),
+						((TheCone::Packet_tpl*)(packedInput))->GetTransferTime()
+					);
+
 				}
-				RemoteInput = true;
+				BristleconeControlStream.add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement(indexInput % 3),
+					((TheCone::Packet_tpl*)(packedInput))->GetTransferTime());
+				
+				RemoteInput = true; //we check for empty at the start of the while. no need to check again.
 				InputRingBuffer.Get()->Dequeue();
 			}
 		}
@@ -78,9 +93,7 @@ uint32 FArtilleryBusyWorker::Run() {
 		
 		/*
 		* 
-		* Movement processing calls go here.
-		* The busy worker shouldn't do the movement, but... it could?
-		* Still trying to decide what to do on the main thread and what to do here.
+		* Movement processing calls go here. before pattern matching.
 		* 
 		* 
 		*/
@@ -98,9 +111,13 @@ uint32 FArtilleryBusyWorker::Run() {
 		* 
 		*/
 
-		//Pattern Matcher runs patterns here.
+		//Per input stream, run their patterns here. god in heaven.
 		//START HERE AND WORK YOUR WAY OUT TO UNDERSTAND PATTERNS, MATCHING, AND INPUT FLOW.
-		MyPatternMatcher->runOneFrameWithSideEffects(true, 0, 0); // those zeroes will stay here until we have resim.
+		//BristleconeControlStream.MyPatternMatcher->runOneFrameWithSideEffects(true, 0, 0); // those zeroes will stay here until we have resim.
+		// this will need to shift over to running through ALL input streams. dear god.
+		CablingControlStream.MyPatternMatcher->runOneFrameWithSideEffects(true, 0, 0,
+			CablingControlStream.highestInput - 1); // this looks wrong but I'm pretty sure it ain' since we reserve highest.
+
 		/*
 		* 
 		* Does rollback & reconciliation go here?
@@ -127,7 +144,7 @@ uint32 FArtilleryBusyWorker::Run() {
 }
 
 void FArtilleryBusyWorker::Exit() {
-	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Stopping Artillery thread."));
+	UE_LOG(LogTemp, Display, TEXT("ARTILLERY OFFLINE."));
 	Cleanup();
 }
 

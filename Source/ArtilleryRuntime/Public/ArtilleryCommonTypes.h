@@ -46,6 +46,17 @@ public:
 	FireControlKey MyOrigin;
 	FActionPatternParams(FActionBitMask ToSeek_In, FireControlKey MyOrigin_In, InputStreamKey MyInputStream_In) :
 		ToSeek(ToSeek_In), MyOrigin(MyOrigin_In), MyInputStream(MyInputStream_In) {};
+
+	friend uint32 GetTypeHash(const FActionPatternParams& Other)
+	{
+		// it's probably fine!
+		return GetTypeHash(Other.ToFire) + GetTypeHash(Other.ToSeek);
+	}
+	
 };
+
+bool operator==(FActionPatternParams const& lhs, FActionPatternParams const& rhs) {
+	return lhs.ToFire == rhs.ToFire;
+}
 #include "FActionPattern.h"
 

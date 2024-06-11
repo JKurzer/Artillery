@@ -11,6 +11,7 @@
 #include "ArtilleryCommonTypes.h"
 #include <bitset>
 #include "Containers/CircularBuffer.h"
+#include "FArtilleryNoGuaranteeReadOnly.h"
 #include <string>
 
 //this is vulnerable to memoization but I can't think of a pretty way to do that which doesn't make rollback insane to debug.
@@ -20,8 +21,9 @@
 class FActionPattern_InternallyStateless
 {
 public:
-	virtual uint32_t runPattern(
-		FActionPatternParams fireWith, uint64_t frameToRunBackFrom, uint32_t ToSeekUnion
+	virtual uint32_t runPattern(uint64_t frameToRunBackFrom, 
+		FActionBitMask ToSeekUnion,
+		FANG_PTR Buffer
 	) = 0;
 
 	virtual const FString getName() = 0;
@@ -36,13 +38,14 @@ constexpr const inline int HoldSweepBack = 5; // this is literally the sin withi
 class FActionPattern_SingleFrameFire : public FActionPattern_InternallyStateless
 {
 public:
-	virtual uint32_t runPattern (
-		FActionPatternParams fireWith, uint64_t frameToRunBackFrom, uint32_t ToSeekUnion
-	) 
+	virtual uint32_t runPattern(uint64_t frameToRunBackFrom,
+		FActionBitMask ToSeekUnion,
+		FANG_PTR Buffer
+	)
 	override
 	{
-		// frameToRunBackFrom
-		return false; //& ToSeekUnion;
+		return Buffer->peek(frameToRunBackFrom)->GetButtonsAndEventsFlat() & ToSeekUnion.getFlat();
+		
 	};
 	const FString getName() override { return Name; };
 	static const inline FString Name = "FActionPattern_SingleFrameFirePattern";
@@ -52,14 +55,14 @@ public:
 class FActionPattern_ButtonHold : public FActionPattern_InternallyStateless
 {
 public:
-	virtual uint32_t runPattern(
-		FActionPatternParams fireWith, uint64_t frameToRunBackFrom, uint32_t ToSeekUnion
+	virtual uint32_t runPattern(uint64_t frameToRunBackFrom,
+		FActionBitMask ToSeekUnion,
+		FANG_PTR Buffer
 	)
 		override
 	{
 		for (int i = HoldSweepBack; i >= 0; --i)
 		{
-			//frameToRunBackFrom - i
 		}
 		return false; //& ToSeekUnion;
 	};
@@ -71,8 +74,9 @@ public:
 class FActionPattern_ButtonReleaseNoDelay : public FActionPattern_ButtonHold 
 {
 public:
-	virtual uint32_t runPattern(
-		FActionPatternParams fireWith, uint64_t frameToRunBackFrom, uint32_t ToSeekUnion
+	virtual uint32_t runPattern(uint64_t frameToRunBackFrom,
+		FActionBitMask ToSeekUnion,
+		FANG_PTR Buffer
 	)
 		override
 	{
@@ -90,8 +94,9 @@ public:
 class FActionPattern_ButtonReleaseOneFrameDelay : public FActionPattern_ButtonReleaseNoDelay
 {
 public:
-	virtual uint32_t runPattern(
-		FActionPatternParams fireWith, uint64_t frameToRunBackFrom, uint32_t ToSeekUnion
+	virtual uint32_t runPattern(uint64_t frameToRunBackFrom,
+		FActionBitMask ToSeekUnion,
+		FANG_PTR Buffer
 	)
 		override
 	{	//using toseekunion (super inverts)
@@ -108,8 +113,9 @@ public:
 class FActionPattern_StickFlick : public FActionPattern_InternallyStateless
 {
 public:
-	virtual uint32_t runPattern(
-		FActionPatternParams fireWith, uint64_t frameToRunBackFrom, uint32_t ToSeekUnion
+	virtual uint32_t runPattern(uint64_t frameToRunBackFrom,
+		FActionBitMask ToSeekUnion,
+		FANG_PTR Buffer
 	)
 		override
 	{

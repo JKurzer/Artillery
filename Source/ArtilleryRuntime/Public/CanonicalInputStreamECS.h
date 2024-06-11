@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include <ArtilleryShell.h>
 #include "ArtilleryCommonTypes.h"
+#include "FArtilleryNoGuaranteeReadOnly.h"
 #include "CanonicalInputStreamECS.generated.h"
 
 
@@ -61,6 +62,12 @@ class ARTILLERYRUNTIME_API UCanonicalInputStreamECS : public UTickableWorldSubsy
 	 * This is DONE DURING THE GET. That can lead to an unholy mess. If you need an observer, ensure that it does not regard cosmetics as important
 	 * AND use a PEEK.
 	 */
+
+	//*************************************************
+	//required for child classes. unfortunately, there's likely to be templating in them eventually
+	//so we can't put them in the CPP if we want all compilers to behave at all times.
+	//so everything, practically, is here.
+	//I think this can be cleaned up in a couple weeks, as of 6/11/24. Let's see if I ever get to it. <3 JMK
 public:
 	ArtilleryTime Now()
 	{
@@ -70,114 +77,21 @@ public:
 	static const uint32_t AddressableInputConservationWindow = InputConservationWindow - (2 * TheCone::LongboySendHertz);
 	friend class FArtilleryBusyWorker;
 	friend class UArtilleryDispatch;
-
-	bool registerPattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor);
-	bool removePattern(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor);
+	bool registerPattern(TSharedPtr<FActionPattern> ToBind, FActionPatternParams FCM_Owner_ActorParams);
+	bool removePattern(TSharedPtr<FActionPattern> ToBind, FActionPatternParams FCM_Owner_ActorParams);
 	ActorKey registerFCMKeyToParentActorMapping(AActor* parent, FireControlKey MyKey);
-	class ARTILLERYRUNTIME_API FConservedInputStream
-	{
-		friend class FArtilleryBusyWorker;
-	public:
-		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(InputConservationWindow); //these two should be one buffer of a shared type, but that makes using them harder
-		InputStreamKey MyKey; //in case, god help us, we need a lookup based on this for something else. that should NOT happen.
 
+	//this is the most portable way to do a folding region in C++.
+#ifndef ARTILLERYECS_CLASSES_REGION_MARKER
 
-		//Correct usage procedure is to null check then store a copy.
-		//Failure to follow this procedure will lead to eventual misery.
-		//This has a side-effect of marking the record as played at least once.
-		std::optional<FArtilleryShell> get(uint64_t input)
-		{
-			// the highest input is a reserved write-slot.
-			//the lower bound here ensures that there's always minimum two seconds worth of memory separating the readers
-			//and the writers. How safe is this? It's not! But it's insanely fast. Enjoy, future jake!
-			//TODO: Refactor this to use an atomic int instead of this hubristic madness.
-			if (input >= highestInput || (highestInput - input) > AddressableInputConservationWindow)
-			{
-				return std::optional<FArtilleryShell>(
-					std::nullopt
-				);
-			}
-			else {
-				CurrentHistory[input].RunAtLeastOnce = true; //this is the only risky op in here from a threading perspective.
-				return std::optional<FArtilleryShell>(CurrentHistory[input]);
-			}
-		};
-
-		//THE ONLY DIFFERENCE WITH PEEK IS THAT IT DOES NOT SET RUNATLEASTONCE.
-		//PEEK IS PROVIDED ONLY AS AN EMERGENCY OPTION, AND IF YOU FIND YOURSELF USING IT
-		//MAY GOD HAVE MERCY ON YOUR SOUL.
-		std::optional<FArtilleryShell> peek(uint64_t input)
-		{
-			// the highest input is a reserved write-slot.
-			//the lower bound here ensures that there's always minimum two seconds worth of memory separating the readers
-			//and the writers. How safe is this? It's not! But it's insanely fast. Enjoy, future jake!
-			//TODO: Refactor this to use an atomic int instead of this hubristic madness.
-			if (input >= highestInput || (highestInput - input) > AddressableInputConservationWindow)
-			{
-				return std::optional<FArtilleryShell>(
-					std::nullopt
-				);
-			}
-			else {
-				return std::optional<FArtilleryShell>(CurrentHistory[input]);
-			}
-		};
-
-		InputStreamKey GetInputStreamKeyByPlayer(PlayerKey SessionLevelPlayerID)
-		{
-			return 0;
-		};
-
-		InputStreamKey GetInputStreamKeyByLocalActorKey(ActorKey LocalLevelActorID)
-		{
-			return 0;
-		};
-
-	protected:
-		volatile uint64_t highestInput = 0; // volatile is utterly useless for its intended purpose. 
-		UCanonicalInputStreamECS* ECSParent;
-
-		//Add can only be used by the Artillery Worker Thread through the methods of the UCISArty.
-		void add(INNNNCOMING shell, long SentAt)
-		{
-			CurrentHistory[highestInput].MyInputActions = shell;
-			CurrentHistory[highestInput].ReachedArtilleryAt = ECSParent->Now();
-			CurrentHistory[highestInput].SentAt = SentAt;//this is gonna get weird after a couple refactors, but that's why we hide it here.
-
-			// reading, adding one, and storing are all separate ops. a slice here is never dangerous but can be erroneous.
-			// because this is a volatile variable, it cannot be optimized away and most compilers will not reorder it.
-			// however, volatile is basically useless normally. it doesn't provoke a memory fence, and for a variety of reasons
-			// it's not suitable for most driver applications. However.
-			// 
-			// There's a special case which is a monotonically increasing value that is only ever
-			// incremented by one thread with a single call site for the increment. In this case, you can still get
-			// interleaved but the value will always be either k or k+1. If it's stale in cache, the worst case
-			// is that the newest input won't be legible yet and this can be resolved by repolling.
-			++highestInput;
-		};
-
-		//Overload for local add via feed from cabling. don't use this unless you are CERTAIN.
-		void add(INNNNCOMING shell)
-		{
-			CurrentHistory[highestInput].MyInputActions = shell;
-			CurrentHistory[highestInput].ReachedArtilleryAt = ECSParent->Now();
-			CurrentHistory[highestInput].SentAt = ECSParent->Now();
-			++highestInput;
-		};
-	};
-
-	//Used in the busyworker
-	//There should only be one of these fuckers.
-	//This is really just a way of grouping some of the functionality
-	//of the overarching world subsystem together into an FClass that can
-	//be used safely off thread without any consideration. you can use Uclasses if you're careful but...
+public:
 	class ARTILLERYRUNTIME_API FConservedInputPatternMatcher
 	{
-
-	friend class FArtilleryBusyWorker;
+		TWeakPtr<FArtilleryNoGuaranteeReadOnly> MyStream; //and may god have mercy on my soul.
+		friend class FArtilleryBusyWorker;
 	public:
 		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(ArtilleryInputSearchWindow);
-		TSet<InputStreamKey> MyStreamKeys; //in case, god help us, we need a lookup based on this for something else. that should NOT happen.
+		TSet<InputStreamKey> MyStreamKeys; //It Happened! Hurray!
 
 		//there's a bunch of reasons we use string_view here, but mostly, it's because we can make them constexprs!
 		//so this is... uh... pretty fast!
@@ -218,7 +132,8 @@ public:
 			//USED TO DEFINE HOW TO HIDE LATENCY BY TRIMMING LEAD-IN FRAMES OF AN ARTILLERYGUN
 			uint32_t leftTrimFrames,
 			//USED TO DEFINE HOW TO SHORTEN ARTILLERYGUNS BY SHORTENING TRAILING or INFIX DELAYS, SUCH AS DELAYED EXPLOSIONS, TRAJECTORIES, OR SPAWNS, TO HIDE LATENCY.
-			uint32_t rightTrimFrames
+			uint32_t rightTrimFrames,
+			uint64_t InputCycleNumber //frame's a misnomer, actually.
 		)
 		{
 
@@ -236,42 +151,160 @@ public:
 				//it's also why we aren't checking to see if the pointers are valid. if they _aren't_ then it's a lifecycle bug.
 				if (AllPatternBinds.Contains(Name))
 				{
-					TSharedPtr<TSet<FActionPatternParams>> AllParamsForPattern = AllPatternBinds[Name];
-					if (AllParamsForPattern->Num() < 0)
+					if (AllPatternBinds[Name]->Num() < 0)
 					{
 						TSharedPtr<FActionPattern_InternallyStateless> currentPattern = AllPatternsByName[Name];
-						for (auto& Elem : *AllParamsForPattern)
+						FActionBitMask Union;
+						for (FActionPatternParams& Elem : *AllPatternBinds[Name])
 						{
-							//todo: add up all the masks for the pattern to produce the union of candidate codings.
-							//the runPattern should actually return a mask of the union of all
-							//candidate codings that matched fully. this will be necessary to avoid an N^3 op.
-							//we'll likely need EVERY artillery gun to have a default behavior for priority re: binds.
-							//if I didn't absolutely need this "true threaded" to be able to do reconciles fast with jolt,
-							//we would have used enhanced input. :/
-							if (currentPattern->runPattern(Elem))
-							{
-								//NOW the logic HERE in the MATCHER should handle which binds actually fire, using the bind params.
-								//actually, we might need to aggregate everything from the union matches THEN determine what happens
-								//because we might have a pattern's input get eaten.
-							}
+							Union.buttons	|= Elem.ToSeek.buttons;
+							Union.events	|= Elem.ToSeek.events;
 						}
+						if (currentPattern->runPattern(InputCycleNumber, Union, MyStream.Pin()))
+						{
+							for (FActionPatternParams& Elem : *AllPatternBinds[Name])
+							{
+								if (Elem.ToSeek.buttons.any() || Elem.ToSeek.buttons.any())
+								{
+									//separating the buttons and events was stupid, but here we are.
+									if (
+										((Elem.ToSeek.buttons & Union.buttons) == Elem.ToSeek.buttons)
+										&&
+										((Elem.ToSeek.events & Union.events) == Elem.ToSeek.events)
+										)
+									{
+										return true;
+									}
+								}
+								else
+								{
+									continue;
+								}
+							}
+							//NOW the logic HERE in the MATCHER should handle which binds actually fire, using the bind params.
+							//actually, we might need to aggregate everything from the union matches THEN determine what happens
+							//because we might have a pattern's input get eaten.
+						}
+						return false;
 					}
 				}
 			}
-
-			//we also need to do the movement control either here, or back in the busy worker separately.
-			//and that means we need an answer for how to do stick-flicks. they're such an unusual input
-			//that I'm really inclined to just hand-jam them as a sort of Weird Pattern you can subscribe to
-			//that secretly checks the sticks.
-			return true; //well take a nap ZEN fire ZE missiles.
+			//Stickflick is handled here but continuous movement is handled elsewhere in artillery busy worker.
+			return false;
 		};
 	protected:
 
 	};
 
+	class ARTILLERYRUNTIME_API FConservedInputStream : public FArtilleryNoGuaranteeReadOnly
+	{
+		//this will need to be triple buffered or synchroed soon. :/
+
+
+		//Mom?
+		friend class FArtilleryBusyWorker;
+		//Dad?
+		friend class UCanonicalInputStreamECS;
+	public:
+		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(InputConservationWindow); //these two should be one buffer of a shared type, but that makes using them harder
+		InputStreamKey MyKey; //in case, god help us, we need a lookup based on this for something else. that should NOT happen.
+
+
+		//Correct usage procedure is to null check then store a copy.
+		//Failure to follow this procedure will lead to eventual misery.
+		//This has a side-effect of marking the record as played at least once.
+		std::optional<FArtilleryShell> get(uint64_t input)
+		{
+			// the highest input is a reserved write-slot.
+			//the lower bound here ensures that there's always minimum two seconds worth of memory separating the readers
+			//and the writers. How safe is this? It's not! But it's insanely fast. Enjoy, future jake!
+			//TODO: Refactor this to use an atomic int instead of this hubristic madness.
+			if (input >= highestInput || (highestInput - input) > AddressableInputConservationWindow)
+			{
+				return std::optional<FArtilleryShell>(
+					std::nullopt
+				);
+			}
+			else {
+				CurrentHistory[input].RunAtLeastOnce = true; //this is the only risky op in here from a threading perspective.
+				return std::optional<FArtilleryShell>(CurrentHistory[input]);
+			}
+		};
+
+		//THE ONLY DIFFERENCE WITH PEEK IS THAT IT DOES NOT SET RUNATLEASTONCE.
+		//PEEK IS PROVIDED ONLY AS AN EMERGENCY OPTION, AND IF YOU FIND YOURSELF USING IT
+		//MAY GOD HAVE MERCY ON YOUR SOUL.
+		std::optional<FArtilleryShell> peek(uint64_t input)
+			override
+		{
+			// the highest input is a reserved write-slot.
+			//the lower bound here ensures that there's always minimum two seconds worth of memory separating the readers
+			//and the writers. How safe is this? It's not! But it's insanely fast. Enjoy, future jake!
+			//TODO: Refactor this to use an atomic int instead of this hubristic madness.
+			if (input >= highestInput || (highestInput - input) > AddressableInputConservationWindow)
+			{
+				return std::optional<FArtilleryShell>(
+					std::nullopt
+				);
+			}
+			else {
+				return std::optional<FArtilleryShell>(CurrentHistory[input]);
+			}
+		};
+
+		InputStreamKey GetInputStreamKeyByPlayer(PlayerKey SessionLevelPlayerID)
+		{
+			return 0;
+		};
+
+		InputStreamKey GetInputStreamKeyByLocalActorKey(ActorKey LocalLevelActorID)
+		{
+			return 0;
+		};
+
+	protected:
+		volatile uint64_t highestInput = 0; // volatile is utterly useless for its intended purpose. 
+		UCanonicalInputStreamECS* ECSParent;
+		TSharedPtr<UCanonicalInputStreamECS::FConservedInputPatternMatcher> MyPatternMatcher
+			=MakeShareable<UCanonicalInputStreamECS::FConservedInputPatternMatcher>(new UCanonicalInputStreamECS::FConservedInputPatternMatcher());
+		;
+		//Add can only be used by the Artillery Worker Thread through the methods of the UCISArty.
+		void add(INNNNCOMING shell, long SentAt)
+		{
+			CurrentHistory[highestInput].MyInputActions = shell;
+			CurrentHistory[highestInput].ReachedArtilleryAt = ECSParent->Now();
+			CurrentHistory[highestInput].SentAt = SentAt;//this is gonna get weird after a couple refactors, but that's why we hide it here.
+
+			// reading, adding one, and storing are all separate ops. a slice here is never dangerous but can be erroneous.
+			// because this is a volatile variable, it cannot be optimized away and most compilers will not reorder it.
+			// however, volatile is basically useless normally. it doesn't provoke a memory fence, and for a variety of reasons
+			// it's not suitable for most driver applications. However.
+			// 
+			// There's a special case which is a monotonically increasing value that is only ever
+			// incremented by one thread with a single call site for the increment. In this case, you can still get
+			// interleaved but the value will always be either k or k+1. If it's stale in cache, the worst case
+			// is that the newest input won't be legible yet and this can be resolved by repolling.
+			++highestInput;
+		};
+
+		//Overload for local add via feed from cabling. don't use this unless you are CERTAIN.
+		void add(INNNNCOMING shell)
+		{
+			CurrentHistory[highestInput].MyInputActions = shell;
+			CurrentHistory[highestInput].ReachedArtilleryAt = ECSParent->Now();
+			CurrentHistory[highestInput].SentAt = ECSParent->Now();
+			++highestInput;
+		};
+	};
+
+	//Used in the busyworker
+	//There should only be one of these fuckers.
+	//This is really just a way of grouping some of the functionality
+	//of the overarching world subsystem together into an FClass that can
+	//be used safely off thread without any consideration. you can use Uclasses if you're careful but...
+#endif
 protected:
-	//this will need to be triple buffered or synchroed soon. :/
-	TSharedPtr<UCanonicalInputStreamECS::FConservedInputPatternMatcher> SingletonPatternMatcher;
+
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;

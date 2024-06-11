@@ -14,8 +14,7 @@ void UCanonicalInputStreamECS::OnWorldBeginPlay(UWorld& InWorld)
 	if ([[maybe_unused]] const UWorld* World = InWorld.GetWorld()) {
 		UE_LOG(LogTemp, Warning, TEXT("Artillery::CanonicalInputStream is Operational"));
 		MySquire = GetWorld()->GetSubsystem<UBristleconeWorldSubsystem>();
-		SingletonPatternMatcher = MakeShareable<UCanonicalInputStreamECS::FConservedInputPatternMatcher>( new UCanonicalInputStreamECS::FConservedInputPatternMatcher());
-	}
+		}
 }
 
 void UCanonicalInputStreamECS::Deinitialize()
@@ -34,38 +33,61 @@ TStatId UCanonicalInputStreamECS::GetStatId() const
 }
 
 
-bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern_InternallyStateless> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor)
+
+
+bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern_InternallyStateless> ToBind, FActionPatternParams FCM_Owner_ActorParams)
 {
 	//this should modify the singleton PatternMatcher
-	if (SingletonPatternMatcher->AllPatternBinds.Contains(ToBind->Name))
+	if (
+#ifndef LOCALISCODEDSPECIAL
+		FCM_Owner_ActorParams.MyInputStream == 0xb33f ||
+#endif // !LOCALISCODEDSPECIAL
+		InternalMapping->contains(FCM_Owner_ActorParams.MyInputStream))
 	{
-
-
-	}
-	else
-	{
-
-
+		auto thisInputStream = InternalMapping->find(FCM_Owner_ActorParams.MyInputStream)->second;
+		if (thisInputStream->MyPatternMatcher->AllPatternBinds.Contains(ToBind->getName()))
+		{
+			//names are never removed. sets are only added to or removed from.
+			thisInputStream->MyPatternMatcher->AllPatternBinds.Find(ToBind->getName())->Get()->Add(FCM_Owner_ActorParams);
+		}
+		else
+		{
+			thisInputStream->MyPatternMatcher->Names.Add(ToBind->getName());
+			thisInputStream->MyPatternMatcher->AllPatternsByName.Add(ToBind->getName(), ToBind);
+			TSharedPtr<TSet<FActionPatternParams>> newSet = MakeShareable < TSet<FActionPatternParams>>(new TSet<FActionPatternParams>());
+			newSet.Get()->Add(FCM_Owner_ActorParams);
+			thisInputStream->MyPatternMatcher->AllPatternBinds.Add(ToBind->getName(), newSet);
+		}
 	}
 	return false;
 }
 
-bool UCanonicalInputStreamECS::removePattern(TSharedPtr<FActionPattern_InternallyStateless> ToBind, FActionBitMask ToSeek, FGunKey ToFire, ActorKey FCM_Owner_Actor)
+bool UCanonicalInputStreamECS::removePattern(TSharedPtr<FActionPattern_InternallyStateless> ToBind, FActionPatternParams FCM_Owner_ActorParams)
 {
 	//this should modify the singleton PatternMatcher
-	if (SingletonPatternMatcher->AllPatternBinds.Contains(ToBind->getName()))
+	if (
+#ifndef LOCALISCODEDSPECIAL
+		FCM_Owner_ActorParams.MyInputStream == 0xb33f ||
+#endif // !LOCALISCODEDSPECIAL
+		InternalMapping->contains(FCM_Owner_ActorParams.MyInputStream))
 	{
+		auto thisInputStream = InternalMapping->find(FCM_Owner_ActorParams.MyInputStream)->second;
+		if (thisInputStream->MyPatternMatcher->AllPatternBinds.Contains(ToBind->getName()))
+		{
+			//names are never removed. sets are only added to or removed from.
+			auto pinSharedPtr = thisInputStream->MyPatternMatcher->AllPatternBinds.Find(ToBind->getName());
 
-
-	}
-	else
-	{
-
-
+			if (pinSharedPtr->Get()->Contains(FCM_Owner_ActorParams))
+			{
+				auto remId = pinSharedPtr->Get()->FindId(FCM_Owner_ActorParams);
+				pinSharedPtr->Get()->Remove(remId);
+				return true;
+			}
+		}
+		
 	}
 	return false;
 }
-
 ActorKey UCanonicalInputStreamECS::registerFCMKeyToParentActorMapping(AActor* parent, FireControlKey MyKey)
 {
 	//todo, registration goes here.

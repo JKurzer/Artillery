@@ -21,7 +21,8 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		UCablingWorldSubsystem* DirectLocalInputSystem = GetWorld()->GetSubsystem<UCablingWorldSubsystem>();
 		ArtilleryAsyncWorldSim.InputSwapSlot = MakeShareable(new IncQ(256));
 		DirectLocalInputSystem->DestructiveChangeLocalOutboundQueue(ArtilleryAsyncWorldSim.InputSwapSlot);
-		ArtilleryAsyncWorldSim.MyPatternMatcher = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>()->SingletonPatternMatcher;
+		WorldSim_Thread.Reset(FRunnableThread::Create(&ArtilleryAsyncWorldSim, TEXT("ARTILLERY ONLINE.")));
+		ArtilleryAsyncWorldSim.Exit();
 	}
 
 

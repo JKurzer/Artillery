@@ -60,13 +60,16 @@ public:
 		//IF YOU DO NOT CALL THIS FROM THE GAMETHREAD, YOU WILL HAVE A BAD TIME.
 		void pushPatternToRunner(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
 		{
-			MySquire->registerPattern(ToBind, ToSeek, ToFire, MyKey);
+			FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, 0xbeef);
+			MySquire->registerPattern(ToBind, myParams);
 		};
 
 		//IF YOU DO NOT CALL THIS FROM THE GAMETHREAD, YOU WILL HAVE A BAD TIME.
 		void popPatternFromRunner(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
 		{
-			MySquire->removePattern(ToBind, ToSeek, ToFire, MyKey);
+			
+			FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, 0xbeef);
+			MySquire->removePattern(ToBind, myParams);
 		};
 
 

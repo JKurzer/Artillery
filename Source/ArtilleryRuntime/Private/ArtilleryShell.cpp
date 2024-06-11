@@ -1,23 +1,23 @@
 #include "ArtilleryShell.h"
 
-uint32 FArtilleryShell::GetStickLeftX()
+float FArtilleryShell::GetStickLeftX()
 {
-    return MyInputActions >> 53;
+    return FCableInputPacker::UnpackStick(MyInputActions >> 53);
 }
 
-uint32 FArtilleryShell::GetStickLeftY()
+float FArtilleryShell::GetStickLeftY()
 {
-    return (MyInputActions >> 42) & 0b11111111111;
+    return FCableInputPacker::UnpackStick((MyInputActions >> 42) & 0b11111111111);
 }
 
-uint32 FArtilleryShell::GetStickRightX()
+float FArtilleryShell::GetStickRightX()
 {
-    return (MyInputActions >> 31) & 0b11111111111;
+    return FCableInputPacker::UnpackStick((MyInputActions >> 31) & 0b11111111111);
 }
 
-uint32 FArtilleryShell::GetStickRightY()
+float FArtilleryShell::GetStickRightY()
 {
-    return (MyInputActions >> 20) & 0b11111111111;
+    return FCableInputPacker::UnpackStick((MyInputActions >> 20) & 0b11111111111);
 }
 
 
@@ -31,6 +31,11 @@ bool FArtilleryShell::GetInputAction(int inputActionIndex)
 bool FArtilleryShell::GetEvent(int eventIndex)
 {
     return (MyInputActions >> (5 - eventIndex)) & 0b1;
+}
+
+uint32 FArtilleryShell::GetButtonsAndEventsFlat()
+{                         //0b1111 1111 1111 1111 1111 is 20 bits.
+    return MyInputActions & 0b11111111111111111111;
 }
 /**
 * 	std::bitset<11> lx;

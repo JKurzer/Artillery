@@ -30,3 +30,6 @@ public:
 		return GetTypeHash(Other.GunDefinitionID) + GetTypeHash(Other.GunInstanceID);
 	}
 };
+bool operator==(FGunKey const& lhs, FGunKey const& rhs) {
+	return (lhs.GunDefinitionID == rhs.GunDefinitionID) && (lhs.GunInstanceID == rhs.GunInstanceID);
+}

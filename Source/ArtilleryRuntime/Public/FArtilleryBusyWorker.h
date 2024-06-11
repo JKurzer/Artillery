@@ -19,8 +19,6 @@
 // rollbacks, and pattern matching is a pretty good bargain. we'll want to revisit this for servers, of course.
 class FArtilleryBusyWorker : public FRunnable {
 public:
-
-	TSharedPtr<UCanonicalInputStreamECS::FConservedInputPatternMatcher> MyPatternMatcher;
 	FArtilleryBusyWorker();
 	virtual ~FArtilleryBusyWorker() override;
 	
