@@ -44,7 +44,7 @@ class ARTILLERYRUNTIME_API UFireControlMachine : public UActorComponent
 	GENERATED_BODY()
 
 public:	
-		static inline int orderInFirstBeginPlay = 0;
+		static inline int orderInInitialize = 0;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		TMap<FGunKey, FArtilleryGun> MyManagedGuns;
 		UCanonicalInputStreamECS* MySquire;
@@ -78,10 +78,15 @@ public:
 			return false;
 		};
 		
+		void InitializeComponent() override
+		{
+
+			MyKey = UFireControlMachine::orderInInitialize++;
+		};
+
 		void BeginPlay() override {
 			UActorComponent::BeginPlay(); // using this over the looser super atm. TODO: validate!!!!!
 			MySquire = GetOwner()->GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
-			MyKey = UFireControlMachine::orderInFirstBeginPlay++;
 			MySquire->registerFCMKeyToParentActorMapping(GetOwner(), MyKey);
 			//likely want to manage system component bind here by checking for actor parent.
 			//right now, we can push all our patterns here as well, and we can use a static set of patterns for
