@@ -34,6 +34,7 @@ typedef FActionPattern_InternallyStateless FActionPattern;
 
 //TODO: ALWAYS customize this to the sample-rate you select for cabling. ALWAYS. Or your game will feel Real Bad.
 constexpr const inline int HoldSweepBack = 5; // this is literally the sin within the beast. 
+constexpr const inline int HoldDropAllowance = 1; // number of missed inputs allowed in a hold sequence
 
 class FActionPattern_SingleFrameFire : public FActionPattern_InternallyStateless
 {
@@ -61,10 +62,17 @@ public:
 	)
 		override
 	{
+		int heldInputs = 0;
 		for (int i = HoldSweepBack; i >= 0; --i)
 		{
+			if (Buffer->peek(frameToRunBackFrom - i)->GetButtonsAndEventsFlat() & ToSeekUnion.getFlat())
+			{
+				heldInputs++;
+			}
 		}
-		return false; //& ToSeekUnion;
+		// allows for a small fraction of missed inputs (# is HoldDropAllowance), but still count as hold
+		// this implementation does not track where in the sequence the drops were
+		return heldInputs >= (HoldSweepBack - HoldDropAllowance);
 	};
 	const FString getName() override { return Name; };
 	static const inline FString Name = "FActionPattern_ButtonHoldPattern";
