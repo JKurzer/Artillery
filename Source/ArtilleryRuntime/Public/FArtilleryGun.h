@@ -10,7 +10,6 @@
 #include "GameplayEffect.h"
 #include "Abilities/GameplayAbility.h"
 #include "UArtilleryAbilityMinimum.h"
-#include "UArtilleryAbilitySequence.h"
 #include "FArtilleryGun.generated.h"
 
 /**
@@ -62,12 +61,6 @@ public:
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		TObjectPtr<UArtilleryPerActorAbilityMinimum> PostFireCosmetic;
 
-		//stop execution BP node needed here
-		UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Latency Hiding")
-		int DallyFramesToOmit = 0;
-		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Latency Hiding")
-		bool RerunDueToReconcile = false;
-
 		FArtilleryGun()
 		{
 			//assign gunkey
@@ -79,7 +72,27 @@ public:
 			PostFireCosmetic->MyGunKey = MyGunKey;
 		};
 
-protected:
-	TObjectPtr <UArtilleryAbilitySequence> EncapsulatedGASMachinery;
+		//I'm sick and tired of the endless layers of abstraction.
+		//Here's how it works. we fire the abilities from the gun.
+		bool FireGun(bool RerunDueToReconcile = false, int DallyFramesToOmit = 0 /*, AActor * Origin*/)
+		{
+			if (!RerunDueToReconcile)
+			{
+
+			}
+
+			if (!RerunDueToReconcile)
+			{
+
+			}
+
+			if (!RerunDueToReconcile)
+			{
+
+			}
+
+			return true;
+		};
+
 };
 
