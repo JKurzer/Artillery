@@ -35,16 +35,32 @@ struct ARTILLERYRUNTIME_API FArtilleryGun
 	GENERATED_BODY()
 
 public:	
+		
+		// this can be handed into abilities.
+		FGunKey MyGunKey;
+		
+		/// <summary>
+		/// activator goes here. called from fire control machine.
+		/// should pass GunKey into the Ability Sequence.
+		/// </summary>
+
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		TObjectPtr<UArtilleryUninstancedAbilityMinimum> CosmeticPrefire;
+		TObjectPtr<UArtilleryPerActorAbilityMinimum> Prefire;
+
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		TObjectPtr<UArtilleryUninstancedAbilityMinimum> WindUp;
+		TObjectPtr<UArtilleryPerActorAbilityMinimum> CosmeticPrefire;
+
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		TObjectPtr<UArtilleryUninstancedAbilityMinimum> Fire;
+		TObjectPtr<UArtilleryPerActorAbilityMinimum> Fire;
+		
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		TObjectPtr<UArtilleryUninstancedAbilityMinimum> CosmeticFire;
+		TObjectPtr<UArtilleryPerActorAbilityMinimum> CosmeticFire;
+		
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		TObjectPtr<UArtilleryUninstancedAbilityMinimum> WindDown;
+		TObjectPtr<UArtilleryPerActorAbilityMinimum> PostFire;
+		
+		UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		TObjectPtr<UArtilleryPerActorAbilityMinimum> PostFireCosmetic;
 
 		//stop execution BP node needed here
 		UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Latency Hiding")
@@ -52,6 +68,16 @@ public:
 		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Latency Hiding")
 		bool RerunDueToReconcile = false;
 
+		FArtilleryGun()
+		{
+			//assign gunkey
+			Prefire->MyGunKey = MyGunKey;
+			CosmeticPrefire->MyGunKey = MyGunKey;
+			Fire->MyGunKey = MyGunKey;
+			CosmeticFire->MyGunKey = MyGunKey;
+			PostFire->MyGunKey = MyGunKey;
+			PostFireCosmetic->MyGunKey = MyGunKey;
+		};
 
 protected:
 	TObjectPtr <UArtilleryAbilitySequence> EncapsulatedGASMachinery;
