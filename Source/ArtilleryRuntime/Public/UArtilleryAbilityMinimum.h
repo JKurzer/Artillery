@@ -7,6 +7,10 @@
 
 #include "GameplayEffectTypes.h"
 
+#include "Abilities/GameplayAbility.h"
+#include "GameplayAbilitySpecHandle.h"
+
+#include "Abilities/GameplayAbilityTypes.h"
 #include "GameplayEffect.h"
 #include "FGunKey.h"
 #include "Abilities/GameplayAbility.h"
@@ -135,4 +139,44 @@ public:
 	///** Sets rather ability block flags are enabled or disabled. Only valid on instanced abilities */
 	//UFUNCTION(BlueprintCallable, Category = Ability)
 	//virtual void SetShouldBlockOtherAbilities(bool bShouldBlockAbilities);
+/**
+	 * The main function that defines what an ability does.
+	 *  -Child classes will want to override this
+	 *  -This function graph should call CommitAbility
+	 *  -This function graph should call EndAbility
+	 *
+	 *  Latent/async actions are ok in this graph. Note that Commit and EndAbility calling requirements speak to the K2_ActivateAbility graph.
+	 *  In C++, the call to K2_ActivateAbility() may return without CommitAbility or EndAbility having been called. But it is expected that this
+	 *  will only occur when latent/async actions are pending. When K2_ActivateAbility logically finishes, then we will expect Commit/End to have been called.
+	 *
+	 */
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
+	/** Do boilerplate init stuff and then call ActivateAbility */
+	virtual void PreActivate(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, FOnGameplayAbilityEnded::FDelegate* OnGameplayAbilityEndedDelegate, const FGameplayEventData* TriggerEventData = nullptr) override;
+
+	//native End
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+
+
+	virtual bool CommitAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) override;
+
+
+	/** Generates a GameplayEffectContextHandle from our owner and an optional TargetData.*/
+	FGameplayEffectContextHandle GetContextFromOwner(FGameplayAbilityTargetDataHandle OptionalTargetData) const override;
+
+	/** Returns an effect context, given a specified actor info */
+	FGameplayEffectContextHandle MakeEffectContext(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo) const override;
+
+private:
+
+	//these have no function in the ability sequence.
+	void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override {};
+	void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override {};
+	/** Called from AbilityTask_WaitConfirmCancel to handle input confirming */
+	void OnWaitingForConfirmInputBegin() override {};
+	void OnWaitingForConfirmInputEnd() override {};
+
+	/** Ability sequences, and artillery in general, make use of only cosmetic events and cues where possible. */
+	void SendGameplayEvent(FGameplayTag EventTag, FGameplayEventData Payload) override {};
 };

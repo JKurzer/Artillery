@@ -157,6 +157,7 @@ public:
 						FActionBitMask Union;
 						for (FActionPatternParams& Elem : *AllPatternBinds[Name])
 						{
+							//todo: replace with toFlat(). ffs.
 							Union.buttons	|= Elem.ToSeek.buttons;
 							Union.events	|= Elem.ToSeek.events;
 						}
@@ -164,7 +165,7 @@ public:
 						{
 							for (FActionPatternParams& Elem : *AllPatternBinds[Name])
 							{
-								if (Elem.ToSeek.buttons.any() || Elem.ToSeek.buttons.any())
+								if (Elem.ToSeek.buttons.any() || Elem.ToSeek.events.any())
 								{
 									//separating the buttons and events was stupid, but here we are.
 									if (
@@ -198,6 +199,7 @@ public:
 
 	class ARTILLERYRUNTIME_API FConservedInputStream : public FArtilleryNoGuaranteeReadOnly
 	{
+		virtual ~FConservedInputStream() = default;
 		//this will need to be triple buffered or synchroed soon. :/
 
 
