@@ -55,16 +55,39 @@ public:
 class FActionPattern_ButtonHold : public FActionPattern_InternallyStateless
 {
 public:
+	// returned pattern will tell us which inputs (button/events) were held
 	virtual uint32_t runPattern(uint64_t frameToRunBackFrom,
 		FActionBitMask ToSeekUnion,
 		FANG_PTR Buffer
 	)
 		override
 	{
-		for (int i = HoldSweepBack; i >= 0; --i)
+		/*
+		  to allow for one missed input in each input bit:
+		  tracker = mask
+		   for x in input
+			outcome = mask & x
+			mask = tracker | outcome
+			tracker &= outcome*/
+
+		uint64_t startIndex = (frameToRunBackFrom - HoldSweepBack < 0) ? 0 : frameToRunBackFrom - HoldSweepBack;
+		uint32_t toSeek = ToSeekUnion.getFlat();
+		uint32_t tracker = toSeek;
+		uint32_t outcome = 0;
+		uint32_t x = 0;
+
+		// std::optional<FArtilleryShell>(CurrentHistory[input])
+		for (uint64_t i = startIndex; i <= frameToRunBackFrom; ++i)
 		{
+			//I am ??
+			x = (Buffer[i]).get();
+			outcome = toSeek & x;
+			toSeek = tracker | outcome;
+			tracker &= outcome;
 		}
-		return false; //& ToSeekUnion;
+		// allows for 1 missed input for each input across the time frame, but still count as hold
+		// this implementation does not track where in the sequence the drops were
+		return outcome;
 	};
 	const FString getName() override { return Name; };
 	static const inline FString Name = "FActionPattern_ButtonHoldPattern";
