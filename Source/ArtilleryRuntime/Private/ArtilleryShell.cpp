@@ -4,15 +4,28 @@ float FArtilleryShell::GetStickLeftX()
 {
     return FCableInputPacker::UnpackStick(MyInputActions >> 53);
 }
+uint32_t FArtilleryShell::GetStickLeftXAsACSN()
+{
+    return FCableInputPacker::FCableInputPacker::DebiasStick(MyInputActions >> 53);
+}
+
 
 float FArtilleryShell::GetStickLeftY()
 {
     return FCableInputPacker::UnpackStick((MyInputActions >> 42) & 0b11111111111);
 }
+uint32_t FArtilleryShell::GetStickLeftYAsACSN()
+{
+    return FCableInputPacker::FCableInputPacker::DebiasStick((MyInputActions >> 42) & 0b11111111111);
+}
 
 float FArtilleryShell::GetStickRightX()
 {
     return FCableInputPacker::UnpackStick((MyInputActions >> 31) & 0b11111111111);
+}
+uint32_t FArtilleryShell::GetStickRightXAsACSN()
+{
+    return FCableInputPacker::FCableInputPacker::DebiasStick((MyInputActions >> 31) & 0b11111111111);
 }
 
 float FArtilleryShell::GetStickRightY()
@@ -20,6 +33,10 @@ float FArtilleryShell::GetStickRightY()
     return FCableInputPacker::UnpackStick((MyInputActions >> 20) & 0b11111111111);
 }
 
+uint32_t FArtilleryShell::GetStickRightYAsACSN()
+{
+    return FCableInputPacker::FCableInputPacker::DebiasStick((MyInputActions >> 20) & 0b11111111111);
+}
 
 // index is 0 - 13
 bool FArtilleryShell::GetInputAction(int inputActionIndex)
