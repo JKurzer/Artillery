@@ -44,9 +44,13 @@ public:
 	
 	//unpack as floats using the bristlecone packer logic. this is cross-machine deterministic.
 	float GetStickLeftX();
+	uint32_t GetStickLeftXAsACSN();
 	float GetStickLeftY();
+	uint32_t GetStickLeftYAsACSN();
 	float GetStickRightX();
+	uint32_t GetStickRightXAsACSN();
 	float GetStickRightY();
+	uint32_t GetStickRightYAsACSN();
 
 	bool GetInputAction(int inputActionIndex);
 	bool GetEvent(int eventIndex);

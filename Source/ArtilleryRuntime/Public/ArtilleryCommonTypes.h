@@ -26,7 +26,24 @@ typedef uint32_t FireControlKey;
 #include <bitset>
 #include "Containers/CircularBuffer.h"
 #include "FGunKey.h"
+//TODO: ALWAYS customize this to the sample-rate you select for cabling. ALWAYS. Or your game will feel Real Bad.
 constexpr int ArtilleryInputSearchWindow = 70;
+constexpr const inline int ArtilleryHoldSweepBack = 5; // this is literally the sin within the beast. 
+constexpr const inline int ArtilleryFlickSweepBack = 15; // And this is no better.
+
+//But this is pretty good. Here it is, the most magical constant I've written.
+//we use the Cabling Integerized Sticks. Normally, we turn them into floats.
+//But squares of floats are a good way to blow your bit corruption limits for
+//FP rounding error. So here, we actually use the sqrMag of the debiased ints.
+//It works just the same. It's distance across a metric space, number of discretized
+//positions away from center on an axis. So we need a magnitude boundary to start
+//a stick flick detection from. This is that.
+//This is 2*(975*975)
+constexpr const inline uint32_t ArtilleryMagicFlickBoundary = 1901250;
+//these should LIKELY be the same, but I could see an argument than this might need to be a little smaller?
+//Tune as needed. we actually maintain a surprisingly finegrained degree of control here.
+constexpr const inline uint32_t ArtilleryMagicMinimumFlickDistanceRequired = 1901250; 
+
 struct FActionPatternParams
 {
 public:

@@ -32,8 +32,7 @@ public:
 
 typedef FActionPattern_InternallyStateless FActionPattern;
 
-//TODO: ALWAYS customize this to the sample-rate you select for cabling. ALWAYS. Or your game will feel Real Bad.
-constexpr const inline int HoldSweepBack = 5; // this is literally the sin within the beast. 
+
 
 class FActionPattern_SingleFrameFire : public FActionPattern_InternallyStateless
 {
@@ -51,6 +50,47 @@ public:
 	static const inline FString Name = "FActionPattern_SingleFrameFirePattern";
 };
 
+class FActionPattern_ButtonHoldAllowOneMiss : public FActionPattern_InternallyStateless
+{
+public:
+	// returned pattern will tell us which inputs (button/events) were held
+	virtual uint32_t runPattern(uint64_t frameToRunBackFrom,
+		FActionBitMask ToSeekUnion,
+		FANG_PTR Buffer
+	)
+		override
+	{
+		/*
+		  to allow for one missed input in each input bit:
+		  tracker = mask
+		   for x in input
+			outcome = mask & x
+			mask = tracker | outcome
+			tracker &= outcome*/
+
+		uint64_t StartIndex =
+			(frameToRunBackFrom - ArtilleryHoldSweepBack < 0) ?
+				0 : frameToRunBackFrom - ArtilleryHoldSweepBack;
+		uint32_t toSeek = ToSeekUnion.getFlat();
+		uint32_t tracker = toSeek;
+		uint32_t outcome = 0;
+		uint32_t x = 0;
+
+		// std::optional<FArtilleryShell>(CurrentHistory[input])
+		for (uint64_t i = StartIndex; i <= frameToRunBackFrom; ++i)
+		{
+			x = Buffer->peek(i)->GetButtonsAndEventsFlat();
+			outcome = toSeek & x;
+			toSeek = tracker | outcome;
+			tracker &= outcome;
+		}
+		// allows for 1 missed input for each input across the time frame, but still count as hold
+		// this implementation does not track where in the sequence the drops were
+		return outcome;
+	};
+	const FString getName() override { return Name; };
+	static const inline FString Name = "FActionPattern_ButtonHoldAllowOneMissPattern";
+};
 
 class FActionPattern_ButtonHold : public FActionPattern_InternallyStateless
 {
@@ -70,24 +110,21 @@ public:
 			mask = tracker | outcome
 			tracker &= outcome*/
 
-		uint64_t startIndex = (frameToRunBackFrom - HoldSweepBack < 0) ? 0 : frameToRunBackFrom - HoldSweepBack;
+		uint64_t StartIndex =
+			(frameToRunBackFrom - ArtilleryHoldSweepBack < 0) ?
+				0 : frameToRunBackFrom - ArtilleryHoldSweepBack;
 		uint32_t toSeek = ToSeekUnion.getFlat();
-		uint32_t tracker = toSeek;
-		uint32_t outcome = 0;
 		uint32_t x = 0;
 
 		// std::optional<FArtilleryShell>(CurrentHistory[input])
-		for (uint64_t i = startIndex; i <= frameToRunBackFrom; ++i)
+		for (uint64_t i = StartIndex; i <= frameToRunBackFrom; ++i)
 		{
-			//I am ??
-			x = (Buffer[i]).get();
-			outcome = toSeek & x;
-			toSeek = tracker | outcome;
-			tracker &= outcome;
+			x = Buffer->peek(i)->GetButtonsAndEventsFlat();
+			toSeek = toSeek & x;
 		}
-		// allows for 1 missed input for each input across the time frame, but still count as hold
+		
 		// this implementation does not track where in the sequence the drops were
-		return outcome;
+		return toSeek;
 	};
 	const FString getName() override { return Name; };
 	static const inline FString Name = "FActionPattern_ButtonHoldPattern";
@@ -114,26 +151,11 @@ public:
 	static const inline FString Name = "FActionPattern_ButtonReleaseNoDelay";
 };
 
-//TODO: make sure the right runPattern gets called. can't rem the inheritance rules and I don't have time to rabbit hole.
-class FActionPattern_ButtonReleaseOneFrameDelay : public FActionPattern_ButtonReleaseNoDelay
-{
-public:
-	virtual uint32_t runPattern(uint64_t frameToRunBackFrom,
-		FActionBitMask ToSeekUnion,
-		FANG_PTR Buffer
-	)
-		override
-	{	//using toseekunion (super inverts)
-		//super::runpattern frametorunbackfrom - 1
-		//inverting toseekunion
-		//runpattern frametorunbackfrom
-		//& results.
-		return false; //return results
-	};
-	const FString getName() override { return Name; };
-	static const inline FString Name = "FActionPattern_ButtonReleaseOneFrameDelay";
-};
 
+//NOTE: if you want to check if buttons were held across the whole stick-flick
+//you will need to do that separately or create a new pattern. The flick is ALREADY
+//expensive.
+//NOTE THIS USES THE FLICK SWEEPBACK which is INCLUSIVE
 class FActionPattern_StickFlick : public FActionPattern_InternallyStateless
 {
 public:
@@ -143,11 +165,33 @@ public:
 	)
 		override
 	{
-		//super::runpattern with frametorunbackfrom - 1
-		//using invert of ToSeekUnion
-		//runpattern frametorunbackfrom
-		//& results.
-		return false; //return results
+		//NOTE THIS USES THE FLICK SWEEPBACK which is INCLUSIVE
+		auto cur = Buffer->peek(frameToRunBackFrom);
+		//for a VARIETY OF REASONS we really don't want to start detecting flicks early.
+		if(frameToRunBackFrom - ArtilleryFlickSweepBack < ArtilleryFlickSweepBack)
+		{
+			return 0;
+		}
+		uint64_t FinishIndex = frameToRunBackFrom - ArtilleryFlickSweepBack;
+		//we never turn them into floats here.
+		uint32_t curX = cur->GetStickLeftXAsACSN(); 
+		uint32_t curY = cur->GetStickLeftYAsACSN();
+		uint32_t sqrMagnitude = (curX * curX) + (curY * curY);
+		//et viola.
+		if (sqrMagnitude > ArtilleryMagicFlickBoundary) {
+			//AND it sweeps backward, not forward.
+			Buffer->peek(frameToRunBackFrom);
+			for (uint64_t index = frameToRunBackFrom-1; FinishIndex <= index; --index)
+				{
+				auto entry = Buffer->peek(index);
+				auto x =  entry->GetStickLeftXAsACSN() - curX;
+				auto y=entry->GetStickLeftYAsACSN()- curY;
+				if (((x*x) + (y*y)  ) >= ArtilleryMagicMinimumFlickDistanceRequired) {
+					return ToSeekUnion.getFlat();
+				}
+			}
+		}
+		return 0; //return results
 	};
 	const FString getName() override { return Name; };
 	static const inline FString Name = "FActionPattern_StickFlick";
