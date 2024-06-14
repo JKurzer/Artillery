@@ -17,6 +17,14 @@ struct FGunKey
 {
 	GENERATED_BODY()
 public:
+	//TODO: this needs to be removed. we should never allow a default gunkey.
+	FGunKey()
+	{}
+	FGunKey(FString Name, uint64_t id): 
+	GunDefinitionID(Name), GunInstanceID(id)
+	{
+	}
+
 	FString GunDefinitionID; //this will need to be human searchable
 	uint64_t GunInstanceID;
 

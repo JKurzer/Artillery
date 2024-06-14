@@ -13,7 +13,9 @@
 #include "Abilities/GameplayAbilityTypes.h"
 #include "GameplayEffect.h"
 #include "FGunKey.h"
-#include "Abilities/GameplayAbility.h"
+
+#include "GameplayTaskOwnerInterface.h"
+#include "GameplayTask.h"
 #include "UArtilleryAbilityMinimum.generated.h"
 
 /**
@@ -43,13 +45,58 @@
  * 
  * Otoh, looman likes them, and that's often a good sign. Technically, we could create a delta-tracking tag container.
  * It's not the worst idea.
- */
+ *
+ * Like in the UGameplayAbility class it derives from...
+ *	// ----------------------------------------------------------------------------------------------------------------
+	//
+	//	The important functions:
+	//	
+	//		CanActivateAbility()	- const function to see if ability is activatable. Callable by UI etc
+	//
+	//		TryActivateAbility()	- Attempts to activate the ability. Calls CanActivateAbility(). Input events can call this directly.
+	//								- Also handles instancing-per-execution logic and replication/prediction calls.
+	//		
+	//		CallActivateAbility()	- Protected, non virtual function. Does some boilerplate 'pre activate' stuff, then calls ActivateAbility()
+	//
+	//		ActivateAbility()		- What the abilities *does*. This is what child classes want to override.
+	//	
+	//		CommitAbility()			- Commits reources/cooldowns etc. ActivateAbility() must call this!
+	//		
+	//		CancelAbility()			- Interrupts the ability (from an outside source).
+	//
+	//		EndAbility()			- The ability has ended. This is intended to be called by the ability to end itself.
+	//	
+	// ----------------------------------------------------------------------------------------------------------------
+
+	The K2 functions are wrappers that expose native behavior to the BP graph, and serve a few other functions.
+*/
+
+enum FArtilleryStates
+{
+	Fired, Canceled, CanceledAfterCommit
+};
+
+
+
+DECLARE_DELEGATE_FourParams(FArtilleryAbilityStateAlert, FArtilleryStates, int, const FGameplayAbilityActorInfo*, const FGameplayAbilityActivationInfo);
+
 UCLASS(BlueprintType)
 class ARTILLERYRUNTIME_API UArtilleryPerActorAbilityMinimum : public UGameplayAbility
 {
 	GENERATED_BODY()
 
+	friend struct FArtilleryGun;
 public:
+	FArtilleryAbilityStateAlert GunBinder;
+	//ALMOST EVERYTHING THAT IS INTERESTING HAPPENS HERE RIGHT NOW.
+	//ONLY ATTRIBUTES ARE REPLICATED. _AGAIN_. ONLY ATTRIBUTES ARE REPLICATED.
+	UArtilleryPerActorAbilityMinimum(const FObjectInitializer& ObjectInitializer)
+		: Super(ObjectInitializer), MyGunKey()
+	{
+		NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalOnly;
+		ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateNo;
+		InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	};
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Latency Hiding")
 	int AvailableDallyFrames = 0;
@@ -64,13 +111,6 @@ public:
 	*/
 
 
-	UArtilleryPerActorAbilityMinimum(const FObjectInitializer& ObjectInitializer)
-		: Super(ObjectInitializer)
-	{
-		//this... feels odd, since we're not... instanced? Does a master object still get created?
-		//TODO: check that.
-		InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	};
 
 	/*/*
 	
@@ -97,70 +137,36 @@ public:
 	
 	*/
 
-	//********************
-	//This one's fascinating. Unlike the authors of GAS, we actually have a way to reset and cancel abilities without needing instancing on the abilities themselves. Instead,
-	//we can use the conserved abilities to walk back any changes to the guns attributes. This might be something for postfire? Fascinating.
-	//********************
-	/** Destroys instanced-per-execution abilities. Instance-per-actor abilities should 'reset'. Any active ability state tasks receive the 'OnAbilityStateInterrupted' event. Non instance abilities - what can we do? */
-	//virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility);
-
-	//These will be the responsibility of the Prefire Abilities. Postfire may modify cooldowns, to implement things like "refresh if kills enemy"
-	//Most of these systems are, frankly, not very useful. In general, tags are not the best way to communicate if an ability should go into cooldown.
-	//Honestly, I'm pretty reticient about tags in general.
-
-	///** Returns true if this ability can be activated right now. Has no side effects */
-	//virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const;
-
-	///** Returns true if this ability can be triggered right now. Has no side effects */
-	//virtual bool ShouldAbilityRespondToEvent(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayEventData* Payload) const;
-
-	///** Returns true if an an ability should be activated */
-	//virtual bool ShouldActivateAbility(ENetRole Role) const;
-
+	//here are a few others we'll likely NEED to override.
 	///** Returns the time in seconds remaining on the currently active cooldown. */
 	//UFUNCTION(BlueprintCallable, Category = Ability)
 	//float GetCooldownTimeRemaining() const;
-
-	///** Returns the time in seconds remaining on the currently active cooldown. */
 	//virtual float GetCooldownTimeRemaining(const FGameplayAbilityActorInfo* ActorInfo) const;
-
-	///** Returns the time in seconds remaining on the currently active cooldown and the original duration for this cooldown. */
-	//virtual void GetCooldownTimeRemainingAndDuration(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, float& TimeRemaining, float& CooldownDuration) const;
-
-	///** Returns all tags that can put this ability into cooldown */
 	//virtual const FGameplayTagContainer* GetCooldownTags() const;
-
-	///** Returns true if none of the ability's tags are blocked and if it doesn't have a "Blocking" tag and has all "Required" tags. */
 	//virtual bool DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const;
-
-	///** Returns true if this ability is blocking other abilities */
 	//virtual bool IsBlockingOtherAbilities() const;
 
-	///** Sets rather ability block flags are enabled or disabled. Only valid on instanced abilities */
-	//UFUNCTION(BlueprintCallable, Category = Ability)
-	//virtual void SetShouldBlockOtherAbilities(bool bShouldBlockAbilities);
 /**
 	 * The main function that defines what an ability does.
-	 *  -Child classes will want to override this
-	 *  -This function graph should call CommitAbility
-	 *  -This function graph should call EndAbility
+	 *  -This function graph MUST call CommitAbility
+	 *  -This function graph MUST call EndAbility
 	 *
-	 *  Latent/async actions are ok in this graph. Note that Commit and EndAbility calling requirements speak to the K2_ActivateAbility graph.
-	 *  In C++, the call to K2_ActivateAbility() may return without CommitAbility or EndAbility having been called. But it is expected that this
-	 *  will only occur when latent/async actions are pending. When K2_ActivateAbility logically finishes, then we will expect Commit/End to have been called.
+	 *  THE USE OF ANY LATENT OR ASYNC ACTIONS THAT ARE NOT PART OF THE ARTILLERY SET WILL FAIL.
 	 *
 	 */
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
+
 	/** Do boilerplate init stuff and then call ActivateAbility */
+	//You get a much better sense of how this flows looking at the 
 	virtual void PreActivate(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, FOnGameplayAbilityEnded::FDelegate* OnGameplayAbilityEndedDelegate, const FGameplayEventData* TriggerEventData = nullptr) override;
 
-	//native End
+	//HEADS UP. END ABILITY FOR ARTILLERY DOES NOT REPLICATE ANYTHING. IT DOES NOT CLEAR TIMERS OR ASYNC BECAUSE
+	//YOU ARE NOT SUPPOSED TO USE THEM IN ARTILLERY. IF YOU DO, THEY WILL FAIL ONCE ROLLBACK IS IMPLEMENTED.
+	//MAY GOD HAVE MERCY ON OUR SOULS.
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-
 	virtual bool CommitAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) override;
-
 
 	/** Generates a GameplayEffectContextHandle from our owner and an optional TargetData.*/
 	FGameplayEffectContextHandle GetContextFromOwner(FGameplayAbilityTargetDataHandle OptionalTargetData) const override;
@@ -168,9 +174,11 @@ public:
 	/** Returns an effect context, given a specified actor info */
 	FGameplayEffectContextHandle MakeEffectContext(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo) const override;
 
+	virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility) override;
+
 private:
 
-	//these have no function in the ability sequence.
+	//these have no function in the Artillery ability sequence.
 	void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override {};
 	void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override {};
 	/** Called from AbilityTask_WaitConfirmCancel to handle input confirming */
@@ -179,4 +187,13 @@ private:
 
 	/** Ability sequences, and artillery in general, make use of only cosmetic events and cues where possible. */
 	void SendGameplayEvent(FGameplayTag EventTag, FGameplayEventData Payload) override {};
+	
+	//TODO: Make sure this is actually obsolete.
+	FOnGameplayAbilityEnded OnGameplayAbilityEnded;
+
+	/** Notification that the ability has ended with data on how it was ended */
+	FGameplayAbilityEndedDelegate OnGameplayAbilityEndedWithData;
+
+	/** Notification that the ability is being cancelled.  Called before OnGameplayAbilityEnded. */
+	FOnGameplayAbilityCancelled OnGameplayAbilityCancelled;
 };

@@ -49,7 +49,7 @@ TStatId UArtilleryDispatch::GetStatId() const
 }
 
 
-FGunKey UArtilleryDispatch::getNewGunInstance(FString GunDefinitionID)
+FGunKey UArtilleryDispatch::GetNewGunInstance(FString GunDefinitionID)
 {
-	return FGunKey();
+	return FGunKey(GunDefinitionID, 0);
 }

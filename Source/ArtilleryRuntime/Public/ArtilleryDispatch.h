@@ -51,8 +51,10 @@ protected:
 	virtual TStatId GetStatId() const override;
 
 public:
-
-	FGunKey getNewGunInstance(FString GunDefinitionID);
+	//DUMMY FOR NOW.
+	//TODO: IMPLEMENT THE GUNMAP FROM INSTANCE UNTO CLASS
+	//TODO: REMEMBER TO SAY AMMO A BUNCH
+	static FGunKey GetNewGunInstance(FString GunDefinitionID);
 
 	std::atomic_bool UseNetworkInput;
 	bool missedPrior = false;
