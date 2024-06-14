@@ -103,11 +103,12 @@ public:
 	)
 		override
 	{
-		//super::runpattern with frametorunbackfrom - 1
-		//using invert of ToSeekUnion
-		//runpattern frametorunbackfrom
-		//& results.
-		return false; //return results
+		// held before this frame?
+		uint32_t heldBefore = FActionPattern_ButtonHold::runPattern(frameToRunBackFrom - 1, ToSeekUnion, Buffer);
+		// not held this frame?
+		uint32_t releasedNow = Buffer->peek(frameToRunBackFrom)->GetButtonsAndEventsFlat() & ~ToSeekUnion.getFlat();
+		// release is held -> not held
+		return heldBefore & releasedNow;
 	};
 	const FString getName() override { return Name; };
 	static const inline FString Name = "FActionPattern_ButtonReleaseNoDelay";
