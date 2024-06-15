@@ -132,7 +132,7 @@ public:
 		//EVER because I think we'll want to treat each AI faction pretty much as a single FCM except for a few bosses.
 		//hard to say. we might need to revisit this if the FCMs prove too heavy as full actor components.
 
-		TMap<FActionPatternParams, uint64_t> runOneFrameWithSideEffects(bool isResim_Unimplemented,
+		void runOneFrameWithSideEffects(bool isResim_Unimplemented,
 		                                                                //USED TO DEFINE HOW TO HIDE LATENCY BY TRIMMING LEAD-IN FRAMES OF AN ARTILLERYGUN
 		                                                                uint32_t leftTrimFrames,
 		                                                                //USED TO DEFINE HOW TO SHORTEN ARTILLERYGUNS BY SHORTENING TRAILING or INFIX DELAYS, SUCH AS DELAYED EXPLOSIONS, TRAJECTORIES, OR SPAWNS, TO HIDE LATENCY.
@@ -199,7 +199,6 @@ public:
 				}
 			}
 			//Stickflick is handled here but continuous movement is handled elsewhere in artillery busy worker.
-			return WhatToFire;
 		};
 
 	protected:

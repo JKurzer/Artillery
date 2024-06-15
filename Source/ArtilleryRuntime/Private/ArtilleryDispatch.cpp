@@ -26,7 +26,7 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		//TARRAY IS A VALUE TYPE. SO IS TRIPLEBUFF I THINK.
 		ArtilleryAsyncWorldSim.TheTruthOfTheMatter = &TheTruthOfTheMatter;//OH BOY. REFERENCE TIME. GWAHAHAHA.
 		
-		WorldSim_Thread.Reset(FRunnableThread::Create(&ArtilleryAsyncWorldSim, TEXT("ARTILLERY ONLINE.")))
+		WorldSim_Thread.Reset(FRunnableThread::Create(&ArtilleryAsyncWorldSim, TEXT("ARTILLERY_ONLINE.")));
 	}
 
 
