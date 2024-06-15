@@ -184,9 +184,6 @@ public:
 									continue;
 								}
 							}
-							//NOW the logic HERE in the MATCHER should handle which binds actually fire, using the bind params.
-							//actually, we might need to aggregate everything from the union matches THEN determine what happens
-							//because we might have a pattern's input get eaten.
 						}
 						return false;
 					}
@@ -321,7 +318,7 @@ private:
 	TMap<InputStreamKey, TSharedPtr<FConservedInputStream>> InternalMapping;
 	TMap<PlayerKey, InputStreamKey> SessionPlayerToStreamMapping;
 	TMap<ActorKey, InputStreamKey> LocalActorToStreamMapping;
-	UBristleconeWorldSubsystem* MySquire;
+	UBristleconeWorldSubsystem* MySquire; // World Subsystems are the last to go, making this a fairly safe idiom. ish.
 
 };
 

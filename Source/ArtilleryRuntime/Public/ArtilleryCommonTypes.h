@@ -64,7 +64,7 @@ public:
 	bool defaultBehavior = false;
 	bool FiresCosmetics = false;
 
-	FGunKey ToFire; //Putting this here is likely a mistake.
+	FGunKey ToFire; //IT WAS NOT A MISTAKE. I AM A GENIUS.
 	FActionBitMask ToSeek;
 	InputStreamKey MyInputStream;
 	FireControlKey MyOrigin;

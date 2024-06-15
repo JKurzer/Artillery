@@ -10,8 +10,6 @@
 #include "FArtilleryBusyWorker.h"
 #include "CanonicalInputStreamECS.h"
 #include <map>
-
-#include "UFireControlMachine.h"
 #include "ArtilleryDispatch.generated.h"
 
 
