@@ -51,7 +51,7 @@ protected:
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
 
-
+	static inline long long TotalFirings = 0; //2024 was rough.
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 	//fully specifying the type is necessary to prevent spurious warnings in some cases.
@@ -61,27 +61,16 @@ protected:
 	//These will eventually need a complete and consistent ordering to ensure determinism.
 	//copy op is intentional but may be unneeded. assess before revising signature.
 	//TODO: assess if this needs to be a multimap. I think it needs to NOT be.
-	TMap<FGunKey, FireControlKey> GunToMachineMapping;
-	
-	void queueFire(FGunKey Key, Arty::ArtilleryTime Time)
-	{
-		if (ActionsToOrder && ActionsToOrder.IsValid())
-		{
-			ActionsToOrder->Enqueue(std::pair<FGunKey, Arty::ArtilleryTime>(Key, Time));
-		}
-	};
+	TMap<FGunKey, FArtilleryFireGunFromDispatch> GunToFiringFunctionMapping;
 
-	void queueResimFire(FGunKey Key, Arty::ArtilleryTime Time)
-	{
-		if (ActionsToOrder && ActionsToOrder.IsValid())
-		{
-			ActionsToReconcile->Enqueue(std::pair<FGunKey, Arty::ArtilleryTime>(Key, Time));
-		}
-	};
+	void QueueFire(FGunKey Key, Arty::ArtilleryTime Time);
+
+	void QueueResim(FGunKey Key, Arty::ArtilleryTime Time);
 
 	void RunGuns()
 	{
 		//oh, didjerthink it were to go the other way round? Aye, I could be seeing why ye might.
+		//TODO: The Busy Thread should do all the sorting and stuff, and triple buffer the sorted map to us.
 		TMultiMap<Arty::ArtilleryTime, FGunKey> TimeSortedFireEvents_ReplaceWithTripleBuffer;
 		UCanonicalInputStreamECS* MyBrother = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 		if (ActionsToOrder && ActionsToOrder.IsValid())
@@ -93,10 +82,16 @@ protected:
 				ActionsToOrder->Dequeue();
 			}
 		}
-		//map is ordered in C++. Real C++, I mean.
+		//map is not ordered naturally AND uses a sparse array. guys? y'all aight?
+		TimeSortedFireEvents_ReplaceWithTripleBuffer.KeySort(
+			[](Arty::ArtilleryTime A, Arty::ArtilleryTime B) {
+				return A < B; // if there's a default predicate, I can't find it. :/
+				});
+		//Sort is not stable. Sortedness appears to be lost for operations I would not expect.
 		for (auto x : TimeSortedFireEvents_ReplaceWithTripleBuffer)
 		{
-			GunToMachineMapping.Find(x.Value);
+			auto fired = GunToFiringFunctionMapping.Find(x.Value)->ExecuteIfBound(x.Value, false);
+			TotalFirings += fired;
 		}
 	};
 
@@ -122,7 +117,12 @@ protected:
 				ActionsToReconcile->Dequeue();
 			}
 		}
-		//map is ordered in C++. Real C++, I mean.
+		//map is not ordered naturally AND uses a sparse array. guys? y'all aight?
+		TimeSortedFireEvents_ReplaceWithTripleBuffer.KeySort(
+			[](Arty::ArtilleryTime A, Arty::ArtilleryTime B) {
+				return A < B; // if there's a default predicate, I can't find it. :/
+				});
+		//Sort is not stable. Sortedness appears to be lost for operations I would not expect.
 		for (auto x : TimeSortedFireEvents_ReplaceWithTripleBuffer)
 		{
 			throw;
@@ -134,8 +134,15 @@ public:
 	//TODO: IMPLEMENT THE GUNMAP FROM INSTANCE UNTO CLASS
 	//TODO: REMEMBER TO SAY AMMO A BUNCH
 	FGunKey GetNewGunKey(FString GunDefinitionID, FireControlKey MachineKey);
-
-
+	void RegisterReady(FGunKey Key, FArtilleryFireGunFromDispatch Machine)
+	{
+		GunToFiringFunctionMapping.Add(Key, Machine);
+	}
+	void Deregister(FGunKey Key)
+	{
+		GunToFiringFunctionMapping.Remove(Key);
+		//TODO: add the rest of the wipe here?
+	}
 	std::atomic_bool UseNetworkInput;
 	bool missedPrior = false;
 	bool burstDropDetected = false;

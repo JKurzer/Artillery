@@ -87,3 +87,7 @@ bool operator==(FActionPatternParams const& lhs, FActionPatternParams const& rhs
 }
 #include "FActionPattern.h"
 
+namespace Arty
+{
+	DECLARE_DELEGATE_TwoParams(FArtilleryFireGunFromDispatch, FGunKey GunID, bool InputAlreadyUsedOnce);
+}

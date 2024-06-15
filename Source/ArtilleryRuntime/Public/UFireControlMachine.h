@@ -12,6 +12,7 @@
 #include "FArtilleryGun.h"
 #include "Abilities/GameplayAbility.h"
 #include "CanonicalInputStreamECS.h"
+#include "ArtilleryDispatch.h"
 #include "Containers/CircularQueue.h"
 #include <bitset>
 #include "ArtilleryCommonTypes.h"
@@ -46,9 +47,10 @@ class ARTILLERYRUNTIME_API UFireControlMachine : public UActorComponent
 public:	
 		static inline int orderInInitialize = 0;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		TMap<FGunKey, FArtilleryGun> MyManagedGuns;
 		UCanonicalInputStreamECS* MySquire;
 		//this needs to be replicated in iris, interestin'ly.
+		TSet<FGunKey> MyGuns;
+		UArtilleryDispatch* MyDispatch;
 		TObjectPtr <UAttributeSet> MyAttributes; // might want to defactor this to an ECS, but I actually quite like it here.
 		//still wondering who owns the input streams...
 		TObjectPtr<UAbilitySystemComponent> SystemComponentToBind;
@@ -62,7 +64,10 @@ public:
 		{
 			FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, 0xbeef, ToFire);
 			MySquire->registerPattern(ToBind, myParams);
-			
+			FArtilleryFireGunFromDispatch Inbound;
+			Inbound.BindUObject(this, &UFireControlMachine::FireGun);
+			MyDispatch->RegisterReady(ToFire, Inbound);
+			MyGuns.Add(ToFire);
 		};
 
 		//IF YOU DO NOT CALL THIS FROM THE GAMETHREAD, YOU WILL HAVE A BAD TIME.
@@ -71,17 +76,19 @@ public:
 			
 			FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, 0xbeef, ToFire);
 			MySquire->removePattern(ToBind, myParams);
+			MyDispatch->Deregister(ToFire);
+			MyGuns.Remove(ToFire);
 		};
 
 
-		bool FireGun(FGunKey GunID, bool InputAlreadyUsedOnce)
+		void FireGun(FGunKey GunID, bool InputAlreadyUsedOnce)
 		{
-			return false;
+			
 		};
 		
 		void InitializeComponent() override
 		{
-
+			
 			MyKey = UFireControlMachine::orderInInitialize++;
 		};
 
@@ -97,4 +104,12 @@ public:
 			//There's a bit more blueprint exposure work to do here as a result.
 		};
 
+	virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override
+	{
+		Super::OnComponentDestroyed(bDestroyingHierarchy);
+		for(FGunKey Gun :MyGuns)
+		{
+			MyDispatch->Deregister(Gun); // emergency deregister.
+		}
+	};
 };

@@ -40,7 +40,7 @@ void UArtilleryDispatch::Deinitialize()
 void UArtilleryDispatch::Tick(float DeltaTime)
 {
 	//Super::Tick(DeltaTime);
-
+	RunGuns(); // ALL THIS WORK. FOR THIS?! (Okay, that's really cool)
 }
 
 TStatId UArtilleryDispatch::GetStatId() const
@@ -58,4 +58,19 @@ FGunKey UArtilleryDispatch::GetNewGunKey(FString GunDefinitionID, FireControlKey
 	
 	GunToMachineMapping.Add(Key, MachineKey);
 	return Key;	
+}
+
+void UArtilleryDispatch::QueueResim(FGunKey Key, Arty::ArtilleryTime Time)
+{
+	if (ActionsToReconcile && ActionsToReconcile.IsValid())
+	{
+		ActionsToReconcile->Enqueue(std::pair<FGunKey, Arty::ArtilleryTime>(Key, Time));
+	}
+}
+void UArtilleryDispatch::QueueFire(FGunKey Key, Arty::ArtilleryTime Time)
+{
+	if (ActionsToOrder && ActionsToOrder.IsValid())
+	{
+		ActionsToOrder->Enqueue(std::pair<FGunKey, Arty::ArtilleryTime>(Key, Time));
+	}
 }

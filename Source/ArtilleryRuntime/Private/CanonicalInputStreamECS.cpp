@@ -35,7 +35,8 @@ TStatId UCanonicalInputStreamECS::GetStatId() const
 
 
 
-bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern_InternallyStateless> ToBind, FActionPatternParams FCM_Owner_ActorParams)
+bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern_InternallyStateless> ToBind,
+	FActionPatternParams FCM_Owner_ActorParams)
 {
 	if (
 #ifndef LOCALISCODEDSPECIAL
@@ -48,6 +49,7 @@ bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern_Interna
 		{
 			//names are never removed. sets are only added to or removed from.
 			thisInputStream->MyPatternMatcher->AllPatternBinds.Find(ToBind->getName())->Get()->Add(FCM_Owner_ActorParams);
+
 		}
 		else
 		{
@@ -57,6 +59,8 @@ bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern_Interna
 			newSet.Get()->Add(FCM_Owner_ActorParams);
 			thisInputStream->MyPatternMatcher->AllPatternBinds.Add(ToBind->getName(), newSet);
 		}
+
+		return true;
 	}
 	return false;
 }
