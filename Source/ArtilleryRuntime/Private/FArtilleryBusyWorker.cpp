@@ -99,6 +99,9 @@ uint32 FArtilleryBusyWorker::Run() {
 		*/
 
 #define ARTILLERY_FIRE_CONTROL_MACHINE_HANDLING (false)
+//Patterns run here. The thread queues the fires. the dispatch fires them via the machines on the gamethread.
+		//in order. that matters a tad.
+		
 		/*
 		* 
 		* Pattern matching will go here.

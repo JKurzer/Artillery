@@ -60,15 +60,16 @@ public:
 		//IF YOU DO NOT CALL THIS FROM THE GAMETHREAD, YOU WILL HAVE A BAD TIME.
 		void pushPatternToRunner(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
 		{
-			FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, 0xbeef);
+			FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, 0xbeef, ToFire);
 			MySquire->registerPattern(ToBind, myParams);
+			
 		};
 
 		//IF YOU DO NOT CALL THIS FROM THE GAMETHREAD, YOU WILL HAVE A BAD TIME.
 		void popPatternFromRunner(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
 		{
 			
-			FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, 0xbeef);
+			FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, 0xbeef, ToFire);
 			MySquire->removePattern(ToBind, myParams);
 		};
 
@@ -87,7 +88,8 @@ public:
 		void BeginPlay() override {
 			UActorComponent::BeginPlay(); // using this over the looser super atm. TODO: validate!!!!!
 			MySquire = GetOwner()->GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
-			MySquire->registerFCMKeyToParentActorMapping(GetOwner(), MyKey);
+			//TODO: Find the idiomatic way to do this, cause I'm a liddle worried this could asplode.
+			MySquire->registerFCMKeyToParentActorMapping(GetOwner(), MyKey, TObjectPtr<UFireControlMachine>(this));
 			//likely want to manage system component bind here by checking for actor parent.
 			//right now, we can push all our patterns here as well, and we can use a static set of patterns for
 			//each of our fire control machines. you can basically think of a fire control machine as a full set

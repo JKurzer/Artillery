@@ -41,3 +41,7 @@ public:
 bool operator==(FGunKey const& lhs, FGunKey const& rhs) {
 	return (lhs.GunDefinitionID == rhs.GunDefinitionID) && (lhs.GunInstanceID == rhs.GunInstanceID);
 }
+//when sorted, gunkeys follow their instantiation order!
+bool operator<(FGunKey const& lhs, FGunKey const& rhs) {
+	return (lhs.GunInstanceID < rhs.GunInstanceID);
+}

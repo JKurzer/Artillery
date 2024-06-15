@@ -45,6 +45,8 @@ and uses that for the outcome (and presumably flags whoever disagreed for statis
 */
 
 
+class UFireControlMachine;
+
 UCLASS()
 class ARTILLERYRUNTIME_API UCanonicalInputStreamECS : public UTickableWorldSubsystem
 {
@@ -69,7 +71,7 @@ class ARTILLERYRUNTIME_API UCanonicalInputStreamECS : public UTickableWorldSubsy
 	//so everything, practically, is here.
 	//I think this can be cleaned up in a couple weeks, as of 6/11/24. Let's see if I ever get to it. <3 JMK
 public:
-	ArtilleryTime Now()
+	Arty::ArtilleryTime Now()
 	{
 		return MySquire->Now();
 	};
@@ -79,7 +81,7 @@ public:
 	friend class UArtilleryDispatch;
 	bool registerPattern(TSharedPtr<FActionPattern> ToBind, FActionPatternParams FCM_Owner_ActorParams);
 	bool removePattern(TSharedPtr<FActionPattern> ToBind, FActionPatternParams FCM_Owner_ActorParams);
-	ActorKey registerFCMKeyToParentActorMapping(AActor* parent, FireControlKey MyKey);
+	ActorKey registerFCMKeyToParentActorMapping(AActor* parent, FireControlKey MachineKey, TObjectKey<UFireControlMachine> MachineSelf);
 
 	//this is the most portable way to do a folding region in C++.
 #ifndef ARTILLERYECS_CLASSES_REGION_MARKER
@@ -316,9 +318,9 @@ protected:
 
 public:
 private:
-	std::unordered_map <InputStreamKey, TSharedPtr<FConservedInputStream>>* InternalMapping;
-	std::unordered_map <PlayerKey, InputStreamKey>* SessionPlayerToStreamMapping;
-	std::unordered_map <ActorKey, InputStreamKey>* LocalActorToStreamMapping;
+	TMap<InputStreamKey, TSharedPtr<FConservedInputStream>> InternalMapping;
+	TMap<PlayerKey, InputStreamKey> SessionPlayerToStreamMapping;
+	TMap<ActorKey, InputStreamKey> LocalActorToStreamMapping;
 	UBristleconeWorldSubsystem* MySquire;
 
 };

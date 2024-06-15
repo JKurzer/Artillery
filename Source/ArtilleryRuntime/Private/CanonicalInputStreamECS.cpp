@@ -37,7 +37,6 @@ TStatId UCanonicalInputStreamECS::GetStatId() const
 
 bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern_InternallyStateless> ToBind, FActionPatternParams FCM_Owner_ActorParams)
 {
-	//this should modify the singleton PatternMatcher
 	if (
 #ifndef LOCALISCODEDSPECIAL
 		FCM_Owner_ActorParams.MyInputStream == 0xb33f ||
@@ -64,7 +63,6 @@ bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern_Interna
 
 bool UCanonicalInputStreamECS::removePattern(TSharedPtr<FActionPattern_InternallyStateless> ToBind, FActionPatternParams FCM_Owner_ActorParams)
 {
-	//this should modify the singleton PatternMatcher
 	if (
 #ifndef LOCALISCODEDSPECIAL
 		FCM_Owner_ActorParams.MyInputStream == 0xb33f ||
@@ -88,8 +86,10 @@ bool UCanonicalInputStreamECS::removePattern(TSharedPtr<FActionPattern_Internall
 	}
 	return false;
 }
-ActorKey UCanonicalInputStreamECS::registerFCMKeyToParentActorMapping(AActor* parent, FireControlKey MyKey)
+ActorKey UCanonicalInputStreamECS::registerFCMKeyToParentActorMapping(AActor* parent, FireControlKey MachineKey, TObjectKey<UFireControlMachine> MachineSelf)
 {
 	//todo, registration goes here.
-	return 0;
+	ActorKey ParentKey = PointerHash(parent, MachineKey);
+	LocalActorToStreamMapping->insert(ParentKey, MachineKey);
+	return ParentKey;
 }

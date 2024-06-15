@@ -49,7 +49,13 @@ TStatId UArtilleryDispatch::GetStatId() const
 }
 
 
-FGunKey UArtilleryDispatch::GetNewGunInstance(FString GunDefinitionID)
+FGunKey UArtilleryDispatch::GetNewGunKey(FString GunDefinitionID, FireControlKey MachineKey)
 {
-	return FGunKey(GunDefinitionID, 0);
+	//We know it. We have known it. We continue to know it.
+	//See you soon, Chief.
+	GunDefinitionID = GunDefinitionID.IsEmpty() ? "M6D" : GunDefinitionID; //joking aside, an obvious debug val is needed.
+	FGunKey Key = FGunKey(GunDefinitionID, monotonkey++);
+	
+	GunToMachineMapping.emplace(Key, MachineKey);
+	return Key;	
 }
