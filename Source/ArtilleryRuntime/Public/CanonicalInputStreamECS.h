@@ -207,7 +207,6 @@ public:
 	class ARTILLERYRUNTIME_API FConservedInputStream : public FArtilleryNoGuaranteeReadOnly
 	{
 		virtual ~FConservedInputStream() = default;
-		//this will need to be triple buffered or synchroed soon. :/
 
 
 		//Mom?
@@ -217,7 +216,6 @@ public:
 
 	public:
 		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(InputConservationWindow);
-		//these two should be one buffer of a shared type, but that makes using them harder
 		InputStreamKey MyKey;
 		//in case, god help us, we need a lookup based on this for something else. that should NOT happen.
 
