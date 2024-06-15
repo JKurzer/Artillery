@@ -21,8 +21,12 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		UCablingWorldSubsystem* DirectLocalInputSystem = GetWorld()->GetSubsystem<UCablingWorldSubsystem>();
 		ArtilleryAsyncWorldSim.InputSwapSlot = MakeShareable(new IncQ(256));
 		DirectLocalInputSystem->DestructiveChangeLocalOutboundQueue(ArtilleryAsyncWorldSim.InputSwapSlot);
-		WorldSim_Thread.Reset(FRunnableThread::Create(&ArtilleryAsyncWorldSim, TEXT("ARTILLERY ONLINE.")));
-		ArtilleryAsyncWorldSim.Exit();
+
+		//IF YOU REMOVE THIS. EVERYTHING EXPLODE. IN A BAD WAY.
+		//TARRAY IS A VALUE TYPE. SO IS TRIPLEBUFF I THINK.
+		ArtilleryAsyncWorldSim.TheTruthOfTheMatter = &TheTruthOfTheMatter;//OH BOY. REFERENCE TIME. GWAHAHAHA.
+		
+		WorldSim_Thread.Reset(FRunnableThread::Create(&ArtilleryAsyncWorldSim, TEXT("ARTILLERY ONLINE.")))
 	}
 
 
@@ -35,6 +39,13 @@ void UArtilleryDispatch::Deinitialize()
 {
 
 	Super::Deinitialize();
+	ArtilleryAsyncWorldSim.Stop();
+	//We have to wait.
+	if(WorldSim_Thread.IsValid())
+	{
+		//if we don't wait, this will crash when the truth of the matter is referenced. That's just the facts.
+		WorldSim_Thread->Kill(true);
+	}
 }
 
 void UArtilleryDispatch::Tick(float DeltaTime)

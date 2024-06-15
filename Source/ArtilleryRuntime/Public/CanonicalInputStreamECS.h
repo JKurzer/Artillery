@@ -20,9 +20,6 @@
 #include "CanonicalInputStreamECS.generated.h"
 
 
-
-
-
 //TODO: finish adding the input streams, replace the local handling in Bristle54 character with references to the input stream ecs
 //TODO: begin work on the conceptual frame for reconciling and assessing what input does and does not exist.
 //AXIOMS: Input we send is real. Input we get in the batches represents the full knowledge of the server.
@@ -76,12 +73,14 @@ public:
 		return MySquire->Now();
 	};
 	static const uint32_t InputConservationWindow = 8192;
-	static const uint32_t AddressableInputConservationWindow = InputConservationWindow - (2 * TheCone::LongboySendHertz);
+	static const uint32_t AddressableInputConservationWindow = InputConservationWindow - (2 *
+		TheCone::LongboySendHertz);
 	friend class FArtilleryBusyWorker;
 	friend class UArtilleryDispatch;
 	bool registerPattern(TSharedPtr<FActionPattern> ToBind, FActionPatternParams FCM_Owner_ActorParams);
 	bool removePattern(TSharedPtr<FActionPattern> ToBind, FActionPatternParams FCM_Owner_ActorParams);
-	ActorKey registerFCMKeyToParentActorMapping(AActor* parent, FireControlKey MachineKey, TObjectKey<UFireControlMachine> MachineSelf);
+	ActorKey registerFCMKeyToParentActorMapping(AActor* parent, FireControlKey MachineKey,
+	                                            TObjectKey<UFireControlMachine> MachineSelf);
 
 	//this is the most portable way to do a folding region in C++.
 #ifndef ARTILLERYECS_CLASSES_REGION_MARKER
@@ -91,13 +90,15 @@ public:
 	{
 		TWeakPtr<FArtilleryNoGuaranteeReadOnly> MyStream; //and may god have mercy on my soul.
 		friend class FArtilleryBusyWorker;
+
 	public:
 		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(ArtilleryInputSearchWindow);
 		TSet<InputStreamKey> MyStreamKeys; //It Happened! Hurray!
 
 		//there's a bunch of reasons we use string_view here, but mostly, it's because we can make them constexprs!
 		//so this is... uh... pretty fast!
-		TMap<FString, TSharedPtr<TSet<FActionPatternParams>>> AllPatternBinds; //broadly, at the moment, there is ONE pattern matcher running
+		TMap<FString, TSharedPtr<TSet<FActionPatternParams>>> AllPatternBinds;
+		//broadly, at the moment, there is ONE pattern matcher running
 
 
 		//this array is never made smaller.
@@ -114,7 +115,8 @@ public:
 
 		void GlassCurrentHistory()
 		{
-			CurrentHistory = TCircularBuffer<FArtilleryShell>(ArtilleryInputSearchWindow); //expect the search window to be big.
+			CurrentHistory = TCircularBuffer<FArtilleryShell>(ArtilleryInputSearchWindow);
+			//expect the search window to be big.
 		};
 
 		//***********************************************************
@@ -130,15 +132,17 @@ public:
 		//EVER because I think we'll want to treat each AI faction pretty much as a single FCM except for a few bosses.
 		//hard to say. we might need to revisit this if the FCMs prove too heavy as full actor components.
 
-		bool runOneFrameWithSideEffects(bool isResim_Unimplemented,
-			//USED TO DEFINE HOW TO HIDE LATENCY BY TRIMMING LEAD-IN FRAMES OF AN ARTILLERYGUN
-			uint32_t leftTrimFrames,
-			//USED TO DEFINE HOW TO SHORTEN ARTILLERYGUNS BY SHORTENING TRAILING or INFIX DELAYS, SUCH AS DELAYED EXPLOSIONS, TRAJECTORIES, OR SPAWNS, TO HIDE LATENCY.
-			uint32_t rightTrimFrames,
-			uint64_t InputCycleNumber //frame's a misnomer, actually.
+		TMap<FActionPatternParams, uint64_t> runOneFrameWithSideEffects(bool isResim_Unimplemented,
+		                                                                //USED TO DEFINE HOW TO HIDE LATENCY BY TRIMMING LEAD-IN FRAMES OF AN ARTILLERYGUN
+		                                                                uint32_t leftTrimFrames,
+		                                                                //USED TO DEFINE HOW TO SHORTEN ARTILLERYGUNS BY SHORTENING TRAILING or INFIX DELAYS, SUCH AS DELAYED EXPLOSIONS, TRAJECTORIES, OR SPAWNS, TO HIDE LATENCY.
+		                                                                uint32_t rightTrimFrames,
+		                                                                uint64_t InputCycleNumber,
+		                                                                TArray<TPair<ArtilleryTime, FGunKey>>&
+		                                                                IN_PARAM_REF_TRIPLEBUFFER_LIFECYLEMANAGED
+		                                                                //frame's a misnomer, actually.
 		)
 		{
-
 			if (!isResim_Unimplemented)
 			{
 				UE_LOG(LogTemp, Display, TEXT("Still no resim, actually."));
@@ -160,8 +164,8 @@ public:
 						for (FActionPatternParams& Elem : *AllPatternBinds[Name])
 						{
 							//todo: replace with toFlat(). ffs.
-							Union.buttons	|= Elem.ToSeek.buttons;
-							Union.events	|= Elem.ToSeek.events;
+							Union.buttons |= Elem.ToSeek.buttons;
+							Union.events |= Elem.ToSeek.events;
 						}
 						if (currentPattern->runPattern(InputCycleNumber, Union, MyStream.Pin()))
 						{
@@ -174,9 +178,15 @@ public:
 										((Elem.ToSeek.buttons & Union.buttons) == Elem.ToSeek.buttons)
 										&&
 										((Elem.ToSeek.events & Union.events) == Elem.ToSeek.events)
-										)
+									)
 									{
-										return true;
+										using std::optional;
+										auto time = this->MyStream.Pin()->peek(InputCycleNumber)->SentAt;
+										//THIS IS NOT SUPER SAFE. HAHAHAH. YAY.
+										IN_PARAM_REF_TRIPLEBUFFER_LIFECYLEMANAGED.Add(TPair<ArtilleryTime, FGunKey>(
+												time,
+												Elem.ToFire)
+										);
 									}
 								}
 								else
@@ -185,15 +195,14 @@ public:
 								}
 							}
 						}
-						return false;
 					}
 				}
 			}
 			//Stickflick is handled here but continuous movement is handled elsewhere in artillery busy worker.
-			return false;
+			return WhatToFire;
 		};
-	protected:
 
+	protected:
 	};
 
 	class ARTILLERYRUNTIME_API FConservedInputStream : public FArtilleryNoGuaranteeReadOnly
@@ -206,9 +215,12 @@ public:
 		friend class FArtilleryBusyWorker;
 		//Dad?
 		friend class UCanonicalInputStreamECS;
+
 	public:
-		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(InputConservationWindow); //these two should be one buffer of a shared type, but that makes using them harder
-		InputStreamKey MyKey; //in case, god help us, we need a lookup based on this for something else. that should NOT happen.
+		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(InputConservationWindow);
+		//these two should be one buffer of a shared type, but that makes using them harder
+		InputStreamKey MyKey;
+		//in case, god help us, we need a lookup based on this for something else. that should NOT happen.
 
 
 		//Correct usage procedure is to null check then store a copy.
@@ -226,17 +238,18 @@ public:
 					std::nullopt
 				);
 			}
-			else {
-				CurrentHistory[input].RunAtLeastOnce = true; //this is the only risky op in here from a threading perspective.
+			else
+			{
+				CurrentHistory[input].RunAtLeastOnce = true;
+				//this is the only risky op in here from a threading perspective.
 				return std::optional<FArtilleryShell>(CurrentHistory[input]);
 			}
 		};
 
 		//THE ONLY DIFFERENCE WITH PEEK IS THAT IT DOES NOT SET RUNATLEASTONCE.
-		//PEEK IS PROVIDED ONLY AS AN EMERGENCY OPTION, AND IF YOU FIND YOURSELF USING IT
-		//MAY GOD HAVE MERCY ON YOUR SOUL.
+		//Peek is public out of necessity, but generally, you should use get.
 		std::optional<FArtilleryShell> peek(uint64_t input)
-			override
+		override
 		{
 			// the highest input is a reserved write-slot.
 			//the lower bound here ensures that there's always minimum two seconds worth of memory separating the readers
@@ -248,7 +261,8 @@ public:
 					std::nullopt
 				);
 			}
-			else {
+			else
+			{
 				return std::optional<FArtilleryShell>(CurrentHistory[input]);
 			}
 		};
@@ -267,14 +281,16 @@ public:
 		volatile uint64_t highestInput = 0; // volatile is utterly useless for its intended purpose. 
 		UCanonicalInputStreamECS* ECSParent;
 		TSharedPtr<UCanonicalInputStreamECS::FConservedInputPatternMatcher> MyPatternMatcher
-			=MakeShareable<UCanonicalInputStreamECS::FConservedInputPatternMatcher>(new UCanonicalInputStreamECS::FConservedInputPatternMatcher());
+			= MakeShareable<UCanonicalInputStreamECS::FConservedInputPatternMatcher>(
+				new UCanonicalInputStreamECS::FConservedInputPatternMatcher());
 		;
 		//Add can only be used by the Artillery Worker Thread through the methods of the UCISArty.
 		void add(INNNNCOMING shell, long SentAt)
 		{
 			CurrentHistory[highestInput].MyInputActions = shell;
 			CurrentHistory[highestInput].ReachedArtilleryAt = ECSParent->Now();
-			CurrentHistory[highestInput].SentAt = SentAt;//this is gonna get weird after a couple refactors, but that's why we hide it here.
+			CurrentHistory[highestInput].SentAt = SentAt;
+			//this is gonna get weird after a couple refactors, but that's why we hide it here.
 
 			// reading, adding one, and storing are all separate ops. a slice here is never dangerous but can be erroneous.
 			// because this is a volatile variable, it cannot be optimized away and most compilers will not reorder it.
@@ -304,8 +320,8 @@ public:
 	//of the overarching world subsystem together into an FClass that can
 	//be used safely off thread without any consideration. you can use Uclasses if you're careful but...
 #endif
-protected:
 
+protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
@@ -319,7 +335,6 @@ private:
 	TMap<PlayerKey, InputStreamKey> SessionPlayerToStreamMapping;
 	TMap<ActorKey, InputStreamKey> LocalActorToStreamMapping;
 	UBristleconeWorldSubsystem* MySquire; // World Subsystems are the last to go, making this a fairly safe idiom. ish.
-
 };
 
 

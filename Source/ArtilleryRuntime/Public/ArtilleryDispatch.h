@@ -7,8 +7,9 @@
 #include "UBristleconeWorldSubsystem.h"
 #include "UCablingWorldSubsystem.h"
 #include "ArtilleryCommonTypes.h"
+#include "Containers/TripleBuffer.h"
 #include "FArtilleryBusyWorker.h"
-#include "CanonicalInputStreamECS.h"
+
 #include <map>
 #include "ArtilleryDispatch.generated.h"
 
@@ -48,7 +49,7 @@ protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
-
+	TTripleBuffer<TArray<TPair<BristleTime,FGunKey>>> TheTruthOfTheMatter;
 	static inline long long TotalFirings = 0; //2024 was rough.
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
@@ -67,30 +68,14 @@ protected:
 
 	void RunGuns()
 	{
-		//oh, didjerthink it were to go the other way round? Aye, I could be seeing why ye might.
-		//TODO: The Busy Thread should do all the sorting and stuff, and triple buffer the sorted map to us.
-		TMultiMap<Arty::ArtilleryTime, FGunKey> TimeSortedFireEvents_ReplaceWithTripleBuffer;
-		UCanonicalInputStreamECS* MyBrother = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
-		if (ActionsToOrder && ActionsToOrder.IsValid())
-		{
-			while (!ActionsToOrder->IsEmpty())
-			{
-				auto toLoad = *ActionsToOrder->Peek();
-				TimeSortedFireEvents_ReplaceWithTripleBuffer.Add(toLoad.second, toLoad.first);
-				ActionsToOrder->Dequeue();
-			}
-		}
-		//map is not ordered naturally AND uses a sparse array. guys? y'all aight?
-		TimeSortedFireEvents_ReplaceWithTripleBuffer.KeySort(
-			[](Arty::ArtilleryTime A, Arty::ArtilleryTime B) {
-				return A < B; // if there's a default predicate, I can't find it. :/
-				});
+
 		//Sort is not stable. Sortedness appears to be lost for operations I would not expect.
-		for (auto x : TimeSortedFireEvents_ReplaceWithTripleBuffer)
+		for (auto x : TheTruthOfTheMatter.Read())
 		{
 			auto fired = GunToFiringFunctionMapping.Find(x.Value)->ExecuteIfBound(x.Value, false);
 			TotalFirings += fired;
 		}
+		TheTruthOfTheMatter.SwapReadBuffers();
 	};
 
 
@@ -102,26 +87,7 @@ protected:
 	//********************************
 	void RERunGuns()
 	{
-		//oh, didjerthink it were to go the other way round? Aye, I could be seeing why ye might.
-		TMultiMap<const Arty::ArtilleryTime, FGunKey> TimeSortedFireEvents_ReplaceWithTripleBuffer;
-		UCanonicalInputStreamECS* MyBrother = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 		if (ActionsToReconcile && ActionsToReconcile.IsValid())
-		{
-			while (!ActionsToReconcile->IsEmpty())
-			{
-				auto toLoad = *ActionsToReconcile->Peek();
-				//I hate tmap. and their multimap is a barn fire.
-				TimeSortedFireEvents_ReplaceWithTripleBuffer.Add(toLoad.second, toLoad.first);
-				ActionsToReconcile->Dequeue();
-			}
-		}
-		//map is not ordered naturally AND uses a sparse array. guys? y'all aight?
-		TimeSortedFireEvents_ReplaceWithTripleBuffer.KeySort(
-			[](Arty::ArtilleryTime A, Arty::ArtilleryTime B) {
-				return A < B; // if there's a default predicate, I can't find it. :/
-				});
-		//Sort is not stable. Sortedness appears to be lost for operations I would not expect.
-		for (auto x : TimeSortedFireEvents_ReplaceWithTripleBuffer)
 		{
 			throw;
 		}

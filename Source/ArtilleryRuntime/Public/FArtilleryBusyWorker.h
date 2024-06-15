@@ -6,6 +6,7 @@
 #include "CanonicalInputStreamECS.h"
 #include <thread>
 #include "BristleconeCommonTypes.h"
+#include "Containers/TripleBuffer.h"
 
 
 //this is a busy-style thread, which runs preset bodies of work in a specified order. Generally, the goal is that it never
@@ -21,7 +22,9 @@ class FArtilleryBusyWorker : public FRunnable {
 public:
 	FArtilleryBusyWorker();
 	virtual ~FArtilleryBusyWorker() override;
-	
+	//This isn't super safe, but Busy Worker is used in exactly one place
+	//and the dispatcher that owns this memory MUST manage this lifecycle.
+	TTripleBuffer<TArray<TPair<BristleTime,FGunKey>>>* TheTruthOfTheMatter;
 	virtual bool Init() override;
 	virtual uint32 Run() override;
 	virtual void Exit() override;
@@ -35,6 +38,7 @@ public:
 	//this is a hack and will be replaced with an ECS lookup as each remote player will have 
 	//a separate control stream for ease of use and my sanity.
 	ArtilleryControlStream BristleconeControlStream;
+	
 private:
 	void Cleanup();
 	bool running;

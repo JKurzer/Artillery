@@ -1,6 +1,7 @@
 ﻿#include "FArtilleryBusyWorker.h"
+#include "Containers/TripleBuffer.h"
 
-FArtilleryBusyWorker::FArtilleryBusyWorker() : running(false) {
+FArtilleryBusyWorker::FArtilleryBusyWorker() : running(false), TheTruthOfTheMatter(nullptr) {
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Constructing Artillery"));
 }
 
@@ -16,7 +17,15 @@ bool FArtilleryBusyWorker::Init() {
 
 uint32 FArtilleryBusyWorker::Run() {
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Running Artillery thread"));
-
+	if(TheTruthOfTheMatter == nullptr)
+	{
+		//oh no you bloody don't.
+#ifdef UE_BUILD_SHIPPING
+		return -1;
+#else
+		throw; // this is a BUG. A BAD ONE. 
+#endif
+	}
 	bool missedPrior = false;
 
 	bool burstDropDetected = false;
@@ -117,10 +126,22 @@ uint32 FArtilleryBusyWorker::Run() {
 		//Per input stream, run their patterns here. god in heaven.
 		//START HERE AND WORK YOUR WAY OUT TO UNDERSTAND PATTERNS, MATCHING, AND INPUT FLOW.
 		//BristleconeControlStream.MyPatternMatcher->runOneFrameWithSideEffects(true, 0, 0); // those zeroes will stay here until we have resim.
-		// this will need to shift over to running through ALL input streams. dear god.
-		CablingControlStream.MyPatternMatcher->runOneFrameWithSideEffects(true, 0, 0,
-			CablingControlStream.highestInput - 1); // this looks wrong but I'm pretty sure it ain' since we reserve highest.
+		//This performs a copy of the map, I think. I HOPE it does a move, but I doubt it.
+		auto refDangerous_LifeCycleManaged_TripleBuffered
+		= TheTruthOfTheMatter->GetWriteBuffer();
+		refDangerous_LifeCycleManaged_TripleBuffered.Reset();
+		//today's sin is PRIDE, bigbird!
+		CablingControlStream.MyPatternMatcher->runOneFrameWithSideEffects(
+			true,
+			0,
+			0,
+			CablingControlStream.highestInput - 1,
+			refDangerous_LifeCycleManaged_TripleBuffered
+			); // this looks wrong but I'm pretty sure it ain' since we reserve highest.
 
+		//TODO: verify if this is needed.
+		refDangerous_LifeCycleManaged_TripleBuffered.Sort();
+		TheTruthOfTheMatter->SwapWriteBuffers();
 		/*
 		* 
 		* Does rollback & reconciliation go here?

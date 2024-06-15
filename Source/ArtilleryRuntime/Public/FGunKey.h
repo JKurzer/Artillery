@@ -24,9 +24,10 @@ public:
 	GunDefinitionID(Name), GunInstanceID(id)
 	{
 	}
-
+	UPROPERTY(BlueprintReadOnly)
 	FString GunDefinitionID; //this will need to be human searchable
-	uint64_t GunInstanceID;
+	//FUN STORY: BLUEPRINT CAN'T USE UINT64.
+	uint64 GunInstanceID;
 
 	bool operator == (const struct FGunKey& Other)
 	{
