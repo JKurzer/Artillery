@@ -82,22 +82,21 @@ protected:
 	void RunGuns()
 	{
 		//oh, didjerthink it were to go the other way round? Aye, I could be seeing why ye might.
-		TMultiMap<Arty::ArtilleryTime, FGunKey> TMapIsAlmostCertainlySlower;
+		TMultiMap<Arty::ArtilleryTime, FGunKey> TimeSortedFireEvents_ReplaceWithTripleBuffer;
 		UCanonicalInputStreamECS* MyBrother = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 		if (ActionsToOrder && ActionsToOrder.IsValid())
 		{
 			while (!ActionsToOrder->IsEmpty())
 			{
 				auto toLoad = *ActionsToOrder->Peek();
-				//the wicked get of your inferior library do not interest me.
-				TMapIsAlmostCertainlySlower.emplace(toLoad.second, toLoad.first);
+				TimeSortedFireEvents_ReplaceWithTripleBuffer.Add(toLoad.second, toLoad.first);
 				ActionsToOrder->Dequeue();
 			}
 		}
 		//map is ordered in C++. Real C++, I mean.
-		for (auto x : TMapIsAlmostCertainlySlower)
+		for (auto x : TimeSortedFireEvents_ReplaceWithTripleBuffer)
 		{
-			GunToMachineMapping.at(x.second);
+			GunToMachineMapping.Find(x.Value);
 		}
 	};
 
@@ -111,7 +110,7 @@ protected:
 	void RERunGuns()
 	{
 		//oh, didjerthink it were to go the other way round? Aye, I could be seeing why ye might.
-		TMultiMap<const Arty::ArtilleryTime, FGunKey> TMapIsAlmostCertainlySlower;
+		TMultiMap<const Arty::ArtilleryTime, FGunKey> TimeSortedFireEvents_ReplaceWithTripleBuffer;
 		UCanonicalInputStreamECS* MyBrother = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 		if (ActionsToReconcile && ActionsToReconcile.IsValid())
 		{
@@ -119,12 +118,12 @@ protected:
 			{
 				auto toLoad = *ActionsToReconcile->Peek();
 				//I hate tmap. and their multimap is a barn fire.
-				TMapIsAlmostCertainlySlower.emplace(toLoad.second, toLoad.first);
+				TimeSortedFireEvents_ReplaceWithTripleBuffer.Add(toLoad.second, toLoad.first);
 				ActionsToReconcile->Dequeue();
 			}
 		}
 		//map is ordered in C++. Real C++, I mean.
-		for (auto x : TMapIsAlmostCertainlySlower)
+		for (auto x : TimeSortedFireEvents_ReplaceWithTripleBuffer)
 		{
 			throw;
 		}

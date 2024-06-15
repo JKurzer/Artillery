@@ -41,9 +41,9 @@ bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern_Interna
 #ifndef LOCALISCODEDSPECIAL
 		FCM_Owner_ActorParams.MyInputStream == 0xb33f ||
 #endif // !LOCALISCODEDSPECIAL
-		InternalMapping->contains(FCM_Owner_ActorParams.MyInputStream))
+		InternalMapping.Contains(FCM_Owner_ActorParams.MyInputStream))
 	{
-		auto thisInputStream = InternalMapping->find(FCM_Owner_ActorParams.MyInputStream)->second;
+		auto thisInputStream = InternalMapping.Find(FCM_Owner_ActorParams.MyInputStream)->Get();
 		if (thisInputStream->MyPatternMatcher->AllPatternBinds.Contains(ToBind->getName()))
 		{
 			//names are never removed. sets are only added to or removed from.
@@ -67,9 +67,9 @@ bool UCanonicalInputStreamECS::removePattern(TSharedPtr<FActionPattern_Internall
 #ifndef LOCALISCODEDSPECIAL
 		FCM_Owner_ActorParams.MyInputStream == 0xb33f ||
 #endif // !LOCALISCODEDSPECIAL
-		InternalMapping->contains(FCM_Owner_ActorParams.MyInputStream))
+		InternalMapping.Contains(FCM_Owner_ActorParams.MyInputStream))
 	{
-		auto thisInputStream = InternalMapping->find(FCM_Owner_ActorParams.MyInputStream)->second;
+		auto thisInputStream = InternalMapping.Find(FCM_Owner_ActorParams.MyInputStream)->Get();
 		if (thisInputStream->MyPatternMatcher->AllPatternBinds.Contains(ToBind->getName()))
 		{
 			//names are never removed. sets are only added to or removed from.
@@ -90,6 +90,6 @@ ActorKey UCanonicalInputStreamECS::registerFCMKeyToParentActorMapping(AActor* pa
 {
 	//todo, registration goes here.
 	ActorKey ParentKey = PointerHash(parent, MachineKey);
-	LocalActorToStreamMapping->insert(ParentKey, MachineKey);
+	LocalActorToStreamMapping.Add(ParentKey, MachineKey);
 	return ParentKey;
 }

@@ -56,6 +56,6 @@ FGunKey UArtilleryDispatch::GetNewGunKey(FString GunDefinitionID, FireControlKey
 	GunDefinitionID = GunDefinitionID.IsEmpty() ? "M6D" : GunDefinitionID; //joking aside, an obvious debug val is needed.
 	FGunKey Key = FGunKey(GunDefinitionID, monotonkey++);
 	
-	GunToMachineMapping.emplace(Key, MachineKey);
+	GunToMachineMapping.Add(Key, MachineKey);
 	return Key;	
 }
