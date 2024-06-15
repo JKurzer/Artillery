@@ -97,6 +97,9 @@ uint32 FArtilleryBusyWorker::Run() {
 			current = *InputSwapSlot.Get()->Peek();
 			CablingControlStream.add(current);
 			InputSwapSlot.Get()->Dequeue();
+			//UnrealEditor_ArtilleryRuntime!FArtilleryBusyWorker::Run() [C:\Users\jakek\Documents\Unreal Projects\Bristle54\Plugins\Artillery\Source\ArtilleryRuntime\Private\FArtilleryBusyWorker.cpp:98]
+			//UnrealEditor_Core!FRunnableThreadWin::Run() [D:\build\++UE5\Sync\Engine\Source\Runtime\Core\Private\Windows\WindowsRunnableThread.cpp:149]
+			//my guess is that input is getting sandblasted or never got initialized due to some old handling in bristle.
 		}
 
 		
