@@ -21,7 +21,8 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		UCablingWorldSubsystem* DirectLocalInputSystem = GetWorld()->GetSubsystem<UCablingWorldSubsystem>();
 		ArtilleryAsyncWorldSim.InputSwapSlot = MakeShareable(new IncQ(256));
 		DirectLocalInputSystem->DestructiveChangeLocalOutboundQueue(ArtilleryAsyncWorldSim.InputSwapSlot);
-
+		UCanonicalInputStreamECS* MyBrother = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
+		ArtilleryAsyncWorldSim.ContingentInputECSLinkage = MyBrother;
 		//IF YOU REMOVE THIS. EVERYTHING EXPLODE. IN A BAD WAY.
 		//TARRAY IS A VALUE TYPE. SO IS TRIPLEBUFF I THINK.
 		ArtilleryAsyncWorldSim.TheTruthOfTheMatter = &TheTruthOfTheMatter;//OH BOY. REFERENCE TIME. GWAHAHAHA.

@@ -32,11 +32,20 @@ TStatId UCanonicalInputStreamECS::GetStatId() const
 	RETURN_QUICK_DECLARE_CYCLE_STAT(UCanonicalInputStreamECS, STATGROUP_Tickables);
 }
 
-
+TSharedPtr<UCanonicalInputStreamECS::FConservedInputStream> UCanonicalInputStreamECS::getNewStreamConstruct()
+{
+	
+	TSharedPtr<UCanonicalInputStreamECS::FConservedInputStream> ManagedStream = MakeShareable(
+	new FConservedInputStream(this, ++monotonkey) //using++ vs ++would be wrong here. inc then ret.
+	);
+	//this can be our evil secret.
+	SessionPlayerToStreamMapping.Add(monotonkey, monotonkey);
+	return ManagedStream;
+}
 
 
 bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern_InternallyStateless> ToBind,
-	FActionPatternParams FCM_Owner_ActorParams)
+                                               FActionPatternParams FCM_Owner_ActorParams)
 {
 	if (
 #ifndef LOCALISCODEDSPECIAL
@@ -97,3 +106,5 @@ ActorKey UCanonicalInputStreamECS::registerFCMKeyToParentActorMapping(AActor* pa
 	LocalActorToStreamMapping.Add(ParentKey, MachineKey);
 	return ParentKey;
 }
+
+

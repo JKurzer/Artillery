@@ -206,8 +206,19 @@ public:
 
 	class ARTILLERYRUNTIME_API FConservedInputStream : public FArtilleryNoGuaranteeReadOnly
 	{
+	public:
+		static inline const int Invalid_Key = -1;
 		virtual ~FConservedInputStream() = default;
 
+		FConservedInputStream(): MyKey(-1), ECSParent(nullptr)
+		{
+		} //broke the rule of five. still breaking it i guess but less badly.
+
+		explicit FConservedInputStream(UCanonicalInputStreamECS* LF_ECSParent, InputStreamKey ToBe)
+		{
+			ECSParent = LF_ECSParent;
+			MyKey = ToBe;
+		}
 
 		//Mom?
 		friend class FArtilleryBusyWorker;
@@ -325,6 +336,7 @@ protected:
 
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
+	TSharedPtr<FConservedInputStream> getNewStreamConstruct();
 
 public:
 private:
@@ -332,6 +344,7 @@ private:
 	TMap<PlayerKey, InputStreamKey> SessionPlayerToStreamMapping;
 	TMap<ActorKey, InputStreamKey> LocalActorToStreamMapping;
 	UBristleconeWorldSubsystem* MySquire; // World Subsystems are the last to go, making this a fairly safe idiom. ish.
+	static inline long long monotonkey = 0xb33f - 1; // :/
 };
 
 

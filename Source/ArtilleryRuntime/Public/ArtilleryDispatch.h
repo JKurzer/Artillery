@@ -39,11 +39,13 @@
  * 
  * Iris does normal replication on a slow cadence as a fall back and to provide attribute sync reassurances.
  */
+class UCanonicalInputStreamECS;
 UCLASS()
 class ARTILLERYRUNTIME_API UArtilleryDispatch : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
 	friend class FArtilleryBusyWorker;
+	friend class UCanonicalInputStreamECS;
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;

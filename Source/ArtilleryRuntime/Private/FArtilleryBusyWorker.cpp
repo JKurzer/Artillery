@@ -27,8 +27,10 @@ uint32 FArtilleryBusyWorker::Run() {
 #endif
 	}
 	bool missedPrior = false;
-
+	
 	bool burstDropDetected = false;
+	CablingControlStream = ContingentInputECSLinkage->getNewStreamConstruct();
+	BristleconeControlStream = ContingentInputECSLinkage->getNewStreamConstruct();
 	while (running) {
 		TheCone::PacketElement current = 0;
 		bool RemoteInput = false;
@@ -56,16 +58,16 @@ uint32 FArtilleryBusyWorker::Run() {
 					if (burstDropDetected)
 					{
 						//
-						BristleconeControlStream.add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 2) % 3),
+						BristleconeControlStream->add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 2) % 3),
 							((TheCone::Packet_tpl*)(packedInput))->GetTransferTime());
 					}
-					BristleconeControlStream.add(
+					BristleconeControlStream->add(
 						*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 1) % 3),
 						((TheCone::Packet_tpl*)(packedInput))->GetTransferTime()
 					);
 
 				}
-				BristleconeControlStream.add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement(indexInput % 3),
+				BristleconeControlStream->add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement(indexInput % 3),
 					((TheCone::Packet_tpl*)(packedInput))->GetTransferTime());
 				
 				RemoteInput = true; //we check for empty at the start of the while. no need to check again.
@@ -95,12 +97,8 @@ uint32 FArtilleryBusyWorker::Run() {
 		while (InputSwapSlot != nullptr && !InputSwapSlot.Get()->IsEmpty())
 		{
 			current = *InputSwapSlot.Get()->Peek();
-			CablingControlStream.add(current);
+			CablingControlStream->add(current);
 			InputSwapSlot.Get()->Dequeue();
-			//UnrealEditor_ArtilleryRuntime!FArtilleryBusyWorker::Run() [C:\Users\jakek\Documents\Unreal Projects\Bristle54\Plugins\Artillery\Source\ArtilleryRuntime\Private\FArtilleryBusyWorker.cpp:98]
-			//UnrealEditor_Core!FRunnableThreadWin::Run() [D:\build\++UE5\Sync\Engine\Source\Runtime\Core\Private\Windows\WindowsRunnableThread.cpp:149]
-			//my guess is that input is getting sandblasted or never got initialized due to some old handling in bristle.
-			//or the input stream might not exist yet? hm! looks like I broke the rule of five, so that's probably it.
 		}
 
 		
@@ -135,16 +133,20 @@ uint32 FArtilleryBusyWorker::Run() {
 		= TheTruthOfTheMatter->GetWriteBuffer();
 		refDangerous_LifeCycleManaged_TripleBuffered.Reset();
 		//today's sin is PRIDE, bigbird!
-		CablingControlStream.MyPatternMatcher->runOneFrameWithSideEffects(
+		CablingControlStream->MyPatternMatcher->runOneFrameWithSideEffects(
 			true,
 			0,
 			0,
-			CablingControlStream.highestInput - 1,
+			CablingControlStream->highestInput - 1,
 			refDangerous_LifeCycleManaged_TripleBuffered
 			); // this looks wrong but I'm pretty sure it ain' since we reserve highest.
 
 		//TODO: verify if this is needed.
 		refDangerous_LifeCycleManaged_TripleBuffered.Sort();
+		//even if this doesn't get played for some reason, this is the last chance we've got to make a
+		//truly informed decision about the matter. By the time we reach the dispatch system, that chance is gone.
+		//Better to skip a cosmetic once in a while than crash the game.
+		CablingControlStream->get(CablingControlStream->highestInput - 1)->RunAtLeastOnce = true;
 		TheTruthOfTheMatter->SwapWriteBuffers();
 		/*
 		* 
