@@ -15,6 +15,7 @@ bool FArtilleryBusyWorker::Init() {
 	return true;
 }
 
+//void ABristle54Character::Tick(float DeltaSeconds) needs IMMEDIATE revision, as this will eat some of the input.
 uint32 FArtilleryBusyWorker::Run() {
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Running Artillery thread"));
 	if(TheTruthOfTheMatter == nullptr)
