@@ -1,11 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "CoreTypes.h"
 #include <unordered_map>
-#include "ArtilleryDispatch.h"
 #include "FGunKey.h"
 #include "GameplayEffectTypes.h"
 #include "GameplayEffect.h"
@@ -22,6 +21,9 @@
  * Triggering the abilities is likely a no-go off the thread, but we can modify the attributes as needed.
  * This allows us to do some very powerful stuff to ensure that we always have the most up to date data.
  * Some dark things.
+ *
+ * Ultimately, we'll need something like https://github.com/facebook/folly/blob/main/folly/concurrency/ConcurrentHashMap.h
+ * if we want to get serious about this.
  */
 USTRUCT(BlueprintType)
 struct ARTILLERYRUNTIME_API FArtilleryGun
@@ -32,13 +34,6 @@ public:
 	// this can be handed into abilities.
 	friend class UArtilleryPerActorAbilityMinimum;
 	FGunKey MyGunKey;
-	
-
-
-	/// <summary>
-	/// activator goes here. called from fire control machine.
-	/// should pass GunKey into the Ability Sequence.
-	/// </summary>
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UArtilleryPerActorAbilityMinimum> Prefire;
@@ -60,15 +55,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UArtilleryPerActorAbilityMinimum> FailedFireCosmetic;
-
+	
 	//we use the GunBinder delegate to link the MECHANICAL abilities to phases.
-	//cosmetics don't get linked.
-	//All other guns must name themselves. This one, the basal instance?
-	//We know it. We have known it. We continue to know it.
-	//See you soon, Chief.
-	FArtilleryGun()
-		: MyGunKey(UArtilleryDispatch::GetNewGunInstance("M6D Pistol"))
+	//cosmetics don't get linked the same way.
+	FArtilleryGun(const FGunKey& KeyFromDispatch)
 	{
+		MyGunKey = KeyFromDispatch;
 		//assign gunkey
 		Prefire->MyGunKey = MyGunKey;
 		PrefireCosmetic->MyGunKey = MyGunKey;
@@ -183,4 +175,13 @@ public:
 			}
 		}
 	};
+
+	FArtilleryGun()
+	{
+		MyGunKey = Default;
+	}
+	private:
+	//Our debug value remains M6D.
+	static const inline FGunKey Default = FGunKey("M6D", UINT64_MAX);
+
 };

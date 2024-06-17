@@ -9,6 +9,7 @@
 #include "AttributeSet.h"
 #include "Containers/CircularBuffer.h"
 #include "BristleconeCommonTypes.h"
+#include "ArtilleryCommonTypes.h"
 #include "FCablePackedInput.h"
 
 #include "ArtilleryShell.generated.h"
@@ -23,8 +24,7 @@
  we CAN use everything else in EnhancedInput. Let's be careful not to rewrite it. (oops) We DO need a concept of an
  input having run at least once, though, which is not very idiomatic for Einp.
  */
-typedef long BristleTime;//this will become uint32. don't bitbash this.
-typedef BristleTime ArtilleryTime;
+
 USTRUCT(BlueprintType)
 struct ARTILLERYRUNTIME_API FArtilleryShell
 {
@@ -38,7 +38,7 @@ public:
 	//Packed as:
 	//MSB[sticks][buttons][Events]LSB
 
-	BristleTime SentAt;
+	Arty::BristleTime SentAt;
 	ArtilleryTime ReachedArtilleryAt;
 	bool RunAtLeastOnce = false; // if this is set, all artillery abilities spawned by running this input will be treated as having run at least once, and will not spawn cosmetic cues. Some animations may still play.
 	

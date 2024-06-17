@@ -12,6 +12,7 @@
 #include "FArtilleryGun.h"
 #include "Abilities/GameplayAbility.h"
 #include "CanonicalInputStreamECS.h"
+#include "ArtilleryDispatch.h"
 #include "Containers/CircularQueue.h"
 #include <bitset>
 #include "ArtilleryCommonTypes.h"
@@ -46,9 +47,10 @@ class ARTILLERYRUNTIME_API UFireControlMachine : public UActorComponent
 public:	
 		static inline int orderInInitialize = 0;
 		UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		TMap<FGunKey, FArtilleryGun> MyManagedGuns;
 		UCanonicalInputStreamECS* MySquire;
 		//this needs to be replicated in iris, interestin'ly.
+		TSet<FGunKey> MyGuns;
+		UArtilleryDispatch* MyDispatch;
 		TObjectPtr <UAttributeSet> MyAttributes; // might want to defactor this to an ECS, but I actually quite like it here.
 		//still wondering who owns the input streams...
 		TObjectPtr<UAbilitySystemComponent> SystemComponentToBind;
@@ -60,34 +62,41 @@ public:
 		//IF YOU DO NOT CALL THIS FROM THE GAMETHREAD, YOU WILL HAVE A BAD TIME.
 		void pushPatternToRunner(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
 		{
-			FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, 0xbeef);
+			FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, 0xbeef, ToFire);
 			MySquire->registerPattern(ToBind, myParams);
+			FArtilleryFireGunFromDispatch Inbound;
+			Inbound.BindUObject(this, &UFireControlMachine::FireGun);
+			MyDispatch->RegisterReady(ToFire, Inbound);
+			MyGuns.Add(ToFire);
 		};
 
 		//IF YOU DO NOT CALL THIS FROM THE GAMETHREAD, YOU WILL HAVE A BAD TIME.
 		void popPatternFromRunner(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
 		{
 			
-			FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, 0xbeef);
+			FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, 0xbeef, ToFire);
 			MySquire->removePattern(ToBind, myParams);
+			MyDispatch->Deregister(ToFire);
+			MyGuns.Remove(ToFire);
 		};
 
 
-		bool FireGun(FGunKey GunID, bool InputAlreadyUsedOnce)
+		void FireGun(FGunKey GunID, bool InputAlreadyUsedOnce)
 		{
-			return false;
+			
 		};
 		
 		void InitializeComponent() override
 		{
-
+			
 			MyKey = UFireControlMachine::orderInInitialize++;
 		};
 
 		void BeginPlay() override {
 			UActorComponent::BeginPlay(); // using this over the looser super atm. TODO: validate!!!!!
 			MySquire = GetOwner()->GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
-			MySquire->registerFCMKeyToParentActorMapping(GetOwner(), MyKey);
+			//TODO: Find the idiomatic way to do this, cause I'm a liddle worried this could asplode.
+			MySquire->registerFCMKeyToParentActorMapping(GetOwner(), MyKey, TObjectPtr<UFireControlMachine>(this));
 			//likely want to manage system component bind here by checking for actor parent.
 			//right now, we can push all our patterns here as well, and we can use a static set of patterns for
 			//each of our fire control machines. you can basically think of a fire control machine as a full set
@@ -95,4 +104,12 @@ public:
 			//There's a bit more blueprint exposure work to do here as a result.
 		};
 
+	virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override
+	{
+		Super::OnComponentDestroyed(bDestroyingHierarchy);
+		for(FGunKey Gun :MyGuns)
+		{
+			MyDispatch->Deregister(Gun); // emergency deregister.
+		}
+	};
 };

@@ -21,8 +21,13 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		UCablingWorldSubsystem* DirectLocalInputSystem = GetWorld()->GetSubsystem<UCablingWorldSubsystem>();
 		ArtilleryAsyncWorldSim.InputSwapSlot = MakeShareable(new IncQ(256));
 		DirectLocalInputSystem->DestructiveChangeLocalOutboundQueue(ArtilleryAsyncWorldSim.InputSwapSlot);
-		WorldSim_Thread.Reset(FRunnableThread::Create(&ArtilleryAsyncWorldSim, TEXT("ARTILLERY ONLINE.")));
-		ArtilleryAsyncWorldSim.Exit();
+		UCanonicalInputStreamECS* MyBrother = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
+		ArtilleryAsyncWorldSim.ContingentInputECSLinkage = MyBrother;
+		//IF YOU REMOVE THIS. EVERYTHING EXPLODE. IN A BAD WAY.
+		//TARRAY IS A VALUE TYPE. SO IS TRIPLEBUFF I THINK.
+		ArtilleryAsyncWorldSim.TheTruthOfTheMatter = &TheTruthOfTheMatter;//OH BOY. REFERENCE TIME. GWAHAHAHA.
+		
+		WorldSim_Thread.Reset(FRunnableThread::Create(&ArtilleryAsyncWorldSim, TEXT("ARTILLERY_ONLINE.")));
 	}
 
 
@@ -35,12 +40,19 @@ void UArtilleryDispatch::Deinitialize()
 {
 
 	Super::Deinitialize();
+	ArtilleryAsyncWorldSim.Stop();
+	//We have to wait.
+	if(WorldSim_Thread.IsValid())
+	{
+		//if we don't wait, this will crash when the truth of the matter is referenced. That's just the facts.
+		WorldSim_Thread->Kill(true);
+	}
 }
 
 void UArtilleryDispatch::Tick(float DeltaTime)
 {
 	//Super::Tick(DeltaTime);
-
+	RunGuns(); // ALL THIS WORK. FOR THIS?! (Okay, that's really cool)
 }
 
 TStatId UArtilleryDispatch::GetStatId() const
@@ -49,7 +61,28 @@ TStatId UArtilleryDispatch::GetStatId() const
 }
 
 
-FGunKey UArtilleryDispatch::GetNewGunInstance(FString GunDefinitionID)
+FGunKey UArtilleryDispatch::GetNewGunKey(FString GunDefinitionID, FireControlKey MachineKey)
 {
-	return FGunKey(GunDefinitionID, 0);
+	//We know it. We have known it. We continue to know it.
+	//See you soon, Chief.
+	GunDefinitionID = GunDefinitionID.IsEmpty() ? "M6D" : GunDefinitionID; //joking aside, an obvious debug val is needed.
+	FGunKey Key = FGunKey(GunDefinitionID, monotonkey++);
+	//THIS SHOULD PROBABLY BE WHERE WE HANDLE THE LIFECYCLE OF THE GUNS
+	//but to do that, we'll need to remove a couple more circularities.
+	return Key;	
+}
+
+void UArtilleryDispatch::QueueResim(FGunKey Key, Arty::ArtilleryTime Time)
+{
+	if (ActionsToReconcile && ActionsToReconcile.IsValid())
+	{
+		ActionsToReconcile->Enqueue(std::pair<FGunKey, Arty::ArtilleryTime>(Key, Time));
+	}
+}
+void UArtilleryDispatch::QueueFire(FGunKey Key, Arty::ArtilleryTime Time)
+{
+	if (ActionsToOrder && ActionsToOrder.IsValid())
+	{
+		ActionsToOrder->Enqueue(std::pair<FGunKey, Arty::ArtilleryTime>(Key, Time));
+	}
 }

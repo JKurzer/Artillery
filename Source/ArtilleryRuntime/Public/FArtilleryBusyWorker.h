@@ -6,6 +6,7 @@
 #include "CanonicalInputStreamECS.h"
 #include <thread>
 #include "BristleconeCommonTypes.h"
+#include "Containers/TripleBuffer.h"
 
 
 //this is a busy-style thread, which runs preset bodies of work in a specified order. Generally, the goal is that it never
@@ -18,10 +19,12 @@
 // no, seriously. with all the other sacrifices we've made occupying one core with game-sim physics, reconciliation,
 // rollbacks, and pattern matching is a pretty good bargain. we'll want to revisit this for servers, of course.
 class FArtilleryBusyWorker : public FRunnable {
-public:
+	public:
 	FArtilleryBusyWorker();
 	virtual ~FArtilleryBusyWorker() override;
-	
+	//This isn't super safe, but Busy Worker is used in exactly one place
+	//and the dispatcher that owns this memory MUST manage this lifecycle.
+	TTripleBuffer<TArray<TPair<BristleTime,FGunKey>>>* TheTruthOfTheMatter;
 	virtual bool Init() override;
 	virtual uint32 Run() override;
 	virtual void Exit() override;
@@ -29,12 +32,13 @@ public:
 
 	//this is a hack and MIGHT be replaced with an ECS lookup
 	//though the clarity gain is quite nice, and privileging Cabling makes sense
-	ArtilleryControlStream CablingControlStream;
+	TSharedPtr<ArtilleryControlStream>  CablingControlStream;
+	TSharedPtr<ArtilleryControlStream> BristleconeControlStream;
 	TheCone::RecvQueue InputRingBuffer;
 	TheCone::SendQueue InputSwapSlot;
-	//this is a hack and will be replaced with an ECS lookup as each remote player will have 
-	//a separate control stream for ease of use and my sanity.
-	ArtilleryControlStream BristleconeControlStream;
+	UCanonicalInputStreamECS* ContingentInputECSLinkage;
+
+	
 private:
 	void Cleanup();
 	bool running;

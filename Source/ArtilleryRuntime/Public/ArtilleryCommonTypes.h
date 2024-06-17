@@ -8,11 +8,18 @@
 
 #include "FActionBitMask.h"
 #include "BristleconeCommonTypes.h"
-typedef TheCone::PacketElement INNNNCOMING;
-typedef uint32_t InputStreamKey;
-typedef uint32_t PlayerKey;
-typedef uint32_t ActorKey;
-typedef uint32_t FireControlKey;
+
+namespace Arty
+{
+	typedef TheCone::PacketElement INNNNCOMING;
+	typedef uint32_t InputStreamKey;
+	typedef uint32_t PlayerKey;
+	typedef uint32_t ActorKey;
+	typedef uint32_t FireControlKey;
+	using BristleTime = long; //this will become uint32. don't bitbash this.
+	using ArtilleryTime = BristleTime;
+}
+
 
 
 
@@ -43,7 +50,7 @@ constexpr const inline uint32_t ArtilleryMagicFlickBoundary = 1901250;
 //these should LIKELY be the same, but I could see an argument than this might need to be a little smaller?
 //Tune as needed. we actually maintain a surprisingly finegrained degree of control here.
 constexpr const inline uint32_t ArtilleryMagicMinimumFlickDistanceRequired = 1901250; 
-
+using namespace Arty;
 struct FActionPatternParams
 {
 public:
@@ -57,12 +64,15 @@ public:
 	bool defaultBehavior = false;
 	bool FiresCosmetics = false;
 
-	FGunKey ToFire; //Putting this here is likely a mistake.
+	FGunKey ToFire; //IT WAS NOT A MISTAKE. I AM A GENIUS.
 	FActionBitMask ToSeek;
 	InputStreamKey MyInputStream;
 	FireControlKey MyOrigin;
-	FActionPatternParams(FActionBitMask ToSeek_In, FireControlKey MyOrigin_In, InputStreamKey MyInputStream_In) :
-		ToSeek(ToSeek_In), MyOrigin(MyOrigin_In), MyInputStream(MyInputStream_In) {};
+	FActionPatternParams(const FActionBitMask ToSeek_In, FireControlKey MyOrigin_In, InputStreamKey MyInputStream_In, FGunKey Fireable) :
+		ToSeek(ToSeek_In), MyOrigin(MyOrigin_In), MyInputStream(MyInputStream_In)
+	{
+		ToFire = Fireable;
+	};
 
 	friend uint32 GetTypeHash(const FActionPatternParams& Other)
 	{
@@ -77,3 +87,7 @@ bool operator==(FActionPatternParams const& lhs, FActionPatternParams const& rhs
 }
 #include "FActionPattern.h"
 
+namespace Arty
+{
+	DECLARE_DELEGATE_TwoParams(FArtilleryFireGunFromDispatch, FGunKey GunID, bool InputAlreadyUsedOnce);
+}

@@ -24,9 +24,10 @@ public:
 	GunDefinitionID(Name), GunInstanceID(id)
 	{
 	}
-
+	UPROPERTY(BlueprintReadOnly)
 	FString GunDefinitionID; //this will need to be human searchable
-	uint64_t GunInstanceID;
+	//FUN STORY: BLUEPRINT CAN'T USE UINT64.
+	uint64 GunInstanceID;
 
 	bool operator == (const struct FGunKey& Other)
 	{
@@ -40,4 +41,8 @@ public:
 };
 bool operator==(FGunKey const& lhs, FGunKey const& rhs) {
 	return (lhs.GunDefinitionID == rhs.GunDefinitionID) && (lhs.GunInstanceID == rhs.GunInstanceID);
+}
+//when sorted, gunkeys follow their instantiation order!
+bool operator<(FGunKey const& lhs, FGunKey const& rhs) {
+	return (lhs.GunInstanceID < rhs.GunInstanceID);
 }

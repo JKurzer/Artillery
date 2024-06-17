@@ -1,6 +1,7 @@
 ﻿#include "FArtilleryBusyWorker.h"
+#include "Containers/TripleBuffer.h"
 
-FArtilleryBusyWorker::FArtilleryBusyWorker() : running(false) {
+FArtilleryBusyWorker::FArtilleryBusyWorker() : running(false), TheTruthOfTheMatter(nullptr) {
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Constructing Artillery"));
 }
 
@@ -16,10 +17,20 @@ bool FArtilleryBusyWorker::Init() {
 
 uint32 FArtilleryBusyWorker::Run() {
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Running Artillery thread"));
-
+	if(TheTruthOfTheMatter == nullptr)
+	{
+		//oh no you bloody don't.
+#ifdef UE_BUILD_SHIPPING
+		return -1;
+#else
+		throw; // this is a BUG. A BAD ONE. 
+#endif
+	}
 	bool missedPrior = false;
-
+	
 	bool burstDropDetected = false;
+	CablingControlStream = ContingentInputECSLinkage->getNewStreamConstruct();
+	BristleconeControlStream = ContingentInputECSLinkage->getNewStreamConstruct();
 	while (running) {
 		TheCone::PacketElement current = 0;
 		bool RemoteInput = false;
@@ -47,16 +58,16 @@ uint32 FArtilleryBusyWorker::Run() {
 					if (burstDropDetected)
 					{
 						//
-						BristleconeControlStream.add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 2) % 3),
+						BristleconeControlStream->add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 2) % 3),
 							((TheCone::Packet_tpl*)(packedInput))->GetTransferTime());
 					}
-					BristleconeControlStream.add(
+					BristleconeControlStream->add(
 						*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 1) % 3),
 						((TheCone::Packet_tpl*)(packedInput))->GetTransferTime()
 					);
 
 				}
-				BristleconeControlStream.add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement(indexInput % 3),
+				BristleconeControlStream->add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement(indexInput % 3),
 					((TheCone::Packet_tpl*)(packedInput))->GetTransferTime());
 				
 				RemoteInput = true; //we check for empty at the start of the while. no need to check again.
@@ -86,7 +97,7 @@ uint32 FArtilleryBusyWorker::Run() {
 		while (InputSwapSlot != nullptr && !InputSwapSlot.Get()->IsEmpty())
 		{
 			current = *InputSwapSlot.Get()->Peek();
-			CablingControlStream.add(current);
+			CablingControlStream->add(current);
 			InputSwapSlot.Get()->Dequeue();
 		}
 
@@ -99,6 +110,9 @@ uint32 FArtilleryBusyWorker::Run() {
 		*/
 
 #define ARTILLERY_FIRE_CONTROL_MACHINE_HANDLING (false)
+//Patterns run here. The thread queues the fires. the dispatch fires them via the machines on the gamethread.
+		//in order. that matters a tad.
+		
 		/*
 		* 
 		* Pattern matching will go here.
@@ -114,10 +128,26 @@ uint32 FArtilleryBusyWorker::Run() {
 		//Per input stream, run their patterns here. god in heaven.
 		//START HERE AND WORK YOUR WAY OUT TO UNDERSTAND PATTERNS, MATCHING, AND INPUT FLOW.
 		//BristleconeControlStream.MyPatternMatcher->runOneFrameWithSideEffects(true, 0, 0); // those zeroes will stay here until we have resim.
-		// this will need to shift over to running through ALL input streams. dear god.
-		CablingControlStream.MyPatternMatcher->runOneFrameWithSideEffects(true, 0, 0,
-			CablingControlStream.highestInput - 1); // this looks wrong but I'm pretty sure it ain' since we reserve highest.
+		//This performs a copy of the map, I think. I HOPE it does a move, but I doubt it.
+		auto refDangerous_LifeCycleManaged_TripleBuffered
+		= TheTruthOfTheMatter->GetWriteBuffer();
+		refDangerous_LifeCycleManaged_TripleBuffered.Reset();
+		//today's sin is PRIDE, bigbird!
+		CablingControlStream->MyPatternMatcher->runOneFrameWithSideEffects(
+			true,
+			0,
+			0,
+			CablingControlStream->highestInput - 1,
+			refDangerous_LifeCycleManaged_TripleBuffered
+			); // this looks wrong but I'm pretty sure it ain' since we reserve highest.
 
+		//TODO: verify if this is needed.
+		refDangerous_LifeCycleManaged_TripleBuffered.Sort();
+		//even if this doesn't get played for some reason, this is the last chance we've got to make a
+		//truly informed decision about the matter. By the time we reach the dispatch system, that chance is gone.
+		//Better to skip a cosmetic once in a while than crash the game.
+		CablingControlStream->get(CablingControlStream->highestInput - 1)->RunAtLeastOnce = true;
+		TheTruthOfTheMatter->SwapWriteBuffers();
 		/*
 		* 
 		* Does rollback & reconciliation go here?
