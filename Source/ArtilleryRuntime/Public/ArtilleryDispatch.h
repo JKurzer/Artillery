@@ -9,6 +9,7 @@
 #include "ArtilleryCommonTypes.h"
 #include "Containers/TripleBuffer.h"
 #include "FArtilleryBusyWorker.h"
+#include "FArtilleryGun.h"
 
 #include <map>
 #include "ArtilleryDispatch.generated.h"
@@ -57,6 +58,10 @@ protected:
 	virtual TStatId GetStatId() const override;
 	//fully specifying the type is necessary to prevent spurious warnings in some cases.
 	TSharedPtr<TCircularQueue<std::pair<FGunKey, Arty::ArtilleryTime>>> ActionsToOrder;
+	//These two are the backbone of the Artillery gun lifecycle.
+	TMap<FGunKey, TSharedPtr<FArtilleryGun>> GunByKey;
+	TMultiMap<FString, TSharedPtr<FArtilleryGun>> PooledGuns;
+	
 	TSharedPtr<TCircularQueue<std::pair<FGunKey, Arty::ArtilleryTime>>> ActionsToReconcile;
 	//this is THE function we use to queue up Gun Activations.
 	//These will eventually need a complete and consistent ordering to ensure determinism.
@@ -99,7 +104,9 @@ public:
 	//DUMMY FOR NOW.
 	//TODO: IMPLEMENT THE GUNMAP FROM INSTANCE UNTO CLASS
 	//TODO: REMEMBER TO SAY AMMO A BUNCH
-	FGunKey GetNewGunKey(FString GunDefinitionID, FireControlKey MachineKey);
+	FGunKey GetGun(FString GunDefinitionID, FireControlKey MachineKey);
+	bool ReleaseGun(FGunKey Key, FireControlKey MachineKey);
+
 	void RegisterReady(FGunKey Key, FArtilleryFireGunFromDispatch Machine)
 	{
 		GunToFiringFunctionMapping.Add(Key, Machine);

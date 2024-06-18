@@ -61,6 +61,7 @@ public:
 	FArtilleryGun(const FGunKey& KeyFromDispatch)
 	{
 		MyGunKey = KeyFromDispatch;
+		
 		//assign gunkey
 		Prefire->MyGunKey = MyGunKey;
 		PrefireCosmetic->MyGunKey = MyGunKey;
@@ -176,6 +177,19 @@ public:
 		}
 	};
 
+	void FArtilleryGunRebind(const FGunKey& KeyFromDispatch)
+	{
+		MyGunKey = KeyFromDispatch;
+		//assign gunkey
+		Prefire->MyGunKey = MyGunKey;
+		PrefireCosmetic->MyGunKey = MyGunKey;
+		Fire->MyGunKey = MyGunKey;
+		FireCosmetic->MyGunKey = MyGunKey;
+		PostFire->MyGunKey = MyGunKey;
+		PostFireCosmetic->MyGunKey = MyGunKey;
+		FailedFireCosmetic->MyGunKey = MyGunKey;
+	}
+
 	FArtilleryGun()
 	{
 		MyGunKey = Default;
@@ -183,5 +197,6 @@ public:
 	private:
 	//Our debug value remains M6D.
 	static const inline FGunKey Default = FGunKey("M6D", UINT64_MAX);
+
 
 };

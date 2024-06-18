@@ -61,15 +61,42 @@ TStatId UArtilleryDispatch::GetStatId() const
 }
 
 
-FGunKey UArtilleryDispatch::GetNewGunKey(FString GunDefinitionID, FireControlKey MachineKey)
+FGunKey UArtilleryDispatch::GetGun(FString GunDefinitionID, FireControlKey MachineKey)
 {
 	//We know it. We have known it. We continue to know it.
 	//See you soon, Chief.
 	GunDefinitionID = GunDefinitionID.IsEmpty() ? "M6D" : GunDefinitionID; //joking aside, an obvious debug val is needed.
 	FGunKey Key = FGunKey(GunDefinitionID, monotonkey++);
-	//THIS SHOULD PROBABLY BE WHERE WE HANDLE THE LIFECYCLE OF THE GUNS
-	//but to do that, we'll need to remove a couple more circularities.
+	if(PooledGuns.Contains(GunDefinitionID))
+	{
+
+		TSharedPtr<FArtilleryGun> repurposing = *PooledGuns.Find(GunDefinitionID);
+		PooledGuns.RemoveSingle(GunDefinitionID, repurposing);
+		repurposing->FArtilleryGunRebind(Key);
+		GunByKey.Add(Key, repurposing);
+	}
+	else
+	{
+		TSharedPtr<FArtilleryGun> NewGun = MakeShareable(new FArtilleryGun(Key));
+		GunByKey.Add(Key, NewGun);
+	}
 	return Key;	
+}
+
+//returns false if already released.
+bool UArtilleryDispatch::ReleaseGun(FGunKey Key, FireControlKey MachineKey)
+{
+	//We know it. We have known it. We continue to know it.
+	//See you soon, Chief.
+	if(GunByKey.Contains(Key))
+	{
+		
+		TSharedPtr<FArtilleryGun> tracker;
+		GunByKey.RemoveAndCopyValue(Key, tracker);
+		PooledGuns.Add(Key.GunDefinitionID, tracker);
+		return true;
+	}
+	return false;	
 }
 
 void UArtilleryDispatch::QueueResim(FGunKey Key, Arty::ArtilleryTime Time)
