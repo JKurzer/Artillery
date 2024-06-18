@@ -3,8 +3,10 @@
 #include "CoreTypes.h"
 #include "Engine/DataTable.h"
 
+#include "FGunDefinitionRow.generated.h"
+
 USTRUCT(BlueprintType)
-struct FGunDefinition : public FTableRowBase
+struct FGunDefinitionRow : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=GunDefinition)
