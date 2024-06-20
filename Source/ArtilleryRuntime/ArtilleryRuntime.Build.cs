@@ -18,9 +18,6 @@ public class ArtilleryRuntime : ModuleRules
 		);
 
 				
-		PublicIncludePaths.Add(
-			Path.Combine(PluginDirectory,"Data")
-		);
 		
 		RuntimeDependencies.Add(
 			Path.Combine(PluginDirectory,"Data")

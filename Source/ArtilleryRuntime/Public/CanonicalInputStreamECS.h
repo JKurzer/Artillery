@@ -17,6 +17,7 @@
 #include <ArtilleryShell.h>
 #include "ArtilleryCommonTypes.h"
 #include "FArtilleryNoGuaranteeReadOnly.h"
+#include "FActionPattern.h"
 #include "CanonicalInputStreamECS.generated.h"
 
 
