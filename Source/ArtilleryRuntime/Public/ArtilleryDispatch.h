@@ -75,6 +75,7 @@ protected:
 	TObjectPtr<UDataTable> GunDefinitionsManifest;
 	//TODO: This is a dummy function and should be replaced NLT 10/20/24.
 	//It loads from the PROJECT directory. This cannot ship, but will work for all purposes at the moment.
+	//Note: https://www.reddit.com/r/unrealengine/comments/160mjkx/how_reliable_and_scalable_are_the_data_tables/
 	void LoadGunData()
 	{
 #if UE_BUILD_SHIPPING != 0
