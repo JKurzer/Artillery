@@ -73,9 +73,16 @@ protected:
 	 * Holds the configuration for the gun definitions
 	 */
 	TObjectPtr<UDataTable> GunDefinitionsManifest;
-	//TODO: If you're seeing long load times, this is why
 	//TODO: This is a dummy function and should be replaced NLT 10/20/24.
-	void LoadGunData();
+	//It loads from the PROJECT directory. This cannot ship, but will work for all purposes at the moment.
+	void LoadGunData()
+	{
+#if UE_BUILD_SHIPPING != 0
+		throw;
+#endif
+		FString AccumulatePath = FPaths::Combine(FPaths::ProjectPluginsDir(), "Artillery", "Data", "GunData");
+		
+	};
 	
 	TSharedPtr<TCircularQueue<std::pair<FGunKey, Arty::ArtilleryTime>>> ActionsToReconcile;
 	//this is THE function we use to queue up Gun Activations.
