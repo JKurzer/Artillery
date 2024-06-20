@@ -28,21 +28,17 @@ public:
 	FString GunDefinitionID; //this will need to be human searchable
 	//FUN STORY: BLUEPRINT CAN'T USE UINT64.
 	uint64 GunInstanceID;
-
-	bool operator == (const struct FGunKey& Other)
-	{
-		return GunInstanceID == Other.GunInstanceID;
-	};
+	
 	friend uint32 GetTypeHash(const FGunKey& Other)
 	{
 		// it's probably fine!
 		return GetTypeHash(Other.GunDefinitionID) + GetTypeHash(Other.GunInstanceID);
 	}
 };
-bool operator==(FGunKey const& lhs, FGunKey const& rhs) {
+static bool operator==(FGunKey const& lhs, FGunKey const& rhs) {
 	return (lhs.GunDefinitionID == rhs.GunDefinitionID) && (lhs.GunInstanceID == rhs.GunInstanceID);
 }
 //when sorted, gunkeys follow their instantiation order!
-bool operator<(FGunKey const& lhs, FGunKey const& rhs) {
+static bool operator<(FGunKey const& lhs, FGunKey const& rhs) {
 	return (lhs.GunInstanceID < rhs.GunInstanceID);
 }

@@ -85,6 +85,6 @@ public:
 	
 };
 
-bool operator==(FActionPatternParams const& lhs, FActionPatternParams const& rhs) {
+static bool operator==(FActionPatternParams const& lhs, FActionPatternParams const& rhs) {
 	return lhs.ToFire == rhs.ToFire;
 }
