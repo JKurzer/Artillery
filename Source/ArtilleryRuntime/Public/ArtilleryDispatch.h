@@ -40,6 +40,12 @@
  * 
  * Iris does normal replication on a slow cadence as a fall back and to provide attribute sync reassurances.
  */
+namespace Arty
+{
+	
+	DECLARE_DELEGATE_TwoParams(FArtilleryFireGunFromDispatch, TSharedPtr<FArtilleryGun> Gun, bool InputAlreadyUsedOnce);
+}
+
 class UCanonicalInputStreamECS;
 UCLASS()
 class ARTILLERYRUNTIME_API UArtilleryDispatch : public UTickableWorldSubsystem
@@ -91,7 +97,9 @@ protected:
 		//Sort is not stable. Sortedness appears to be lost for operations I would not expect.
 		for (auto x : TheTruthOfTheMatter.Read())
 		{
-			auto fired = GunToFiringFunctionMapping.Find(x.Value)->ExecuteIfBound(x.Value, false);
+			auto fired =  GunToFiringFunctionMapping.Find(x.Value)->ExecuteIfBound(
+			*GunByKey.Find(x.Value)
+			, false);
 			TotalFirings += fired;
 		}
 		TheTruthOfTheMatter.SwapReadBuffers();

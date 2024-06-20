@@ -7,16 +7,16 @@
 #include "UObject/UnrealType.h"
 #include "Engine/DataTable.h"
 #include "AttributeSet.h"
-#include "ArtilleryShell.h"
 #include "ArtilleryCommonTypes.h"
 #include <bitset>
+#include "ArtilleryShell.h"
 #include "Containers/CircularBuffer.h"
 #include <string>
+
 
 //See Desperate-thor.gif for more information.
 //Catch you in the next one, choom.
 
-struct FArtilleryShell;
 //This facade offers no guarantee that it is read only. it exists to break a circular dependency in an elegant
 //way that also serves to cleanly facade away some quite considerabile complexity.
 //it's probably read only. probably.

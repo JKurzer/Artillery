@@ -26,7 +26,7 @@
  */
 
 USTRUCT(BlueprintType)
-struct ARTILLERYRUNTIME_API FArtilleryShell
+struct  FArtilleryShell
 {
 	GENERATED_BODY()
 public:
