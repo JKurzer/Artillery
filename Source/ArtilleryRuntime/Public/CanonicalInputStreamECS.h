@@ -293,7 +293,7 @@ public:
 				new UCanonicalInputStreamECS::FConservedInputPatternMatcher());
 		;
 		//Add can only be used by the Artillery Worker Thread through the methods of the UCISArty.
-		void add(INNNNCOMING shell, long SentAt)
+		void Add(INNNNCOMING shell, long SentAt)
 		{
 			CurrentHistory[highestInput].MyInputActions = shell;
 			CurrentHistory[highestInput].ReachedArtilleryAt = ECSParent->Now();
@@ -313,7 +313,7 @@ public:
 		};
 
 		//Overload for local add via feed from cabling. don't use this unless you are CERTAIN.
-		void add(INNNNCOMING shell)
+		void Add(INNNNCOMING shell)
 		{
 			CurrentHistory[highestInput].MyInputActions = shell;
 			CurrentHistory[highestInput].ReachedArtilleryAt = ECSParent->Now();

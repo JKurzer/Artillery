@@ -33,6 +33,9 @@ namespace Arty
 #include <bitset>
 #include "Containers/CircularBuffer.h"
 #include "FGunKey.h"
+
+//PATH TO DATA TABLES
+//constexpr const FString GunsManifests = "";
 //TODO: ALWAYS customize this to the sample-rate you select for cabling. ALWAYS. Or your game will feel Real Bad.
 constexpr int ArtilleryInputSearchWindow = 70;
 constexpr const inline int ArtilleryHoldSweepBack = 5; // this is literally the sin within the beast. 

@@ -59,16 +59,16 @@ uint32 FArtilleryBusyWorker::Run() {
 					if (burstDropDetected)
 					{
 						//
-						BristleconeControlStream->add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 2) % 3),
+						BristleconeControlStream->Add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 2) % 3),
 							((TheCone::Packet_tpl*)(packedInput))->GetTransferTime());
 					}
-					BristleconeControlStream->add(
+					BristleconeControlStream->Add(
 						*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 1) % 3),
 						((TheCone::Packet_tpl*)(packedInput))->GetTransferTime()
 					);
 
 				}
-				BristleconeControlStream->add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement(indexInput % 3),
+				BristleconeControlStream->Add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement(indexInput % 3),
 					((TheCone::Packet_tpl*)(packedInput))->GetTransferTime());
 				
 				RemoteInput = true; //we check for empty at the start of the while. no need to check again.
@@ -98,7 +98,7 @@ uint32 FArtilleryBusyWorker::Run() {
 		while (InputSwapSlot != nullptr && !InputSwapSlot.Get()->IsEmpty())
 		{
 			current = *InputSwapSlot.Get()->Peek();
-			CablingControlStream->add(current);
+			CablingControlStream->Add(current);
 			InputSwapSlot.Get()->Dequeue();
 		}
 
@@ -183,6 +183,7 @@ void FArtilleryBusyWorker::Stop() {
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Stopping Artillery thread."));
 	Cleanup();
 }
+
 
 void FArtilleryBusyWorker::Cleanup() {
 

@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 using System;
 using System.IO;
+using EpicGames.Core;
 using UnrealBuildTool;
 using UnrealBuildTool.Rules;
 
@@ -16,7 +17,20 @@ public class ArtilleryRuntime : ModuleRules
 			}
 		);
 
+				
+		PublicIncludePaths.Add(
+			Path.Combine(PluginDirectory,"Data")
+		);
+		
+		RuntimeDependencies.Add(
+			Path.Combine(PluginDirectory,"Data")
+			);
 
+		DirectoryReference m = DirectoryReference.FromString(Path.Combine(PluginDirectory, "Data"));
+		if (m != null)
+		{
+			ConditionalAddModuleDirectory(m);
+		}
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				// ... add other private include paths required here ...

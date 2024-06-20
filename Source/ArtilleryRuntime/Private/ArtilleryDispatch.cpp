@@ -106,6 +106,12 @@ void UArtilleryDispatch::QueueResim(FGunKey Key, Arty::ArtilleryTime Time)
 		ActionsToReconcile->Enqueue(std::pair<FGunKey, Arty::ArtilleryTime>(Key, Time));
 	}
 }
+
+void UArtilleryDispatch::LoadGunData()
+{
+	
+}
+
 void UArtilleryDispatch::QueueFire(FGunKey Key, Arty::ArtilleryTime Time)
 {
 	if (ActionsToOrder && ActionsToOrder.IsValid())

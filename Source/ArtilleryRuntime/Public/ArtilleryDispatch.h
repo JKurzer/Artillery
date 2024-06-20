@@ -16,7 +16,7 @@
 
 
 /**
- * This is the backbone of artillery, and along with the ArtilleryGuns and ArtilleryFireControlMachines, 
+ * This is the backbone of artillery, and along with the ArtilleryGuns and UFireControlMachines, 
  * this is most of what any other code will see of artillery in C++. Blueprints will mostly not even see that
  * as they are already encapsulated in the artillerygun's ability sequencer. Abilities merely need to be uninstanced,
  * only modify attributes tracked in Artillery, and use artillery bp nodes where possible.
@@ -61,6 +61,15 @@ protected:
 	//These two are the backbone of the Artillery gun lifecycle.
 	TMap<FGunKey, TSharedPtr<FArtilleryGun>> GunByKey;
 	TMultiMap<FString, TSharedPtr<FArtilleryGun>> PooledGuns;
+
+	
+	/**
+	 * Holds the configuration for the gun definitions
+	 */
+	TObjectPtr<UDataTable> GunDefinitionsManifest;
+	//TODO: If you're seeing long load times, this is why
+	//TODO: This is a dummy function and should be replaced NLT 10/20/24.
+	void LoadGunData();
 	
 	TSharedPtr<TCircularQueue<std::pair<FGunKey, Arty::ArtilleryTime>>> ActionsToReconcile;
 	//this is THE function we use to queue up Gun Activations.
@@ -73,6 +82,9 @@ protected:
 
 	void QueueResim(FGunKey Key, Arty::ArtilleryTime Time);
 
+	//the separation of tick and frame is inspired by the Serious Engine and Quake.
+	//In fact, it's pretty common to this day, with Unity also using a similar model.
+	//However, our particular design is running fast relative to most games except quake.
 	void RunGuns()
 	{
 

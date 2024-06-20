@@ -12,6 +12,9 @@
 #include "UArtilleryAbilityMinimum.h"
 #include "FArtilleryGun.generated.h"
 
+
+
+
 /**
  * This class will be a data-driven instance of a gun that encapsulates a generic structured ability,
  * then exposes bindings for the phases of that ability as a component to be bound as specific gameplay abilities.
@@ -26,7 +29,7 @@
  * if we want to get serious about this.
  */
 USTRUCT(BlueprintType)
-struct ARTILLERYRUNTIME_API FArtilleryGun
+struct ARTILLERYRUNTIME_API FArtilleryGun 
 {
 	GENERATED_BODY()
 

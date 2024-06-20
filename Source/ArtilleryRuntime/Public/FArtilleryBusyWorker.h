@@ -30,6 +30,8 @@ class FArtilleryBusyWorker : public FRunnable {
 	virtual void Exit() override;
 	virtual void Stop() override;
 
+	
+
 	//this is a hack and MIGHT be replaced with an ECS lookup
 	//though the clarity gain is quite nice, and privileging Cabling makes sense
 	TSharedPtr<ArtilleryControlStream>  CablingControlStream;
@@ -37,7 +39,7 @@ class FArtilleryBusyWorker : public FRunnable {
 	TheCone::RecvQueue InputRingBuffer;
 	TheCone::SendQueue InputSwapSlot;
 	UCanonicalInputStreamECS* ContingentInputECSLinkage;
-
+	
 	
 private:
 	void Cleanup();
