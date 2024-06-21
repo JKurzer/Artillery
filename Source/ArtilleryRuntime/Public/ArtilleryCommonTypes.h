@@ -37,7 +37,7 @@ namespace Arty
 //PATH TO DATA TABLES
 //constexpr const FString GunsManifests = "";
 //TODO: ALWAYS customize this to the sample-rate you select for cabling. ALWAYS. Or your game will feel Real Bad.
-constexpr int ArtilleryInputSearchWindow = 70;
+constexpr int ArtilleryInputSearchWindow = TheCone::BristleconeSendHertz;
 constexpr const inline int ArtilleryHoldSweepBack = 5; // this is literally the sin within the beast. 
 constexpr const inline int ArtilleryFlickSweepBack = 15; // And this is no better.
 

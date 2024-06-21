@@ -107,9 +107,35 @@ void UArtilleryDispatch::QueueResim(FGunKey Key, Arty::ArtilleryTime Time)
 	}
 }
 
+void UArtilleryDispatch::RunGuns()
+{
+
+	//Sort is not stable. Sortedness appears to be lost for operations I would not expect.
+	for (auto x : TheTruthOfTheMatter.Read())
+	{
+		auto fired =  GunToFiringFunctionMapping.Find(x.Value)->ExecuteIfBound(
+			*GunByKey.Find(x.Value)
+			, false);
+		TotalFirings += fired;
+	}
+	TheTruthOfTheMatter.SwapReadBuffers();
+}
+
+void UArtilleryDispatch::RERunGuns()
+{
+	if (ActionsToReconcile && ActionsToReconcile.IsValid())
+	{
+		throw;
+	}
+}
+
 void UArtilleryDispatch::LoadGunData()
 {
-	
+#if UE_BUILD_SHIPPING != 0
+		throw;
+#endif
+	FString AccumulatePath = FPaths::Combine(FPaths::ProjectPluginsDir(), "Artillery", "Data", "GunData");
+		
 }
 
 void UArtilleryDispatch::QueueFire(FGunKey Key, Arty::ArtilleryTime Time)

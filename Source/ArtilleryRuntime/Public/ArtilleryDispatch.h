@@ -76,14 +76,7 @@ protected:
 	//TODO: This is a dummy function and should be replaced NLT 10/20/24.
 	//It loads from the PROJECT directory. This cannot ship, but will work for all purposes at the moment.
 	//Note: https://www.reddit.com/r/unrealengine/comments/160mjkx/how_reliable_and_scalable_are_the_data_tables/
-	void LoadGunData()
-	{
-#if UE_BUILD_SHIPPING != 0
-		throw;
-#endif
-		FString AccumulatePath = FPaths::Combine(FPaths::ProjectPluginsDir(), "Artillery", "Data", "GunData");
-		
-	};
+	void LoadGunData();
 	
 	TSharedPtr<TCircularQueue<std::pair<FGunKey, Arty::ArtilleryTime>>> ActionsToReconcile;
 	//this is THE function we use to queue up Gun Activations.
@@ -99,19 +92,7 @@ protected:
 	//the separation of tick and frame is inspired by the Serious Engine and Quake.
 	//In fact, it's pretty common to this day, with Unity also using a similar model.
 	//However, our particular design is running fast relative to most games except quake.
-	void RunGuns()
-	{
-
-		//Sort is not stable. Sortedness appears to be lost for operations I would not expect.
-		for (auto x : TheTruthOfTheMatter.Read())
-		{
-			auto fired =  GunToFiringFunctionMapping.Find(x.Value)->ExecuteIfBound(
-			*GunByKey.Find(x.Value)
-			, false);
-			TotalFirings += fired;
-		}
-		TheTruthOfTheMatter.SwapReadBuffers();
-	};
+	void RunGuns();
 
 
 	//********************************
@@ -120,13 +101,7 @@ protected:
 	//We can't risk intermingling them, which should never happen, but...
 	//c'mon. Seriously. you wanna find that bug?
 	//********************************
-	void RERunGuns()
-	{
-		if (ActionsToReconcile && ActionsToReconcile.IsValid())
-		{
-			throw;
-		}
-	};
+	void RERunGuns();
 
 public:
 	//DUMMY FOR NOW.

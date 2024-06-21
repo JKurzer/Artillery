@@ -126,11 +126,10 @@ public:
 		//
 		// ***********************************************************
 		//
-		// This makes things run. currently, it doesn't correctly handle really anything
-		// but it's come together now so that you can see what's happening.
-		// This has a side-effect of marking the record as played at least once.
-		//This will match patterns and push events up to the Fire Control Machines. There likely will only be 12 or 18 FCMs running
-		//EVER because I think we'll want to treat each AI faction pretty much as a single FCM except for a few bosses.
+		// This makes things run. it doesn't correctly handle really anything, that's the busyworker's job
+		// There likely will only be 12 or 18 FCMs runnin EVER because I think we'll want to treat each AI
+		//faction pretty much as a single FCM except for a few bosses.
+		//
 		//hard to say. we might need to revisit this if the FCMs prove too heavy as full actor components.
 
 		void runOneFrameWithSideEffects(bool isResim_Unimplemented,
