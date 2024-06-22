@@ -44,6 +44,9 @@ namespace Arty
 {
 	
 	DECLARE_DELEGATE_TwoParams(FArtilleryFireGunFromDispatch, TSharedPtr<FArtilleryGun> Gun, bool InputAlreadyUsedOnce);
+	//returns true if-and-only-if the duration of the input intent was exhausted.
+	DECLARE_DELEGATE_RetVal_SevenParams(bool, FArtilleryRunLocomotionFromDispatch, FArtilleryShell Movement, FArtilleryShell PreviousMovement, bool RunAtLeastOnce, bool ForwardProject, ArtilleryTime StartSmear, ArtilleryTime InputDuration, ArtilleryTime Received);
+	
 }
 
 class UCanonicalInputStreamECS;
