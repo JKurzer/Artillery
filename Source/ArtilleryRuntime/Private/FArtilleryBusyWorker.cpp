@@ -35,6 +35,7 @@ uint32 FArtilleryBusyWorker::Run()
 	uint64_t currentIndexCabling = 0;
 	uint64_t currentIndexBristlecone = 0;
 	bool burstDropDetected = false;
+	//you cannot reorder these. it is a magic ordering put in place for a hack. 
 	CablingControlStream = ContingentInputECSLinkage->getNewStreamConstruct();
 	BristleconeControlStream = ContingentInputECSLinkage->getNewStreamConstruct();
 	while (running)
@@ -166,8 +167,8 @@ uint32 FArtilleryBusyWorker::Run()
 			LocomotionParams(
 					CablingControlStream->peek(i)->SentAt,
 					CablingControlStream->GetActorByInputStream(),
-					i-1,
-					i
+					*CablingControlStream->peek(i-1),
+					*CablingControlStream->peek(i)
 					)
 				)
 			;

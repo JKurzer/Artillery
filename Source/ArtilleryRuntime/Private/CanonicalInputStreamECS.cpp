@@ -54,6 +54,11 @@ TSharedPtr<UCanonicalInputStreamECS::FConservedInputStream> UCanonicalInputStrea
 }
 
 
+InputStreamKey UCanonicalInputStreamECS::GetStreamForPlayer(PlayerKey ThisPlayer)
+{
+	return *SessionPlayerToStreamMapping.Find(ThisPlayer);
+}
+
 bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern_InternallyStateless> ToBind,
                                                FActionPatternParams FCM_Owner_ActorParams)
 {
@@ -109,12 +114,29 @@ bool UCanonicalInputStreamECS::removePattern(TSharedPtr<FActionPattern_Internall
 	}
 	return false;
 }
-ActorKey UCanonicalInputStreamECS::registerFCMKeyToParentActorMapping(AActor* parent, FireControlKey MachineKey, TObjectKey<UFireControlMachine> MachineSelf)
+TPair<ActorKey, InputStreamKey> UCanonicalInputStreamECS::RegisterKeysToParentActorMapping(AActor* parent, FireControlKey MachineKey, bool IsActorForLocalPlayer)
 {
 	//todo, registration goes here.
 	ActorKey ParentKey = PointerHash(parent, MachineKey);
 	LocalActorToFireControlMapping.Add(ParentKey, MachineKey);
-	return ParentKey;
+
+	//this is a hack. this is such a hack. oh god.
+	if(IsActorForLocalPlayer)
+	{
+#if UE_BUILD_SHIPPING != 0
+		throw; //I told you not to ship this.
+#endif
+		//this relies on a really ugly hack using the monotonkey. do not ship this.
+		InputStreamKey LocalKey = GetStreamForPlayer(0xB33F);
+		StreamToActorMapping.Add(LocalKey, ParentKey);
+		ActorToStreamMapping.Add(ParentKey, LocalKey);
+		return TPair<ActorKey, InputStreamKey>(ParentKey, LocalKey);			
+	}
+	else
+	{
+		throw;
+	}
+
 }
 
 

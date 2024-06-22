@@ -10,6 +10,7 @@
 #include "Containers/TripleBuffer.h"
 #include "FArtilleryBusyWorker.h"
 #include "FArtilleryGun.h"
+#include "LocomotionParams.h"
 
 #include <map>
 #include "ArtilleryDispatch.generated.h"
@@ -49,8 +50,8 @@ namespace Arty
 	//returns true if-and-only-if the duration of the input intent was exhausted.
 	DECLARE_DELEGATE_RetVal_FourParams(bool,
 		FArtilleryRunLocomotionFromDispatch,
-		uint64_t PreviousMovement,
-		uint64_t Movement,
+		FArtilleryShell PreviousMovement,
+		FArtilleryShell Movement,
 		bool RunAtLeastOnce,
 		bool Smear);
 
@@ -94,7 +95,7 @@ protected:
 
 	
 	/**
-	 * Holds the configuration for the gun definitions
+	 * Wil hold the configuration for the gun definitions
 	 */
 	TObjectPtr<UDataTable> GunDefinitionsManifest;
 	//TODO: This is a dummy function and should be replaced NLT 10/20/24.
@@ -134,6 +135,10 @@ public:
 	void RegisterReady(FGunKey Key, FArtilleryFireGunFromDispatch Machine)
 	{
 		GunToFiringFunctionMapping.Add(Key, Machine);
+	}
+	void RegisterLocomotion(ActorKey Key, FArtilleryRunLocomotionFromDispatch Machine)
+	{
+		ActorToLocomotionMapping.Add(Key, Machine);
 	}
 	void Deregister(FGunKey Key)
 	{

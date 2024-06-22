@@ -78,10 +78,10 @@ public:
 		TheCone::LongboySendHertz);
 	friend class FArtilleryBusyWorker;
 	friend class UArtilleryDispatch;
+	InputStreamKey GetStreamForPlayer(PlayerKey);
 	bool registerPattern(TSharedPtr<FActionPattern> ToBind, FActionPatternParams FCM_Owner_ActorParams);
 	bool removePattern(TSharedPtr<FActionPattern> ToBind, FActionPatternParams FCM_Owner_ActorParams);
-	ActorKey registerFCMKeyToParentActorMapping(AActor* parent, FireControlKey MachineKey,
-	                                            TObjectKey<UFireControlMachine> MachineSelf);
+	TPair<ActorKey, InputStreamKey>  RegisterKeysToParentActorMapping(AActor* parent, FireControlKey MachineKey, bool IsActorForLocalPlayer);
 
 	//this is the most portable way to do a folding region in C++.
 #ifndef ARTILLERYECS_CLASSES_REGION_MARKER
@@ -343,11 +343,11 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 	TSharedPtr<FConservedInputStream> getNewStreamConstruct();
+	TMap<PlayerKey, InputStreamKey> SessionPlayerToStreamMapping;
 
 public:
 private:
 	TMap<InputStreamKey, TSharedPtr<FConservedInputStream>> InternalMapping;
-	TMap<PlayerKey, InputStreamKey> SessionPlayerToStreamMapping;
 	TMap<ActorKey, FireControlKey> LocalActorToFireControlMapping;
 	TMap<InputStreamKey, ActorKey> StreamToActorMapping;
 	TMap<ActorKey, InputStreamKey> ActorToStreamMapping;

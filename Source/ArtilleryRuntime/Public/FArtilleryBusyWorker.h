@@ -7,6 +7,7 @@
 #include <thread>
 #include "BristleconeCommonTypes.h"
 #include "Containers/TripleBuffer.h"
+#include "LocomotionParams.h"
 
 
 //this is a busy-style thread, which runs preset bodies of work in a specified order. Generally, the goal is that it never
