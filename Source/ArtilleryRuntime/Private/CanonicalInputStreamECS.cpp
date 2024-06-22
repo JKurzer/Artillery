@@ -23,6 +23,16 @@ void UCanonicalInputStreamECS::Deinitialize()
 	Super::Deinitialize();
 }
 
+ActorKey UCanonicalInputStreamECS::ActorByStream(InputStreamKey Stream)
+{
+	return *StreamToActorMapping.Find(Stream);
+}
+
+ActorKey UCanonicalInputStreamECS::StreamByActor(ActorKey Actor)
+{
+	return *ActorToStreamMapping.Find(Actor);
+}
+
 void UCanonicalInputStreamECS::Tick(float DeltaTime)
 {
 }
@@ -103,7 +113,7 @@ ActorKey UCanonicalInputStreamECS::registerFCMKeyToParentActorMapping(AActor* pa
 {
 	//todo, registration goes here.
 	ActorKey ParentKey = PointerHash(parent, MachineKey);
-	LocalActorToStreamMapping.Add(ParentKey, MachineKey);
+	LocalActorToFireControlMapping.Add(ParentKey, MachineKey);
 	return ParentKey;
 }
 

@@ -18,6 +18,25 @@ namespace Arty
 	typedef uint32_t FireControlKey;
 	using BristleTime = long; //this will become uint32. don't bitbash this.
 	using ArtilleryTime = BristleTime;
+
+	struct LocomotionParams
+	{
+		uint64_t time;
+		uint64_t parent;
+		uint64_t previousIndex; // may NOT be current -1. :/
+		uint64_t currentIndex;
+		LocomotionParams(uint64_t time, uint64_t parent, uint64_t prev, uint64_t cur):
+		time(time),
+		parent(parent),
+		previousIndex(prev),
+		currentIndex(cur)
+		{
+		}
+	};
+	//this creates a stable sub-ordering that ensures deterministic sequence of operations.
+	static bool operator<(LocomotionParams const& lhs, LocomotionParams const& rhs) {
+		return  lhs.time == rhs.time ? (lhs.time < rhs.time) : (lhs.parent < rhs.parent);
+	}
 }
 
 
@@ -88,3 +107,5 @@ public:
 static bool operator==(FActionPatternParams const& lhs, FActionPatternParams const& rhs) {
 	return lhs.ToFire == rhs.ToFire;
 }
+
+

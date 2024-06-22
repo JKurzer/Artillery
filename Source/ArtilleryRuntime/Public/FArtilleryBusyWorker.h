@@ -24,7 +24,9 @@ class FArtilleryBusyWorker : public FRunnable {
 	virtual ~FArtilleryBusyWorker() override;
 	//This isn't super safe, but Busy Worker is used in exactly one place
 	//and the dispatcher that owns this memory MUST manage this lifecycle.
-	TTripleBuffer<TArray<TPair<BristleTime,FGunKey>>>* TheTruthOfTheMatter;
+	TTripleBuffer<TArray<LocomotionParams>>* RawPtr_LocoTripleBuffer;
+	TTripleBuffer<TArray<TPair<BristleTime,FGunKey>>>* RawPtr_AbilitiesTripleBuffer;
+	
 	virtual bool Init() override;
 	virtual uint32 Run() override;
 	virtual void Exit() override;

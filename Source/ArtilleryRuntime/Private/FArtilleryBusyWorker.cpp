@@ -1,24 +1,28 @@
 ﻿#include "FArtilleryBusyWorker.h"
 #include "Containers/TripleBuffer.h"
 
-FArtilleryBusyWorker::FArtilleryBusyWorker() : running(false), TheTruthOfTheMatter(nullptr) {
+FArtilleryBusyWorker::FArtilleryBusyWorker() : running(false), RawPtr_AbilitiesTripleBuffer(nullptr)
+{
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Constructing Artillery"));
 }
 
-FArtilleryBusyWorker::~FArtilleryBusyWorker() {
+FArtilleryBusyWorker::~FArtilleryBusyWorker()
+{
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Destructing Artillery"));
 }
 
-bool FArtilleryBusyWorker::Init() {
+bool FArtilleryBusyWorker::Init()
+{
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Initializing Artillery thread"));
 	running = true;
 	return true;
 }
 
 //void ABristle54Character::Tick(float DeltaSeconds) needs IMMEDIATE revision, as this will eat some of the input.
-uint32 FArtilleryBusyWorker::Run() {
+uint32 FArtilleryBusyWorker::Run()
+{
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Running Artillery thread"));
-	if(TheTruthOfTheMatter == nullptr)
+	if (RawPtr_AbilitiesTripleBuffer == nullptr)
 	{
 		//oh no you bloody don't.
 #ifdef UE_BUILD_SHIPPING
@@ -28,11 +32,15 @@ uint32 FArtilleryBusyWorker::Run() {
 #endif
 	}
 	bool missedPrior = false;
-	
+	uint64_t currentIndexCabling = 0;
+	uint64_t currentIndexBristlecone = 0;
 	bool burstDropDetected = false;
 	CablingControlStream = ContingentInputECSLinkage->getNewStreamConstruct();
 	BristleconeControlStream = ContingentInputECSLinkage->getNewStreamConstruct();
-	while (running) {
+	while (running)
+	{
+		currentIndexCabling = CablingControlStream->highestInput - 1;
+		currentIndexBristlecone = BristleconeControlStream->highestInput - 1;
 		TheCone::PacketElement current = 0;
 		bool RemoteInput = false;
 
@@ -59,18 +67,19 @@ uint32 FArtilleryBusyWorker::Run() {
 					if (burstDropDetected)
 					{
 						//
-						BristleconeControlStream->Add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 2) % 3),
+						BristleconeControlStream->Add(
+							*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 2) % 3),
 							((TheCone::Packet_tpl*)(packedInput))->GetTransferTime());
 					}
 					BristleconeControlStream->Add(
 						*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 1) % 3),
 						((TheCone::Packet_tpl*)(packedInput))->GetTransferTime()
 					);
-
 				}
-				BristleconeControlStream->Add(*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement(indexInput % 3),
+				BristleconeControlStream->Add(
+					*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement(indexInput % 3),
 					((TheCone::Packet_tpl*)(packedInput))->GetTransferTime());
-				
+
 				RemoteInput = true; //we check for empty at the start of the while. no need to check again.
 				InputRingBuffer.Get()->Dequeue();
 			}
@@ -94,29 +103,30 @@ uint32 FArtilleryBusyWorker::Run() {
 			missedPrior = true;
 		}
 
-		//Snag the local input, if any. we don't actually need a while here anymore PROBABLY but. :)
+
+		//TODO: Figure out if this needs to wrap it all. p sure it does.
+		//though it's probably more elegant and faster to index over the control streams
 		while (InputSwapSlot != nullptr && !InputSwapSlot.Get()->IsEmpty())
 		{
 			current = *InputSwapSlot.Get()->Peek();
 			CablingControlStream->Add(current);
+
 			InputSwapSlot.Get()->Dequeue();
 		}
 
-		
-		/*
-		* 
-		* Movement processing calls go here. before pattern matching.
-		* 
-		* 
-		*/
+
 
 #define ARTILLERY_FIRE_CONTROL_MACHINE_HANDLING (false)
-//Patterns run here. The thread queues the fires. the dispatch fires them via the machines on the gamethread.
+		//First, locomotions are pushed.
+		//Patterns run here. The thread queues the locomotions and fires.
+		//the dispatch performs the locomotion operations. THEN
+		//movement abilities (MAYBE)
+		//THEN
+		//the dispatch fires guns via the machines on the gamethread.
 		//in order. that matters a tad.
-		
+
 		/*
 		* 
-		* Pattern matching will go here.
 		* artillery fire control machines bind their input search patterns to this thread
 		* hence their names, they're effectively facades for a larger finite state machine 
 		* found here.
@@ -125,30 +135,52 @@ uint32 FArtilleryBusyWorker::Run() {
 		* 
 		* 
 		*/
+		auto refDangerous_LifeCycleManaged_Loco_TripleBuffered
+			= RawPtr_LocoTripleBuffer->GetWriteBuffer();
+		refDangerous_LifeCycleManaged_Loco_TripleBuffered.Reset();
+
 
 		//Per input stream, run their patterns here. god in heaven.
 		//START HERE AND WORK YOUR WAY OUT TO UNDERSTAND PATTERNS, MATCHING, AND INPUT FLOW.
 		//BristleconeControlStream.MyPatternMatcher->runOneFrameWithSideEffects(true, 0, 0); // those zeroes will stay here until we have resim.
 		//This performs a copy of the map, I think. I HOPE it does a move, but I doubt it.
-		auto refDangerous_LifeCycleManaged_TripleBuffered
-		= TheTruthOfTheMatter->GetWriteBuffer();
-		refDangerous_LifeCycleManaged_TripleBuffered.Reset();
+		auto refDangerous_LifeCycleManaged_Abilities_TripleBuffered
+			= RawPtr_AbilitiesTripleBuffer->GetWriteBuffer();
+		refDangerous_LifeCycleManaged_Abilities_TripleBuffered.Reset();
+
 		//today's sin is PRIDE, bigbird!
-		CablingControlStream->MyPatternMatcher->runOneFrameWithSideEffects(
-			true,
-			0,
-			0,
-			CablingControlStream->highestInput - 1,
-			refDangerous_LifeCycleManaged_TripleBuffered
+		for (int i = currentIndexCabling; i < CablingControlStream->highestInput; ++i)
+		{
+			//TODO: refDangerous_LifeCycleManaged_Loco_TripleBuffered work goes here
+			
+			CablingControlStream->MyPatternMatcher->runOneFrameWithSideEffects(
+				true,
+				0,
+				0,
+				i,
+				refDangerous_LifeCycleManaged_Abilities_TripleBuffered
 			); // this looks wrong but I'm pretty sure it ain' since we reserve highest.
 
-		//TODO: verify if this is needed.
-		refDangerous_LifeCycleManaged_TripleBuffered.Sort();
-		//even if this doesn't get played for some reason, this is the last chance we've got to make a
-		//truly informed decision about the matter. By the time we reach the dispatch system, that chance is gone.
-		//Better to skip a cosmetic once in a while than crash the game.
-		CablingControlStream->get(CablingControlStream->highestInput - 1)->RunAtLeastOnce = true;
-		TheTruthOfTheMatter->SwapWriteBuffers();
+			//TODO: does this leak memory?
+			refDangerous_LifeCycleManaged_Loco_TripleBuffered.Add(
+			LocomotionParams(
+					CablingControlStream->peek(i)->SentAt,
+					CablingControlStream->GetActorByInputStream(),
+					i-1,
+					i
+					)
+				)
+			;
+			//even if this doesn't get played for some reason, this is the last chance we've got to make a
+			//truly informed decision about the matter. By the time we reach the dispatch system, that chance is gone.
+			//Better to skip a cosmetic once in a while than crash the game.
+			CablingControlStream->get(CablingControlStream->highestInput - 1)->RunAtLeastOnce = true;
+		}
+
+		refDangerous_LifeCycleManaged_Loco_TripleBuffered.Sort();
+		refDangerous_LifeCycleManaged_Abilities_TripleBuffered.Sort();
+		RawPtr_AbilitiesTripleBuffer->SwapWriteBuffers();
+		RawPtr_LocoTripleBuffer->SwapWriteBuffers();
 		/*
 		* 
 		* Does rollback & reconciliation go here?
@@ -158,7 +190,7 @@ uint32 FArtilleryBusyWorker::Run() {
 
 		/*
 		*
-		* Jolt will go here. No point in updating if we need to reconcile first.
+		* Jolt will go here? No point in updating if we need to reconcile first.
 		* Note: We also have Iris performing intermittent state stomps to recover from more serious desyncs.
 		* Ultimately, rollback can never solve everything. The windows just get too wide.
 		* 
@@ -174,18 +206,20 @@ uint32 FArtilleryBusyWorker::Run() {
 	return 0;
 }
 
-void FArtilleryBusyWorker::Exit() {
+void FArtilleryBusyWorker::Exit()
+{
 	UE_LOG(LogTemp, Display, TEXT("ARTILLERY OFFLINE."));
 	Cleanup();
 }
 
-void FArtilleryBusyWorker::Stop() {
+void FArtilleryBusyWorker::Stop()
+{
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Stopping Artillery thread."));
 	Cleanup();
 }
 
 
-void FArtilleryBusyWorker::Cleanup() {
-
+void FArtilleryBusyWorker::Cleanup()
+{
 	running = false;
 }

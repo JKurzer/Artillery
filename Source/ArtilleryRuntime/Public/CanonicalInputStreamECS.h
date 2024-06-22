@@ -275,6 +275,11 @@ public:
 			}
 		};
 
+		ActorKey GetActorByInputStream()
+		{
+			return ECSParent->StreamByActor(MyKey); // this lets us avoid exposing the key.
+		};
+		
 		InputStreamKey GetInputStreamKeyByPlayer(PlayerKey SessionLevelPlayerID)
 		{
 			return 0;
@@ -333,7 +338,8 @@ protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
-
+	ActorKey ActorByStream(InputStreamKey Stream);
+	ActorKey StreamByActor(InputStreamKey Stream);
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 	TSharedPtr<FConservedInputStream> getNewStreamConstruct();
@@ -342,7 +348,9 @@ public:
 private:
 	TMap<InputStreamKey, TSharedPtr<FConservedInputStream>> InternalMapping;
 	TMap<PlayerKey, InputStreamKey> SessionPlayerToStreamMapping;
-	TMap<ActorKey, InputStreamKey> LocalActorToStreamMapping;
+	TMap<ActorKey, FireControlKey> LocalActorToFireControlMapping;
+	TMap<InputStreamKey, ActorKey> StreamToActorMapping;
+	TMap<ActorKey, InputStreamKey> ActorToStreamMapping;
 	UBristleconeWorldSubsystem* MySquire; // World Subsystems are the last to go, making this a fairly safe idiom. ish.
 	static inline long long monotonkey = 0xb33f - 1; // :/
 };

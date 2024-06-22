@@ -43,10 +43,18 @@
 namespace Arty
 {
 	
-	DECLARE_DELEGATE_TwoParams(FArtilleryFireGunFromDispatch, TSharedPtr<FArtilleryGun> Gun, bool InputAlreadyUsedOnce);
+	DECLARE_DELEGATE_TwoParams(FArtilleryFireGunFromDispatch,
+		TSharedPtr<FArtilleryGun> Gun,
+		bool InputAlreadyUsedOnce);
 	//returns true if-and-only-if the duration of the input intent was exhausted.
-	DECLARE_DELEGATE_RetVal_SevenParams(bool, FArtilleryRunLocomotionFromDispatch, FArtilleryShell Movement, FArtilleryShell PreviousMovement, bool RunAtLeastOnce, bool ForwardProject, ArtilleryTime StartSmear, ArtilleryTime InputDuration, ArtilleryTime Received);
-	
+	DECLARE_DELEGATE_RetVal_FourParams(bool,
+		FArtilleryRunLocomotionFromDispatch,
+		uint64_t PreviousMovement,
+		uint64_t Movement,
+		bool RunAtLeastOnce,
+		bool Smear);
+
+
 }
 
 class UCanonicalInputStreamECS;
@@ -61,7 +69,20 @@ protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
-	TTripleBuffer<TArray<TPair<BristleTime,FGunKey>>> TheTruthOfTheMatter;
+
+	//this is the underlying function mapping we use to queue up Gun Activations.
+	//These will eventually need a complete and consistent ordering to ensure determinism.
+	//copy op is intentional but may be unneeded. assess before revising signature.
+	//TODO: assess if this needs to be a multimap. I think it needs to NOT be.
+	TMap<FGunKey, FArtilleryFireGunFromDispatch> GunToFiringFunctionMapping;
+	TTripleBuffer<TArray<TPair<BristleTime,FGunKey>>> RequestorQueue_Abilities_TripleBuffer;
+
+	//This is more straightforward than the guns problem.
+	//We can actually map this quite directly.
+	TMap<ActorKey, FArtilleryRunLocomotionFromDispatch> ActorToLocomotionMapping;
+	//Time, Actorkey, Prior, Current.
+	TTripleBuffer<TArray<LocomotionParams>> RequestorQueue_Locomos_TripleBuffer;
+
 	static inline long long TotalFirings = 0; //2024 was rough.
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
@@ -82,11 +103,6 @@ protected:
 	void LoadGunData();
 	
 	TSharedPtr<TCircularQueue<std::pair<FGunKey, Arty::ArtilleryTime>>> ActionsToReconcile;
-	//this is THE function we use to queue up Gun Activations.
-	//These will eventually need a complete and consistent ordering to ensure determinism.
-	//copy op is intentional but may be unneeded. assess before revising signature.
-	//TODO: assess if this needs to be a multimap. I think it needs to NOT be.
-	TMap<FGunKey, FArtilleryFireGunFromDispatch> GunToFiringFunctionMapping;
 
 	void QueueFire(FGunKey Key, Arty::ArtilleryTime Time);
 
@@ -96,6 +112,7 @@ protected:
 	//In fact, it's pretty common to this day, with Unity also using a similar model.
 	//However, our particular design is running fast relative to most games except quake.
 	void RunGuns();
+	void RunLocomotions();
 
 
 	//********************************
@@ -105,6 +122,7 @@ protected:
 	//c'mon. Seriously. you wanna find that bug?
 	//********************************
 	void RERunGuns();
+	void RERunLocomotions();
 
 public:
 	//DUMMY FOR NOW.
