@@ -279,7 +279,7 @@ public:
 
 		ActorKey GetActorByInputStream()
 		{
-			return ECSParent->StreamByActor(MyKey); // this lets us avoid exposing the key.
+			return ECSParent->ActorByStream(MyKey); // this lets us avoid exposing the key.
 		};
 		
 		InputStreamKey GetInputStreamKeyByPlayer(PlayerKey SessionLevelPlayerID)
@@ -354,7 +354,7 @@ private:
 	TSharedPtr<TMap<InputStreamKey, ActorKey>> StreamToActorMapping;
 	TSharedPtr<TMap<ActorKey, InputStreamKey>> ActorToStreamMapping;
 	UBristleconeWorldSubsystem* MySquire; // World Subsystems are the last to go, making this a fairly safe idiom. ish.
-	static inline long long monotonkey = 0xb33f - 1; // :/
+	long long monotonkey = 0xb33f - 1; // :/
 };
 
 

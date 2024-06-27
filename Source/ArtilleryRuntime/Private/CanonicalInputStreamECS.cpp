@@ -19,6 +19,7 @@ void UCanonicalInputStreamECS::OnWorldBeginPlay(UWorld& InWorld)
 	if ([[maybe_unused]] const UWorld* World = InWorld.GetWorld()) {
 		UE_LOG(LogTemp, Warning, TEXT("Artillery::CanonicalInputStream is Operational"));
 		MySquire = GetWorld()->GetSubsystem<UBristleconeWorldSubsystem>();
+		monotonkey = 0xb33f - 1;
 		}
 }
 
