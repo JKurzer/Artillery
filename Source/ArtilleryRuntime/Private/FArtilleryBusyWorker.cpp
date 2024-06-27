@@ -1,7 +1,7 @@
 ﻿#include "FArtilleryBusyWorker.h"
 #include "Containers/TripleBuffer.h"
 
-FArtilleryBusyWorker::FArtilleryBusyWorker() : running(false), SPtrEventsBuffer(nullptr)
+FArtilleryBusyWorker::FArtilleryBusyWorker() : running(false), RequestorQueue_Abilities_TripleBuffer(nullptr)
 {
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Constructing Artillery"));
 }
@@ -22,7 +22,7 @@ bool FArtilleryBusyWorker::Init()
 uint32 FArtilleryBusyWorker::Run()
 {
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Running Artillery thread"));
-	if (SPtrEventsBuffer == nullptr)
+	if (RequestorQueue_Abilities_TripleBuffer == nullptr)
 	{
 		//oh no you bloody don't.
 #ifdef UE_BUILD_SHIPPING
@@ -104,85 +104,86 @@ uint32 FArtilleryBusyWorker::Run()
 			missedPrior = true;
 		}
 
-
-		//TODO: Figure out if this needs to wrap it all. p sure it does.
-		//though it's probably more elegant and faster to index over the control streams
-		while (InputSwapSlot != nullptr && !InputSwapSlot.Get()->IsEmpty())
+		if(InputSwapSlot != nullptr && !InputSwapSlot.Get()->IsEmpty())
 		{
-			current = *InputSwapSlot.Get()->Peek();
-			CablingControlStream->Add(current);
+			//though it's probably more elegant and faster to index over the control streams
+			while (InputSwapSlot != nullptr && !InputSwapSlot.Get()->IsEmpty())
+			{
+				current = *InputSwapSlot.Get()->Peek();
+				CablingControlStream->Add(current);
 
-			InputSwapSlot.Get()->Dequeue();
-		}
+				InputSwapSlot.Get()->Dequeue();
+			}
 
 
 
 #define ARTILLERY_FIRE_CONTROL_MACHINE_HANDLING (false)
-		//First, locomotions are pushed.
-		//Patterns run here. The thread queues the locomotions and fires.
-		//the dispatch performs the locomotion operations. THEN
-		//movement abilities (MAYBE)
-		//THEN
-		//the dispatch fires guns via the machines on the gamethread.
-		//in order. that matters a tad.
+			//First, locomotions are pushed.
+			//Patterns run here. The thread queues the locomotions and fires.
+			//the dispatch performs the locomotion operations. THEN
+			//movement abilities (MAYBE)
+			//THEN
+			//the dispatch fires guns via the machines on the gamethread.
+			//in order. that matters a tad.
 
-		/*
-		* 
-		* artillery fire control machines bind their input search patterns to this thread
-		* hence their names, they're effectively facades for a larger finite state machine 
-		* found here.
-		* 
-		* this emits events that the artillery fire control machines use as triggers
-		* 
-		* 
-		*/
-		auto refDangerous_LifeCycleManaged_Loco_TripleBuffered
-			= SPtrMoveBuffer->GetWriteBuffer();
-		refDangerous_LifeCycleManaged_Loco_TripleBuffered.Reset();
+			/*
+			* 
+			* artillery fire control machines bind their input search patterns to this thread
+			* hence their names, they're effectively facades for a larger finite state machine 
+			* found here.
+			* 
+			* this emits events that the artillery fire control machines use as triggers
+			* 
+			* 
+			*/
+			auto refDangerous_LifeCycleManaged_Loco_TripleBuffered
+				= RequestorQueue_Locomos_TripleBuffer->GetWriteBuffer();
+			refDangerous_LifeCycleManaged_Loco_TripleBuffered.Reset();
 
 
-		//Per input stream, run their patterns here. god in heaven.
-		//START HERE AND WORK YOUR WAY OUT TO UNDERSTAND PATTERNS, MATCHING, AND INPUT FLOW.
-		//BristleconeControlStream.MyPatternMatcher->runOneFrameWithSideEffects(true, 0, 0); // those zeroes will stay here until we have resim.
-		//This performs a copy of the map, I think. I HOPE it does a move, but I doubt it.
-		auto refDangerous_LifeCycleManaged_Abilities_TripleBuffered
-			= SPtrEventsBuffer->GetWriteBuffer();
-		refDangerous_LifeCycleManaged_Abilities_TripleBuffered.Reset();
+			//Per input stream, run their patterns here. god in heaven.
+			//START HERE AND WORK YOUR WAY OUT TO UNDERSTAND PATTERNS, MATCHING, AND INPUT FLOW.
+			//BristleconeControlStream.MyPatternMatcher->runOneFrameWithSideEffects(true, 0, 0); // those zeroes will stay here until we have resim.
+			//This performs a copy of the map, I think. I HOPE it does a move, but I doubt it.
+			auto refDangerous_LifeCycleManaged_Abilities_TripleBuffered
+				= RequestorQueue_Abilities_TripleBuffer->GetWriteBuffer();
+			refDangerous_LifeCycleManaged_Abilities_TripleBuffered.Reset();
 
-		//today's sin is PRIDE, bigbird!
-		for (int i = currentIndexCabling; i < CablingControlStream->highestInput; ++i)
-		{
-			//TODO: refDangerous_LifeCycleManaged_Loco_TripleBuffered work goes here
+			//today's sin is PRIDE, bigbird!
+			for (int i = currentIndexCabling; i < CablingControlStream->highestInput; ++i)
+			{
+				//TODO: refDangerous_LifeCycleManaged_Loco_TripleBuffered work goes here
 			
-			CablingControlStream->MyPatternMatcher->runOneFrameWithSideEffects(
-				true,
-				0,
-				0,
-				i,
-				refDangerous_LifeCycleManaged_Abilities_TripleBuffered
-			); // this looks wrong but I'm pretty sure it ain' since we reserve highest.
+				CablingControlStream->MyPatternMatcher->runOneFrameWithSideEffects(
+					true,
+					0,
+					0,
+					i,
+					refDangerous_LifeCycleManaged_Abilities_TripleBuffered
+				); // this looks wrong but I'm pretty sure it ain' since we reserve highest.
 
-			//TODO: does this leak memory?
-			refDangerous_LifeCycleManaged_Loco_TripleBuffered.Add(
-			LocomotionParams(
-					CablingControlStream->peek(i)->SentAt,
-					CablingControlStream->GetActorByInputStream(),
-					*CablingControlStream->peek(i-1),
-					*CablingControlStream->peek(i)
+				//TODO: does this leak memory?
+				refDangerous_LifeCycleManaged_Loco_TripleBuffered.Add(
+				LocomotionParams(
+						CablingControlStream->peek(i)->SentAt,
+						CablingControlStream->GetActorByInputStream(),
+						*CablingControlStream->peek(i-1),
+						*CablingControlStream->peek(i)
+						)
 					)
-				)
-			;
-			//even if this doesn't get played for some reason, this is the last chance we've got to make a
-			//truly informed decision about the matter. By the time we reach the dispatch system, that chance is gone.
-			//Better to skip a cosmetic once in a while than crash the game.
-			CablingControlStream->get(CablingControlStream->highestInput - 1)->RunAtLeastOnce = true;
-		}
+				;
+				//even if this doesn't get played for some reason, this is the last chance we've got to make a
+				//truly informed decision about the matter. By the time we reach the dispatch system, that chance is gone.
+				//Better to skip a cosmetic once in a while than crash the game.
+				CablingControlStream->get(CablingControlStream->highestInput - 1)->RunAtLeastOnce = true;
+			}
 
-		refDangerous_LifeCycleManaged_Loco_TripleBuffered.Sort();
-		refDangerous_LifeCycleManaged_Abilities_TripleBuffered.Sort();
-		SPtrEventsBuffer->SwapWriteBuffers();
-		SPtrMoveBuffer->SwapWriteBuffers();
-		/*
+			refDangerous_LifeCycleManaged_Loco_TripleBuffered.Sort();
+			refDangerous_LifeCycleManaged_Abilities_TripleBuffered.Sort();
+			RequestorQueue_Abilities_TripleBuffer->SwapWriteBuffers();
+			RequestorQueue_Locomos_TripleBuffer->SwapWriteBuffers();
+		}
+			/*
 		* 
 		* Does rollback & reconciliation go here?
 		* 
