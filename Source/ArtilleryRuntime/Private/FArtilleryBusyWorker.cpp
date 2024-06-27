@@ -1,7 +1,7 @@
 ﻿#include "FArtilleryBusyWorker.h"
 #include "Containers/TripleBuffer.h"
 
-FArtilleryBusyWorker::FArtilleryBusyWorker() : running(false), RawPtr_AbilitiesTripleBuffer(nullptr)
+FArtilleryBusyWorker::FArtilleryBusyWorker() : running(false), SPtrEventsBuffer(nullptr)
 {
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Constructing Artillery"));
 }
@@ -22,7 +22,7 @@ bool FArtilleryBusyWorker::Init()
 uint32 FArtilleryBusyWorker::Run()
 {
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Running Artillery thread"));
-	if (RawPtr_AbilitiesTripleBuffer == nullptr)
+	if (SPtrEventsBuffer == nullptr)
 	{
 		//oh no you bloody don't.
 #ifdef UE_BUILD_SHIPPING
@@ -137,7 +137,7 @@ uint32 FArtilleryBusyWorker::Run()
 		* 
 		*/
 		auto refDangerous_LifeCycleManaged_Loco_TripleBuffered
-			= RawPtr_LocoTripleBuffer->GetWriteBuffer();
+			= SPtrMoveBuffer->GetWriteBuffer();
 		refDangerous_LifeCycleManaged_Loco_TripleBuffered.Reset();
 
 
@@ -146,7 +146,7 @@ uint32 FArtilleryBusyWorker::Run()
 		//BristleconeControlStream.MyPatternMatcher->runOneFrameWithSideEffects(true, 0, 0); // those zeroes will stay here until we have resim.
 		//This performs a copy of the map, I think. I HOPE it does a move, but I doubt it.
 		auto refDangerous_LifeCycleManaged_Abilities_TripleBuffered
-			= RawPtr_AbilitiesTripleBuffer->GetWriteBuffer();
+			= SPtrEventsBuffer->GetWriteBuffer();
 		refDangerous_LifeCycleManaged_Abilities_TripleBuffered.Reset();
 
 		//today's sin is PRIDE, bigbird!
@@ -180,8 +180,8 @@ uint32 FArtilleryBusyWorker::Run()
 
 		refDangerous_LifeCycleManaged_Loco_TripleBuffered.Sort();
 		refDangerous_LifeCycleManaged_Abilities_TripleBuffered.Sort();
-		RawPtr_AbilitiesTripleBuffer->SwapWriteBuffers();
-		RawPtr_LocoTripleBuffer->SwapWriteBuffers();
+		SPtrEventsBuffer->SwapWriteBuffers();
+		SPtrMoveBuffer->SwapWriteBuffers();
 		/*
 		* 
 		* Does rollback & reconciliation go here?

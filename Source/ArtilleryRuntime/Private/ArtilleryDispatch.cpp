@@ -7,6 +7,11 @@ void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	UE_LOG(LogTemp, Warning, TEXT("ArtilleryDispatch:Subsystem: Online"));
+	RequestorQueue_Abilities_TripleBuffer = MakeShareable( new TTripleBuffer<TArray<TPair<BristleTime,FGunKey>>>());
+	RequestorQueue_Locomos_TripleBuffer = MakeShareable( new TTripleBuffer<TArray<LocomotionParams>>());
+	GunToFiringFunctionMapping = MakeShareable(new TMap<FGunKey, FArtilleryFireGunFromDispatch>());
+	ActorToLocomotionMapping = MakeShareable(new TMap<ActorKey, FArtilleryRunLocomotionFromDispatch>());
+	GunByKey = MakeShareable(new TMap<FGunKey, TSharedPtr<FArtilleryGun>>());
 }
 
 void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
@@ -25,8 +30,8 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		ArtilleryAsyncWorldSim.ContingentInputECSLinkage = MyBrother;
 		//IF YOU REMOVE THIS. EVERYTHING EXPLODE. IN A BAD WAY.
 		//TARRAY IS A VALUE TYPE. SO IS TRIPLEBUFF I THINK.
-		ArtilleryAsyncWorldSim.RawPtr_AbilitiesTripleBuffer = &RequestorQueue_Abilities_TripleBuffer;//OH BOY. REFERENCE TIME. GWAHAHAHA.
-		
+		ArtilleryAsyncWorldSim.SPtrEventsBuffer = RequestorQueue_Abilities_TripleBuffer;//OH BOY. REFERENCE TIME. GWAHAHAHA.
+		ArtilleryAsyncWorldSim.SPtrMoveBuffer = RequestorQueue_Locomos_TripleBuffer;
 		WorldSim_Thread.Reset(FRunnableThread::Create(&ArtilleryAsyncWorldSim, TEXT("ARTILLERY_ONLINE.")));
 	}
 
@@ -73,12 +78,12 @@ FGunKey UArtilleryDispatch::GetGun(FString GunDefinitionID, FireControlKey Machi
 		TSharedPtr<FArtilleryGun> repurposing = *PooledGuns.Find(GunDefinitionID);
 		PooledGuns.RemoveSingle(GunDefinitionID, repurposing);
 		repurposing->FArtilleryGunRebind(Key);
-		GunByKey.Add(Key, repurposing);
+		GunByKey->Add(Key, repurposing);
 	}
 	else
 	{
 		TSharedPtr<FArtilleryGun> NewGun = MakeShareable(new FArtilleryGun(Key));
-		GunByKey.Add(Key, NewGun);
+		GunByKey->Add(Key, NewGun);
 	}
 	return Key;	
 }
@@ -88,11 +93,11 @@ bool UArtilleryDispatch::ReleaseGun(FGunKey Key, FireControlKey MachineKey)
 {
 	//We know it. We have known it. We continue to know it.
 	//See you soon, Chief.
-	if(GunByKey.Contains(Key))
+	if(GunByKey->Contains(Key))
 	{
 		
 		TSharedPtr<FArtilleryGun> tracker;
-		GunByKey.RemoveAndCopyValue(Key, tracker);
+		GunByKey->RemoveAndCopyValue(Key, tracker);
 		PooledGuns.Add(Key.GunDefinitionID, tracker);
 		return true;
 	}
@@ -111,14 +116,14 @@ void UArtilleryDispatch::RunGuns()
 {
 
 	//Sort is not stable. Sortedness appears to be lost for operations I would not expect.
-	for (auto x : RequestorQueue_Abilities_TripleBuffer.Read())
+	for (auto x : RequestorQueue_Abilities_TripleBuffer->Read())
 	{
-		auto fired =  GunToFiringFunctionMapping.Find(x.Value)->ExecuteIfBound(
-			*GunByKey.Find(x.Value)
+		auto fired =  GunToFiringFunctionMapping->Find(x.Value)->ExecuteIfBound(
+			*GunByKey->Find(x.Value)
 			, false);
 		TotalFirings += fired;
 	}
-	RequestorQueue_Abilities_TripleBuffer.SwapReadBuffers();
+	RequestorQueue_Abilities_TripleBuffer->SwapReadBuffers();
 }
 
 //this needs work and extension.
@@ -127,12 +132,12 @@ void UArtilleryDispatch::RunLocomotions()
 {
 
 	//Sort is not stable. Sortedness appears to be lost for operations I would not expect.
-	for (auto x : RequestorQueue_Locomos_TripleBuffer.Read())
+	for (auto x : RequestorQueue_Locomos_TripleBuffer->Read())
 	{
 		//execute if bound cannot be used with return values
 		//because Unreal does not use the STL or did not when that code was written
 		//so they don't have the easy elegant idiom of the Optional as readily.
-		bool fired = ActorToLocomotionMapping.Find(x.parent)->
+		bool fired = ActorToLocomotionMapping->Find(x.parent)->
 		Execute(
 			 x.previousIndex,
 			 x.currentIndex,
@@ -141,7 +146,7 @@ void UArtilleryDispatch::RunLocomotions()
 			 );
 		TotalFirings += fired;
 	}
-	RequestorQueue_Locomos_TripleBuffer.SwapReadBuffers();
+	RequestorQueue_Locomos_TripleBuffer->SwapReadBuffers();
 }
 
 

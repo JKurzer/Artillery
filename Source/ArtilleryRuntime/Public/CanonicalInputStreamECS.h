@@ -93,15 +93,22 @@ public:
 		friend class FArtilleryBusyWorker;
 
 	public:
-		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(ArtilleryInputSearchWindow);
-		TSet<InputStreamKey> MyStreamKeys; //It Happened! Hurray!
+
+		FConservedInputPatternMatcher()
+		{
+			MyStreamKeys = MakeShareable(new TSet<InputStreamKey>());
+			AllPatternBinds = TMap<FString, TSharedPtr<TSet<FActionPatternParams>>>();
+			Names = TArray<FString>();
+			AllPatternsByName = TMap<FString, TSharedPtr<FActionPattern_InternallyStateless>>();
+		}
+		TSharedPtr< TSet<InputStreamKey>> MyStreamKeys;
 
 		//there's a bunch of reasons we use string_view here, but mostly, it's because we can make them constexprs!
 		//so this is... uh... pretty fast!
-		TMap<FString, TSharedPtr<TSet<FActionPatternParams>>> AllPatternBinds;
+		TMap<FString, TSharedPtr<TSet<FActionPatternParams>>>  AllPatternBinds;
 		//broadly, at the moment, there is ONE pattern matcher running
 
-
+		
 		//this array is never made smaller.
 		//there should only ever be about 10 patterns max,
 		//and it's literally more expensive to remove them.
@@ -113,12 +120,7 @@ public:
 		//same with this set, actually. patterns are stateless, and few. it's inefficient to destroy them.
 		//instead we check binds.
 		TMap<FString, TSharedPtr<FActionPattern_InternallyStateless>> AllPatternsByName;
-
-		void GlassCurrentHistory()
-		{
-			CurrentHistory = TCircularBuffer<FArtilleryShell>(ArtilleryInputSearchWindow);
-			//expect the search window to be big.
-		};
+		
 
 		//***********************************************************
 		//
@@ -343,14 +345,14 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 	TSharedPtr<FConservedInputStream> getNewStreamConstruct();
-	TMap<PlayerKey, InputStreamKey> SessionPlayerToStreamMapping;
+	TSharedPtr< TMap<PlayerKey, InputStreamKey>> SessionPlayerToStreamMapping;
 
 public:
 private:
-	TMap<InputStreamKey, TSharedPtr<FConservedInputStream>> InternalMapping;
-	TMap<ActorKey, FireControlKey> LocalActorToFireControlMapping;
-	TMap<InputStreamKey, ActorKey> StreamToActorMapping;
-	TMap<ActorKey, InputStreamKey> ActorToStreamMapping;
+	TSharedPtr<TMap<InputStreamKey, TSharedPtr<FConservedInputStream>>> InternalMapping;
+	TSharedPtr<TMap<ActorKey, FireControlKey>> LocalActorToFireControlMapping;
+	TSharedPtr<TMap<InputStreamKey, ActorKey>> StreamToActorMapping;
+	TSharedPtr<TMap<ActorKey, InputStreamKey>> ActorToStreamMapping;
 	UBristleconeWorldSubsystem* MySquire; // World Subsystems are the last to go, making this a fairly safe idiom. ish.
 	static inline long long monotonkey = 0xb33f - 1; // :/
 };

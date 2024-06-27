@@ -112,14 +112,16 @@ public:
 
 	void InitializeComponent() override
 	{
+		Super::InitializeComponent();
 		MyKey = UFireControlMachine::orderInInitialize++;
+
 	};
 
 	void BeginPlay() override
 	{
 		UActorComponent::BeginPlay(); // using this over the looser super atm. TODO: validate!!!!!
-		MySquire = GetOwner()->GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
-
+		MySquire = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
+		MyDispatch = GetWorld()->GetSubsystem<UArtilleryDispatch>();
 	};
 
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override

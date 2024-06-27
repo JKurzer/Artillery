@@ -8,6 +8,7 @@
 
 #include "FActionBitMask.h"
 #include "BristleconeCommonTypes.h"
+#include "Containers/TripleBuffer.h"
 
 namespace Arty
 {
@@ -18,7 +19,6 @@ namespace Arty
 	typedef uint32_t FireControlKey;
 	using BristleTime = long; //this will become uint32. don't bitbash this.
 	using ArtilleryTime = BristleTime;
-	
 }
 
 
@@ -34,6 +34,11 @@ namespace Arty
 #include <bitset>
 #include "Containers/CircularBuffer.h"
 #include "FGunKey.h"
+
+namespace Arty
+{
+	typedef TTripleBuffer<TArray<TPair<BristleTime,FGunKey>>> BufferedEvents;
+}
 
 //PATH TO DATA TABLES
 //constexpr const FString GunsManifests = "";

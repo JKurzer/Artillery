@@ -7,6 +7,11 @@ void UCanonicalInputStreamECS::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	UE_LOG(LogTemp, Warning, TEXT("Artillery::CanonicalInputStream is Online."));
+	InternalMapping = MakeShareable(new TMap<InputStreamKey, TSharedPtr<FConservedInputStream>>);
+	LocalActorToFireControlMapping = MakeShareable(new TMap<ActorKey, FireControlKey>());
+	StreamToActorMapping = MakeShareable(new TMap<InputStreamKey, ActorKey>);
+	ActorToStreamMapping = MakeShareable(new TMap<ActorKey, InputStreamKey>);
+	SessionPlayerToStreamMapping = MakeShareable(new TMap<PlayerKey, InputStreamKey>());
 }
 
 void UCanonicalInputStreamECS::OnWorldBeginPlay(UWorld& InWorld)
@@ -25,12 +30,12 @@ void UCanonicalInputStreamECS::Deinitialize()
 
 ActorKey UCanonicalInputStreamECS::ActorByStream(InputStreamKey Stream)
 {
-	return *StreamToActorMapping.Find(Stream);
+	return *StreamToActorMapping->Find(Stream);
 }
 
 ActorKey UCanonicalInputStreamECS::StreamByActor(ActorKey Actor)
 {
-	return *ActorToStreamMapping.Find(Actor);
+	return *ActorToStreamMapping->Find(Actor);
 }
 
 void UCanonicalInputStreamECS::Tick(float DeltaTime)
@@ -49,14 +54,14 @@ TSharedPtr<UCanonicalInputStreamECS::FConservedInputStream> UCanonicalInputStrea
 	new FConservedInputStream(this, ++monotonkey) //using++ vs ++would be wrong here. inc then ret.
 	);
 	//this can be our evil secret.
-	SessionPlayerToStreamMapping.Add(monotonkey, monotonkey);
+	SessionPlayerToStreamMapping->Add(monotonkey, monotonkey);
 	return ManagedStream;
 }
 
 
 InputStreamKey UCanonicalInputStreamECS::GetStreamForPlayer(PlayerKey ThisPlayer)
 {
-	return *SessionPlayerToStreamMapping.Find(ThisPlayer);
+	return SessionPlayerToStreamMapping->FindChecked(ThisPlayer);
 }
 
 bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern_InternallyStateless> ToBind,
@@ -66,9 +71,9 @@ bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern_Interna
 #ifndef LOCALISCODEDSPECIAL
 		FCM_Owner_ActorParams.MyInputStream == 0xb33f ||
 #endif // !LOCALISCODEDSPECIAL
-		InternalMapping.Contains(FCM_Owner_ActorParams.MyInputStream))
+		InternalMapping->Contains(FCM_Owner_ActorParams.MyInputStream))
 	{
-		auto thisInputStream = InternalMapping.Find(FCM_Owner_ActorParams.MyInputStream)->Get();
+		auto thisInputStream = InternalMapping->Find(FCM_Owner_ActorParams.MyInputStream)->Get();
 		if (thisInputStream->MyPatternMatcher->AllPatternBinds.Contains(ToBind->getName()))
 		{
 			//names are never removed. sets are only added to or removed from.
@@ -95,9 +100,9 @@ bool UCanonicalInputStreamECS::removePattern(TSharedPtr<FActionPattern_Internall
 #ifndef LOCALISCODEDSPECIAL
 		FCM_Owner_ActorParams.MyInputStream == 0xb33f ||
 #endif // !LOCALISCODEDSPECIAL
-		InternalMapping.Contains(FCM_Owner_ActorParams.MyInputStream))
+		InternalMapping->Contains(FCM_Owner_ActorParams.MyInputStream))
 	{
-		auto thisInputStream = InternalMapping.Find(FCM_Owner_ActorParams.MyInputStream)->Get();
+		auto thisInputStream = InternalMapping->Find(FCM_Owner_ActorParams.MyInputStream)->Get();
 		if (thisInputStream->MyPatternMatcher->AllPatternBinds.Contains(ToBind->getName()))
 		{
 			//names are never removed. sets are only added to or removed from.
@@ -118,7 +123,7 @@ TPair<ActorKey, InputStreamKey> UCanonicalInputStreamECS::RegisterKeysToParentAc
 {
 	//todo, registration goes here.
 	ActorKey ParentKey = PointerHash(parent, MachineKey);
-	LocalActorToFireControlMapping.Add(ParentKey, MachineKey);
+	LocalActorToFireControlMapping->Add(ParentKey, MachineKey);
 
 	//this is a hack. this is such a hack. oh god.
 	if(IsActorForLocalPlayer)
@@ -128,8 +133,8 @@ TPair<ActorKey, InputStreamKey> UCanonicalInputStreamECS::RegisterKeysToParentAc
 #endif
 		//this relies on a really ugly hack using the monotonkey. do not ship this.
 		InputStreamKey LocalKey = GetStreamForPlayer(0xB33F);
-		StreamToActorMapping.Add(LocalKey, ParentKey);
-		ActorToStreamMapping.Add(ParentKey, LocalKey);
+		StreamToActorMapping->Add(LocalKey, ParentKey);
+		ActorToStreamMapping->Add(ParentKey, LocalKey);
 		return TPair<ActorKey, InputStreamKey>(ParentKey, LocalKey);			
 	}
 	else

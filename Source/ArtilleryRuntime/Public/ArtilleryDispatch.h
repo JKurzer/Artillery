@@ -75,14 +75,14 @@ protected:
 	//These will eventually need a complete and consistent ordering to ensure determinism.
 	//copy op is intentional but may be unneeded. assess before revising signature.
 	//TODO: assess if this needs to be a multimap. I think it needs to NOT be.
-	TMap<FGunKey, FArtilleryFireGunFromDispatch> GunToFiringFunctionMapping;
-	TTripleBuffer<TArray<TPair<BristleTime,FGunKey>>> RequestorQueue_Abilities_TripleBuffer;
+	TSharedPtr< TMap<FGunKey, FArtilleryFireGunFromDispatch>> GunToFiringFunctionMapping;
+	TSharedPtr<BufferedEvents> RequestorQueue_Abilities_TripleBuffer;
 
 	//This is more straightforward than the guns problem.
 	//We can actually map this quite directly.
-	TMap<ActorKey, FArtilleryRunLocomotionFromDispatch> ActorToLocomotionMapping;
+	TSharedPtr< TMap<ActorKey, FArtilleryRunLocomotionFromDispatch>> ActorToLocomotionMapping;
 	//Time, Actorkey, Prior, Current.
-	TTripleBuffer<TArray<LocomotionParams>> RequestorQueue_Locomos_TripleBuffer;
+	TSharedPtr<BufferedMoveEvents> RequestorQueue_Locomos_TripleBuffer;
 
 	static inline long long TotalFirings = 0; //2024 was rough.
 	virtual void Tick(float DeltaTime) override;
@@ -90,7 +90,7 @@ protected:
 	//fully specifying the type is necessary to prevent spurious warnings in some cases.
 	TSharedPtr<TCircularQueue<std::pair<FGunKey, Arty::ArtilleryTime>>> ActionsToOrder;
 	//These two are the backbone of the Artillery gun lifecycle.
-	TMap<FGunKey, TSharedPtr<FArtilleryGun>> GunByKey;
+	TSharedPtr< TMap<FGunKey, TSharedPtr<FArtilleryGun>>> GunByKey;
 	TMultiMap<FString, TSharedPtr<FArtilleryGun>> PooledGuns;
 
 	
@@ -134,15 +134,15 @@ public:
 
 	void RegisterReady(FGunKey Key, FArtilleryFireGunFromDispatch Machine)
 	{
-		GunToFiringFunctionMapping.Add(Key, Machine);
+		GunToFiringFunctionMapping->Add(Key, Machine);
 	}
 	void RegisterLocomotion(ActorKey Key, FArtilleryRunLocomotionFromDispatch Machine)
 	{
-		ActorToLocomotionMapping.Add(Key, Machine);
+		ActorToLocomotionMapping->Add(Key, Machine);
 	}
 	void Deregister(FGunKey Key)
 	{
-		GunToFiringFunctionMapping.Remove(Key);
+		GunToFiringFunctionMapping->Remove(Key);
 		//TODO: add the rest of the wipe here?
 	}
 	std::atomic_bool UseNetworkInput;
