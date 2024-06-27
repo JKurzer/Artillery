@@ -30,8 +30,8 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		ArtilleryAsyncWorldSim.ContingentInputECSLinkage = MyBrother;
 		//IF YOU REMOVE THIS. EVERYTHING EXPLODE. IN A BAD WAY.
 		//TARRAY IS A VALUE TYPE. SO IS TRIPLEBUFF I THINK.
-		ArtilleryAsyncWorldSim.SPtrEventsBuffer = RequestorQueue_Abilities_TripleBuffer;//OH BOY. REFERENCE TIME. GWAHAHAHA.
-		ArtilleryAsyncWorldSim.SPtrMoveBuffer = RequestorQueue_Locomos_TripleBuffer;
+		ArtilleryAsyncWorldSim.RequestorQueue_Abilities_TripleBuffer = RequestorQueue_Abilities_TripleBuffer;//OH BOY. REFERENCE TIME. GWAHAHAHA.
+		ArtilleryAsyncWorldSim.RequestorQueue_Locomos_TripleBuffer = RequestorQueue_Locomos_TripleBuffer;
 		WorldSim_Thread.Reset(FRunnableThread::Create(&ArtilleryAsyncWorldSim, TEXT("ARTILLERY_ONLINE.")));
 	}
 

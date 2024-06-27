@@ -116,7 +116,15 @@ public:
 		MyKey = UFireControlMachine::orderInInitialize++;
 
 	};
-
+	//this happens post init but pre begin play, and the world subsystems should exist by this point.
+	//we use this to help ensure that if the actor's begin play triggers first, things will be set correctly
+	//I've left the same code in begin play as a fallback.
+	void ReadyForReplication() override
+	{
+		Super::ReadyForReplication();
+		MySquire = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
+		MyDispatch = GetWorld()->GetSubsystem<UArtilleryDispatch>();
+	}
 	void BeginPlay() override
 	{
 		UActorComponent::BeginPlay(); // using this over the looser super atm. TODO: validate!!!!!
