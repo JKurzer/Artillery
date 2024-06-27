@@ -104,7 +104,7 @@ uint32 FArtilleryBusyWorker::Run()
 			missedPrior = true;
 		}
 
-		if(InputSwapSlot != nullptr && !InputSwapSlot.Get()->IsEmpty())
+		if (InputSwapSlot != nullptr && !InputSwapSlot.Get()->IsEmpty())
 		{
 			//though it's probably more elegant and faster to index over the control streams
 			while (InputSwapSlot != nullptr && !InputSwapSlot.Get()->IsEmpty())
@@ -114,7 +114,6 @@ uint32 FArtilleryBusyWorker::Run()
 
 				InputSwapSlot.Get()->Dequeue();
 			}
-
 
 
 #define ARTILLERY_FIRE_CONTROL_MACHINE_HANDLING (false)
@@ -138,8 +137,6 @@ uint32 FArtilleryBusyWorker::Run()
 			*/
 			auto refDangerous_LifeCycleManaged_Loco_TripleBuffered
 				= RequestorQueue_Locomos_TripleBuffer->GetWriteBuffer();
-			refDangerous_LifeCycleManaged_Loco_TripleBuffered.Reset();
-
 
 			//Per input stream, run their patterns here. god in heaven.
 			//START HERE AND WORK YOUR WAY OUT TO UNDERSTAND PATTERNS, MATCHING, AND INPUT FLOW.
@@ -147,13 +144,12 @@ uint32 FArtilleryBusyWorker::Run()
 			//This performs a copy of the map, I think. I HOPE it does a move, but I doubt it.
 			auto refDangerous_LifeCycleManaged_Abilities_TripleBuffered
 				= RequestorQueue_Abilities_TripleBuffer->GetWriteBuffer();
-			refDangerous_LifeCycleManaged_Abilities_TripleBuffered.Reset();
 
 			//today's sin is PRIDE, bigbird!
 			for (int i = currentIndexCabling; i < CablingControlStream->highestInput; ++i)
 			{
 				//TODO: refDangerous_LifeCycleManaged_Loco_TripleBuffered work goes here
-			
+
 				CablingControlStream->MyPatternMatcher->runOneFrameWithSideEffects(
 					true,
 					0,
@@ -164,14 +160,13 @@ uint32 FArtilleryBusyWorker::Run()
 
 				//TODO: does this leak memory?
 				refDangerous_LifeCycleManaged_Loco_TripleBuffered.Add(
-				LocomotionParams(
+					LocomotionParams(
 						CablingControlStream->peek(i)->SentAt,
 						CablingControlStream->GetActorByInputStream(),
-						*CablingControlStream->peek(i-1),
+						*CablingControlStream->peek(i - 1),
 						*CablingControlStream->peek(i)
-						)
 					)
-				;
+				);
 				//even if this doesn't get played for some reason, this is the last chance we've got to make a
 				//truly informed decision about the matter. By the time we reach the dispatch system, that chance is gone.
 				//Better to skip a cosmetic once in a while than crash the game.
@@ -180,15 +175,21 @@ uint32 FArtilleryBusyWorker::Run()
 
 			refDangerous_LifeCycleManaged_Loco_TripleBuffered.Sort();
 			refDangerous_LifeCycleManaged_Abilities_TripleBuffered.Sort();
-			RequestorQueue_Abilities_TripleBuffer->SwapWriteBuffers();
-			RequestorQueue_Locomos_TripleBuffer->SwapWriteBuffers();
+			if (RequestorQueue_Abilities_TripleBuffer->IsDirty() == false)
+			{
+				RequestorQueue_Abilities_TripleBuffer->SwapWriteBuffers();
+			}
+			if (RequestorQueue_Locomos_TripleBuffer->IsDirty() == false)
+			{
+				RequestorQueue_Locomos_TripleBuffer->SwapWriteBuffers();
+			}
 		}
-			/*
-		* 
-		* Does rollback & reconciliation go here?
-		* 
-		* 
-		*/
+		/*
+	* 
+	* Does rollback & reconciliation go here?
+	* 
+	* 
+	*/
 
 		/*
 		*

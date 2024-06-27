@@ -116,38 +116,44 @@ void UArtilleryDispatch::QueueResim(FGunKey Key, Arty::ArtilleryTime Time)
 void UArtilleryDispatch::RunGuns()
 {
 
+	
+	if( RequestorQueue_Abilities_TripleBuffer->IsDirty())
 	//Sort is not stable. Sortedness appears to be lost for operations I would not expect.
-	for (auto x : RequestorQueue_Abilities_TripleBuffer->Read())
 	{
-		auto fired =  GunToFiringFunctionMapping->Find(x.Value)->ExecuteIfBound(
-			*GunByKey->Find(x.Value)
-			, false);
-		TotalFirings += fired;
+		for (auto x : RequestorQueue_Abilities_TripleBuffer->Read())
+		{
+			auto fired =  GunToFiringFunctionMapping->Find(x.Value)->ExecuteIfBound(
+				*GunByKey->Find(x.Value)
+				, false);
+			TotalFirings += fired;
+		}
 	}
-	RequestorQueue_Abilities_TripleBuffer->SwapReadBuffers();
 }
 
 //this needs work and extension.
 //TODO: add smear support.
 void UArtilleryDispatch::RunLocomotions()
 {
-
-	//Sort is not stable. Sortedness appears to be lost for operations I would not expect.
-	for (auto x : RequestorQueue_Locomos_TripleBuffer->Read())
+	if(RequestorQueue_Locomos_TripleBuffer->IsDirty())
 	{
-		//execute if bound cannot be used with return values
-		//because Unreal does not use the STL or did not when that code was written
-		//so they don't have the easy elegant idiom of the Optional as readily.
-		bool fired = ActorToLocomotionMapping->Find(x.parent)->
-		Execute(
-			 x.previousIndex,
-			 x.currentIndex,
-			 false,
-			 false
-			 );
-		TotalFirings += fired;
+		RequestorQueue_Locomos_TripleBuffer->SwapReadBuffers();
+		//Sort is not stable. Sortedness appears to be lost for operations I would not expect.
+		for (auto x : RequestorQueue_Locomos_TripleBuffer->Read())
+		{
+			//execute if bound cannot be used with return values
+			//because Unreal does not use the STL or did not when that code was written
+			//so they don't have the easy elegant idiom of the Optional as readily.
+			bool fired = ActorToLocomotionMapping->Find(x.parent)->
+			Execute(
+				 x.previousIndex,
+				 x.currentIndex,
+				 false,
+				 false
+				 );
+			TotalFirings += fired;
+		}
+		RequestorQueue_Locomos_TripleBuffer->Read().Reset();
 	}
-	RequestorQueue_Locomos_TripleBuffer->SwapReadBuffers();
 }
 
 
