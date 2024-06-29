@@ -37,7 +37,8 @@ namespace Arty
 
 namespace Arty
 {
-	typedef TTripleBuffer<TArray<TPair<BristleTime,FGunKey>>> BufferedEvents;
+	typedef  TArray<TPair<BristleTime,FGunKey>> EventBuffer;
+	typedef TTripleBuffer<EventBuffer> BufferedEvents;
 }
 
 //PATH TO DATA TABLES

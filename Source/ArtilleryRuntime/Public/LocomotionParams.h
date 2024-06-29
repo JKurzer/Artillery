@@ -34,4 +34,9 @@ static bool operator<(LocomotionParams const& lhs, LocomotionParams const& rhs)
 	return lhs.time == rhs.time ? (lhs.time < rhs.time) : (lhs.parent < rhs.parent);
 }
 
-typedef TTripleBuffer<TArray<LocomotionParams>> BufferedMoveEvents;
+namespace Arty
+{
+	typedef TArray<LocomotionParams> MovementBuffer;
+	typedef TTripleBuffer<MovementBuffer> BufferedMoveEvents;
+	
+}

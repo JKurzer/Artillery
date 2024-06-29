@@ -135,14 +135,15 @@ uint32 FArtilleryBusyWorker::Run()
 			* 
 			* 
 			*/
-			auto refDangerous_LifeCycleManaged_Loco_TripleBuffered
+			//do not refactor to auto. it will break.
+			MovementBuffer& refDangerous_LifeCycleManaged_Loco_TripleBuffered
 				= RequestorQueue_Locomos_TripleBuffer->GetWriteBuffer();
 
 			//Per input stream, run their patterns here. god in heaven.
 			//START HERE AND WORK YOUR WAY OUT TO UNDERSTAND PATTERNS, MATCHING, AND INPUT FLOW.
 			//BristleconeControlStream.MyPatternMatcher->runOneFrameWithSideEffects(true, 0, 0); // those zeroes will stay here until we have resim.
 			//This performs a copy of the map, I think. I HOPE it does a move, but I doubt it.
-			auto refDangerous_LifeCycleManaged_Abilities_TripleBuffered
+			EventBuffer& refDangerous_LifeCycleManaged_Abilities_TripleBuffered
 				= RequestorQueue_Abilities_TripleBuffer->GetWriteBuffer();
 
 			//today's sin is PRIDE, bigbird!
