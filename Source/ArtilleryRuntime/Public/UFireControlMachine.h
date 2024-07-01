@@ -52,7 +52,8 @@ public:
 	UArtilleryDispatch* MyDispatch;
 	TObjectPtr<UAttributeSet> MyAttributes; // might want to defactor this to an ECS, but I actually quite like it here.
 	//still wondering who owns the input streams...
-	TObjectPtr<UAbilitySystemComponent> SystemComponentToBind;
+	UAbilitySystemComponent* SystemComponentToBind;
+	TMap<FGameplayAbilitySpecHandle, FGameplayAbilitySpec> LiveActivations;
 	FireControlKey MyKey;
 
 	//*******************************************************************************************
@@ -104,10 +105,29 @@ public:
 		
 	};
 
+	//it is strongly recommended that you understand
+	// FGameplayAbilitySpec and FGameplayAbilitySpecDef, as well as Handle.
+	// I'm deferring the solve for how we use them for now, in a desperate effort to
+	// make sure we can preserve as much of the ability framework as possible
+	// but spec management is going to be mission critical for determinism,
+	// so we may need to subclass the Ability Component. I'm not looking forward to that.
 	void FireGun(TSharedPtr<FArtilleryGun> Gun, bool InputAlreadyUsedOnce)
 	{
-		//
-		//Gun->PreFireGun();
+		/*FGameplayAbilitySpec BackboneFiring =
+			SystemComponentToBind->BuildAbilitySpecFromClass(
+		(Gun->Prefire).GetClass(),
+		0,
+		-1
+		);
+		//TODO: figure out if we want ya boy the Ability system to handle this
+		//TODO: And figure out if FCM should really just subclass the ability system component
+		//frig.
+		FGameplayAbilitySpecHandle FireHandle = BackboneFiring.Handle;
+		
+		Gun->PreFireGun(FireHandle,
+		SystemComponentToBind->AbilityActorInfo.Get(), // why do you even use shared pointers if you're just gonna do this? COME ON.
+		FGameplayAbilityActivationInfo(EGameplayAbilityActivationMode::Authority)
+		);*/
 	};
 
 	void InitializeComponent() override
@@ -130,6 +150,11 @@ public:
 		UActorComponent::BeginPlay(); // using this over the looser super atm. TODO: validate!!!!!
 		MySquire = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 		MyDispatch = GetWorld()->GetSubsystem<UArtilleryDispatch>();
+		SystemComponentToBind = GetOwner()->GetComponentByClass<UAbilitySystemComponent>();
+		if(SystemComponentToBind == nullptr)
+		{
+			throw; // Absolutely not. This will never work.
+		}
 	};
 
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override
