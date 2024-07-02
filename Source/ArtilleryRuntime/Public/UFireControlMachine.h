@@ -38,7 +38,7 @@
 // Combined with the ACS, allows you to fully integrate artillery with your existing GAS designs.
 
 UCLASS()
-class ARTILLERYRUNTIME_API UFireControlMachine : public UActorComponent
+class ARTILLERYRUNTIME_API UFireControlMachine : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
 
@@ -52,7 +52,6 @@ public:
 	UArtilleryDispatch* MyDispatch;
 	TObjectPtr<UAttributeSet> MyAttributes; // might want to defactor this to an ECS, but I actually quite like it here.
 	//still wondering who owns the input streams...
-	UAbilitySystemComponent* SystemComponentToBind;
 	TMap<FGameplayAbilitySpecHandle, FGameplayAbilitySpec> LiveActivations;
 	FireControlKey MyKey;
 
@@ -150,11 +149,6 @@ public:
 		UActorComponent::BeginPlay(); // using this over the looser super atm. TODO: validate!!!!!
 		MySquire = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 		MyDispatch = GetWorld()->GetSubsystem<UArtilleryDispatch>();
-		SystemComponentToBind = GetOwner()->GetComponentByClass<UAbilitySystemComponent>();
-		if(SystemComponentToBind == nullptr)
-		{
-			throw; // Absolutely not. This will never work.
-		}
 	};
 
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override
