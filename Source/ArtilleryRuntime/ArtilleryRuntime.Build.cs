@@ -61,6 +61,8 @@ public class ArtilleryRuntime : ModuleRules
 				"Slate",
 				"SlateCore",
 				"GameplayAbilities",
+				"GameplayTasks",
+				"GameplayTags",
 				"Bristlecone"
 				// ... add private dependencies that you statically link with here ...	
 			}

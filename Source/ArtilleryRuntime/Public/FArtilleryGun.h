@@ -80,7 +80,7 @@ public:
 	//Here's how it works. we fire the abilities from the gun.
 	//OnGameplayAbilityEnded doesn't actually let you know if the ability was canceled.
 	//That's... not so good. We use OnGameplayAbilityEndedWithData instead.
-	void PreFireGun(
+	virtual void PreFireGun(
 		const FGameplayAbilitySpecHandle Handle,
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo,
@@ -118,7 +118,7 @@ public:
  * It will be tempting to reorder the parameters. Don't do this.
  * Again, this is a delegate function and the parametric order is what enables payloading.
  */
-	void FireGun(
+	virtual void FireGun(
 		FArtilleryStates OutcomeStates,
 		int DallyFramesToOmit,
 		const FGameplayAbilityActorInfo* ActorInfo,
@@ -149,7 +149,7 @@ public:
 		}
 	};
 
-	void PostFireGun(
+	virtual void PostFireGun(
 		FArtilleryStates OutcomeStates,
 		int DallyFramesToOmit,
 		const FGameplayAbilityActorInfo* ActorInfo,
@@ -180,7 +180,7 @@ public:
 		}
 	};
 
-	void FArtilleryGunRebind(const FGunKey& KeyFromDispatch)
+	virtual void FArtilleryGunRebind(const FGunKey& KeyFromDispatch)
 	{
 		MyGunKey = KeyFromDispatch;
 		//assign gunkey
