@@ -12,7 +12,7 @@
 /**
  * Conserved attributes record their last 128 changes.
  * Currently, this is for debug purposes, but we can use it with some additional features to provide a really expressive
- * model for rollback at a SUPER granular level if needed. UE has existing rollback tech, though so...
+ * model for rollback at a SUPER granular level if needed. 
  */
 USTRUCT(BlueprintType)
 struct ARTILLERYRUNTIME_API FConservedAttributeData : public FGameplayAttributeData
@@ -21,6 +21,7 @@ struct ARTILLERYRUNTIME_API FConservedAttributeData : public FGameplayAttributeD
 	uint64_t counterBase = 0;
 	uint64_t counterCurrent = 0;
 	TCircularBuffer<float> CurrentHistory = TCircularBuffer<float>(128);
+	TCircularBuffer<float> RemoteHistory = TCircularBuffer<float>(128);
 	TCircularBuffer<float> BaseHistory = TCircularBuffer<float>(128);
 
 	virtual void SetCurrentValue(float NewValue) override {
@@ -29,6 +30,11 @@ struct ARTILLERYRUNTIME_API FConservedAttributeData : public FGameplayAttributeD
 		++counterBase;
 	};
 
+	virtual void SetRemoteValue(float NewValue) {
+		RemoteHistory[RemoteHistory.GetNextIndex(counterBase)] = NewValue;
+		++counterBase;
+	};
+	
 	virtual void SetBaseValue(float NewValue) override {
 		BaseHistory[BaseHistory.GetNextIndex(counterBase)] = BaseValue;
 		BaseValue = NewValue;

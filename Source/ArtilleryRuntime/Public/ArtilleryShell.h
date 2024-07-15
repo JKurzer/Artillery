@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FMasks.h"
 #include "Templates/SubclassOf.h"
 #include "UObject/UnrealType.h"
 #include "Engine/DataTable.h"
@@ -30,6 +31,10 @@ struct ARTILLERYRUNTIME_API FArtilleryShell
 {
 	GENERATED_BODY()
 public:
+
+
+
+	
 	//by this point, this is a record of the functions that should be triggered by the keymapping.
 	//Mapping from keys to gameplay outcomes (functions) happens outside of Artillery.
 	//this means that you can reliably re-execute remote input without needing their control mappings, and is fairly essential

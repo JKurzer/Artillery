@@ -16,6 +16,7 @@
 #include "Containers/CircularQueue.h"
 #include <bitset>
 #include "ArtilleryCommonTypes.h"
+#include "FMockArtilleryGun.h"
 #include "Components/ActorComponent.h"
 #include "UFireControlMachine.generated.h"
 
@@ -197,6 +198,14 @@ public:
 		UActorComponent::BeginPlay(); // using this over the looser super atm. TODO: validate!!!!!
 		MySquire = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 		MyDispatch = GetWorld()->GetSubsystem<UArtilleryDispatch>();
+		if(MyGuns.IsEmpty() && MyKey == 0)
+		{
+			FActionBitMask alef;
+			alef.buttons = Intents::A;
+			FMockArtilleryGun DummyGun = FMockArtilleryGun();
+			pushPatternToRunner(MakeShareable(new FActionPattern_SingleFrameFire), alef, DummyGun.MyGunKey);
+		}
+		
 	};
 
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override
