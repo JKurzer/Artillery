@@ -9,6 +9,9 @@
 
 #include "GameplayEffectTypes.h"
 #include "GameplayEffect.h"
+
+#include "GameplayAbilitySpec.h"
+#include "GameplayAbilitySpecHandle.h"
 #include "FArtilleryGun.h"
 #include "Abilities/GameplayAbility.h"
 #include "CanonicalInputStreamECS.h"
@@ -158,21 +161,17 @@ public:
 	// so we may need to subclass the Ability Component. I'm not looking forward to that.
 	void FireGun(TSharedPtr<FArtilleryGun> Gun, bool InputAlreadyUsedOnce)
 	{
-		/*FGameplayAbilitySpec BackboneFiring =
-			SystemComponentToBind->BuildAbilitySpecFromClass(
-		(Gun->Prefire).GetClass(),
-		0,
-		-1
-		);
-		//TODO: figure out if we want ya boy the Ability system to handle this
-		//TODO: And figure out if FCM should really just subclass the ability system component
 		//frig.
+		FGameplayAbilitySpec BackboneFiring = BuildAbilitySpecFromClass(
+			(Gun->Prefire).GetClass(),
+			0,
+			-1
+		);
 		FGameplayAbilitySpecHandle FireHandle = BackboneFiring.Handle;
-		
 		Gun->PreFireGun(FireHandle,
-		SystemComponentToBind->AbilityActorInfo.Get(), // why do you even use shared pointers if you're just gonna do this? COME ON.
+		AbilityActorInfo.Get(), 
 		FGameplayAbilityActivationInfo(EGameplayAbilityActivationMode::Authority)
-		);*/
+		);
 	};
 
 	void InitializeComponent() override
@@ -195,7 +194,7 @@ public:
 	}
 	void BeginPlay() override
 	{
-		UActorComponent::BeginPlay(); // using this over the looser super atm. TODO: validate!!!!!
+		Super::BeginPlay(); 
 		MySquire = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 		MyDispatch = GetWorld()->GetSubsystem<UArtilleryDispatch>();
 		if(MyGuns.IsEmpty() && MyKey == 0)
