@@ -91,8 +91,8 @@ public:
 	friend class FArtilleryBusyWorker;
 	friend class UArtilleryDispatch;
 	InputStreamKey GetStreamForPlayer(PlayerKey);
-	bool registerPattern(TSharedPtr<FActionPattern> ToBind, FActionPatternParams FCM_Owner_ActorParams);
-	bool removePattern(TSharedPtr<FActionPattern> ToBind, FActionPatternParams FCM_Owner_ActorParams);
+	bool registerPattern(IPM::CanonPattern ToBind, FActionPatternParams FCM_Owner_ActorParams);
+	bool removePattern(IPM::CanonPattern ToBind, FActionPatternParams FCM_Owner_ActorParams);
 	TPair<ActorKey, InputStreamKey> RegisterKeysToParentActorMapping(AActor* parent, FireControlKey MachineKey,
 	                                                                 bool IsActorForLocalPlayer);
 
@@ -109,15 +109,15 @@ public:
 		FConservedInputPatternMatcher()
 		{
 			MyStreamKeys = MakeShareable(new TSet<InputStreamKey>());
-			AllPatternBinds = TMap<FString, TSharedPtr<TSet<FActionPatternParams>>>();
-			AllPatternsByName = TMap<FString, TSharedPtr<FActionPattern_InternallyStateless>>();
+			AllPatternBinds = TMap<ArtIPMKey, TSharedPtr<TSet<FActionPatternParams>>>();
+			AllPatternsByName = TMap<ArtIPMKey, IPM::CanonPattern>();
 		}
 
 		TSharedPtr<TSet<InputStreamKey>> MyStreamKeys;
 
 		//there's a bunch of reasons we use string_view here, but mostly, it's because we can make them constexprs!
 		//so this is... uh... pretty fast!
-		TMap<FString, TSharedPtr<TSet<FActionPatternParams>>> AllPatternBinds;
+		TMap<ArtIPMKey, TSharedPtr<TSet<FActionPatternParams>>> AllPatternBinds;
 		//broadly, at the moment, there is ONE pattern matcher running
 
 
@@ -127,11 +127,11 @@ public:
 		//As a result, we track what's actually live via the binds
 		//and this array is just lazy accumulative. it means we don't ever allocate a key array for TMap.
 		//has some other advantages, as well.
-		TArray<FString> Names;
+		TArray<ArtIPMKey> Names;
 
 		//same with this set, actually. patterns are stateless, and few. it's inefficient to destroy them.
 		//instead we check binds.
-		TMap<FString, TSharedPtr<FActionPattern_InternallyStateless>> AllPatternsByName;
+		TMap<ArtIPMKey, IPM::CanonPattern> AllPatternsByName;
 
 
 		//***********************************************************
@@ -169,7 +169,7 @@ public:
 			{
 				if (SetTuple.Value->Num() > 0)
 				{
-					TSharedPtr<FActionPattern_InternallyStateless> currentPattern = AllPatternsByName[SetTuple.Key];
+					IPM::CanonPattern currentPattern = AllPatternsByName[SetTuple.Key];
 					FActionBitMask Union;
 					auto currentSet = SetTuple.Value.Get();
 					//TODO: remove and replace with a version that uses all bits set.
@@ -180,7 +180,7 @@ public:
 						Union.buttons |= Elem.ToSeek.buttons;
 						Union.events |= Elem.ToSeek.events;
 					}
-					if (currentPattern->runPattern(InputCycleNumber, Union, MyStream.Pin()))
+					if (currentPattern-> runPattern(InputCycleNumber, Union, MyStream.Pin()))
 					{
 						for (FActionPatternParams& Elem : *currentSet)
 						{

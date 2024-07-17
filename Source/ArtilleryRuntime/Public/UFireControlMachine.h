@@ -110,7 +110,7 @@ public:
 	//*******************************************************************************************
 
 	//IF YOU DO NOT CALL THIS FROM THE GAMETHREAD, YOU WILL HAVE A BAD TIME.
-	void pushPatternToRunner(TSharedPtr<FActionPattern> ToBind, PlayerKey InputStreamByPlayer, FActionBitMask ToSeek, FGunKey ToFire)
+	void pushPatternToRunner(IPM::CanonPattern ToBind, PlayerKey InputStreamByPlayer, FActionBitMask ToSeek, FGunKey ToFire)
 	{
 		FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, InputStreamByPlayer, ToFire);
 		MySquire->registerPattern(ToBind, myParams);
@@ -121,7 +121,7 @@ public:
 	};
 
 	//IF YOU DO NOT CALL THIS FROM THE GAMETHREAD, YOU WILL HAVE A BAD TIME.
-	void popPatternFromRunner(TSharedPtr<FActionPattern> ToBind, PlayerKey InputStreamByPlayer, FActionBitMask ToSeek, FGunKey ToFire)
+	void popPatternFromRunner(FActionPattern* ToBind, PlayerKey InputStreamByPlayer, FActionBitMask ToSeek, FGunKey ToFire)
 	{
 		FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, InputStreamByPlayer, ToFire);
 		MySquire->removePattern(ToBind, myParams);
@@ -152,7 +152,7 @@ public:
 			FActionBitMask alef;
 			alef.buttons = Intents::A;
 			FMockArtilleryGun DummyGun = FMockArtilleryGun();
-			pushPatternToRunner(MakeShareable(new FActionPattern_SingleFrameFire), APlayer::CABLE, alef, DummyGun.MyGunKey);
+			pushPatternToRunner(IPM::GPress, APlayer::CABLE, alef, DummyGun.MyGunKey);
 		}
 		return ParentKey;
 		//likely want to manage system component bind here by checking for actor parent.

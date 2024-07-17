@@ -18,16 +18,27 @@
 //as a result, these lil fellers are stateless. If you wanna do a memoized version, I recommend it strongly, but make sure profiling
 //shows that's actually necessary. I sincerely doubt it will be.
 
+enum ActionPatternKey
+{
+	InternallyStateless = 0,
+	SingleFrameFire = 1,
+	ButtonHoldAllowOneMiss = 2,
+	ButtonHold = 3,
+	ButtonReleaseNoDelay = 4,
+	StickFlick = 5
+};
+typedef ActionPatternKey ArtIPMKey;//artillery intent pattern matcher key
+
 class FActionPattern_InternallyStateless
 {
 public:
-	virtual uint32_t runPattern(uint64_t frameToRunBackFrom, 
-		FActionBitMask ToSeekUnion,
+	virtual uint32_t const runPattern(uint64_t frameToRunBackFrom, 
+		FActionBitMask& ToSeekUnion,
 		FANG_PTR Buffer
-	) = 0;
+	) const = 0;
 
-	virtual const FString getName() = 0;
-	static const inline FString Name = "FActionPattern_InternallyStatelessPattern"; //you should never see this as getName is virtual.
+	virtual ArtIPMKey const getName() const = 0;
+	static const inline ArtIPMKey Name = ArtIPMKey::InternallyStateless; //you should never see this as getName is virtual.
 };
 
 typedef FActionPattern_InternallyStateless FActionPattern;
@@ -37,28 +48,28 @@ typedef FActionPattern_InternallyStateless FActionPattern;
 class FActionPattern_SingleFrameFire : public FActionPattern_InternallyStateless
 {
 public:
-	virtual uint32_t runPattern(uint64_t frameToRunBackFrom,
-		FActionBitMask ToSeekUnion,
+	virtual uint32_t const runPattern(uint64_t frameToRunBackFrom,
+		FActionBitMask& ToSeekUnion,
 		FANG_PTR Buffer
 	)
-	override
+	const override
 	{
 		return Buffer->peek(frameToRunBackFrom)->GetButtonsAndEventsFlat() & ToSeekUnion.getFlat();
 		
 	};
-	const FString getName() override { return Name; };
-	static const inline FString Name = "FActionPattern_SingleFrameFirePattern";
+	const ArtIPMKey getName() const override { return Name; };
+	static const inline ArtIPMKey Name = ArtIPMKey::SingleFrameFire;
 };
 
 class FActionPattern_ButtonHoldAllowOneMiss : public FActionPattern_InternallyStateless
 {
 public:
 	// returned pattern will tell us which inputs (button/events) were held
-	virtual uint32_t runPattern(uint64_t frameToRunBackFrom,
-		FActionBitMask ToSeekUnion,
+	virtual uint32_t const runPattern(uint64_t frameToRunBackFrom,
+		FActionBitMask& ToSeekUnion,
 		FANG_PTR Buffer
 	)
-		override
+	const override
 	{
 		/*
 		  to allow for one missed input in each input bit:
@@ -88,19 +99,19 @@ public:
 		// this implementation does not track where in the sequence the drops were
 		return outcome;
 	};
-	const FString getName() override { return Name; };
-	static const inline FString Name = "FActionPattern_ButtonHoldAllowOneMissPattern";
+	const ArtIPMKey getName() const override { return Name; };
+	static const inline ArtIPMKey Name = ArtIPMKey::ButtonHoldAllowOneMiss;
 };
 
 class FActionPattern_ButtonHold : public FActionPattern_InternallyStateless
 {
 public:
 	// returned pattern will tell us which inputs (button/events) were held
-	virtual uint32_t runPattern(uint64_t frameToRunBackFrom,
-		FActionBitMask ToSeekUnion,
+	virtual uint32_t const runPattern(uint64_t frameToRunBackFrom,
+		FActionBitMask& ToSeekUnion,
 		FANG_PTR Buffer
 	)
-		override
+		const override
 	{
 		/*
 		  to allow for one missed input in each input bit:
@@ -126,19 +137,18 @@ public:
 		// this implementation does not track where in the sequence the drops were
 		return toSeek;
 	};
-	const FString getName() override { return Name; };
-	static const inline FString Name = "FActionPattern_ButtonHoldPattern";
+	const ArtIPMKey getName() const override { return Name; };
+	static const inline ArtIPMKey Name = ArtIPMKey::ButtonHold;
 };
 
-//TODO: make sure the right runPattern gets called. can't rem the inheritance rules and I don't have time to rabbit hole.
 class FActionPattern_ButtonReleaseNoDelay : public FActionPattern_ButtonHold 
 {
 public:
-	virtual uint32_t runPattern(uint64_t frameToRunBackFrom,
-		FActionBitMask ToSeekUnion,
+	virtual uint32_t const runPattern(uint64_t frameToRunBackFrom,
+		FActionBitMask& ToSeekUnion,
 		FANG_PTR Buffer
 	)
-		override
+		const override
 	{
 		// held before this frame?
 		uint32_t heldBefore = FActionPattern_ButtonHold::runPattern(frameToRunBackFrom - 1, ToSeekUnion, Buffer);
@@ -147,8 +157,8 @@ public:
 		// release is held -> not held
 		return heldBefore & releasedNow;
 	};
-	const FString getName() override { return Name; };
-	static const inline FString Name = "FActionPattern_ButtonReleaseNoDelay";
+	const ArtIPMKey getName() const override { return Name; };
+	static const inline ArtIPMKey Name = ArtIPMKey::ButtonReleaseNoDelay;
 };
 
 
@@ -159,11 +169,11 @@ public:
 class FActionPattern_StickFlick : public FActionPattern_InternallyStateless
 {
 public:
-	virtual uint32_t runPattern(uint64_t frameToRunBackFrom,
-		FActionBitMask ToSeekUnion,
+	virtual uint32_t const runPattern(uint64_t frameToRunBackFrom,
+		FActionBitMask& ToSeekUnion,
 		FANG_PTR Buffer
 	)
-		override
+		const override
 	{
 		//NOTE THIS USES THE FLICK SWEEPBACK which is INCLUSIVE
 		auto cur = Buffer->peek(frameToRunBackFrom);
@@ -193,6 +203,25 @@ public:
 		}
 		return 0; //return results
 	};
-	const FString getName() override { return Name; };
-	static const inline FString Name = "FActionPattern_StickFlick";
+	const ArtIPMKey getName() const override { return Name; };
+	static const inline ArtIPMKey Name = ArtIPMKey::StickFlick;
 };
+
+namespace Arty
+{
+	namespace IPM
+	{
+
+		typedef const FActionPattern* CanonPattern;
+		constexpr const FActionPattern_StickFlick Flick;
+		constexpr const CanonPattern GFlick = &Flick;
+		constexpr const FActionPattern_ButtonReleaseNoDelay Release;
+		constexpr const CanonPattern GRelease = &Release;
+		constexpr const FActionPattern_SingleFrameFire FramePress;
+		constexpr const CanonPattern GPress = &FramePress;
+		constexpr const FActionPattern_ButtonHold Hold;
+		constexpr const CanonPattern GHold = &Hold;
+		constexpr const FActionPattern_ButtonHoldAllowOneMiss HoldWMiss;
+		constexpr const CanonPattern GHoldWM = &HoldWMiss;
+	}
+}

@@ -61,7 +61,7 @@ InputStreamKey UCanonicalInputStreamECS::GetStreamForPlayer(PlayerKey ThisPlayer
 	return SessionPlayerToStreamMapping->FindChecked(ThisPlayer);
 }
 
-bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern_InternallyStateless> ToBind,
+bool UCanonicalInputStreamECS::registerPattern( IPM::CanonPattern ToBind,
                                                FActionPatternParams FCM_Owner_ActorParams)
 {
 	if (
@@ -91,7 +91,7 @@ bool UCanonicalInputStreamECS::registerPattern(TSharedPtr<FActionPattern_Interna
 	return false;
 }
 
-bool UCanonicalInputStreamECS::removePattern(TSharedPtr<FActionPattern_InternallyStateless> ToBind, FActionPatternParams FCM_Owner_ActorParams)
+bool UCanonicalInputStreamECS::removePattern(IPM::CanonPattern ToBind, FActionPatternParams FCM_Owner_ActorParams)
 {
 	if (
 #ifndef LOCALISCODEDSPECIAL
