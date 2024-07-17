@@ -191,7 +191,7 @@ public:
 	void InitializeComponent() override
 	{
 		Super::InitializeComponent();
-a		MyKey = UFireControlMachine::orderInInitialize++;
+		MyKey = UFireControlMachine::orderInInitialize++;
 		//we rely on attribute replication, which I think is borderline necessary, but I wonder if we should use effect replication.
 		//historically, relying on gameplay effect replication has led to situations where key state was not managed through effects.
 		//for OUR situation, where we have few attributes and many effects, huge amounts of effects are likely not interesting for us to replicate.
