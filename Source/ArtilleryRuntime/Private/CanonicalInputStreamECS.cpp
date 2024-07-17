@@ -7,7 +7,6 @@ void UCanonicalInputStreamECS::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	UE_LOG(LogTemp, Warning, TEXT("Artillery::CanonicalInputStream is Online."));
-	monotonkey = 0;
 }
 
 void UCanonicalInputStreamECS::OnWorldBeginPlay(UWorld& InWorld)
@@ -26,12 +25,12 @@ void UCanonicalInputStreamECS::Deinitialize()
 
 ActorKey UCanonicalInputStreamECS::ActorByStream(InputStreamKey Stream)
 {
-	return *StreamToActorMapping->Find(Stream);
+	return StreamToActorMapping->FindRef(Stream);
 }
 
-ActorKey UCanonicalInputStreamECS::StreamByActor(ActorKey Actor)
+InputStreamKey UCanonicalInputStreamECS::StreamByActor(ActorKey Actor)
 {
-	return *ActorToStreamMapping->Find(Actor);
+	return ActorToStreamMapping->FindRef(Actor);
 }
 
 void UCanonicalInputStreamECS::Tick(float DeltaTime)
@@ -47,18 +46,23 @@ TSharedPtr<UCanonicalInputStreamECS::FConservedInputStream> UCanonicalInputStrea
 {
 	
 	TSharedPtr<UCanonicalInputStreamECS::FConservedInputStream> ManagedStream = MakeShareable(
-	new FConservedInputStream(this, ++monotonkey) //using++ vs ++would be wrong here. inc then ret.
+	new FConservedInputStream(this, ByPlayerConcept) //using++ vs ++would be wrong here. inc then ret.
 	);
-	
-	SessionPlayerToStreamMapping->Add(ByPlayerConcept, monotonkey);
-	StreamKeyToStreamMapping->Add(monotonkey, ManagedStream);
-	return ManagedStream;
+	SessionPlayerToStreamMapping->Add(ByPlayerConcept, ByPlayerConcept);//this will need, ultimately, to be revised. but for now, it's ordered, and consistent.
+	StreamKeyToStreamMapping->Add(ByPlayerConcept, CopyTemp(ManagedStream));//this is a sin.
+	return ManagedStream; 
 }
 
 
 InputStreamKey UCanonicalInputStreamECS::GetStreamForPlayer(PlayerKey ThisPlayer)
 {
 	return SessionPlayerToStreamMapping->FindChecked(ThisPlayer);
+}
+
+TSharedPtr<UCanonicalInputStreamECS::FConservedInputStream> UCanonicalInputStreamECS::GetStream(InputStreamKey StreamKey) const
+{
+	const auto SP = StreamKeyToStreamMapping->FindRef(StreamKey);
+	return SP; // creates a copy.
 }
 
 bool UCanonicalInputStreamECS::registerPattern( IPM::CanonPattern ToBind,

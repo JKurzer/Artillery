@@ -102,18 +102,16 @@ public:
 public:
 	class ARTILLERYRUNTIME_API FConservedInputPatternMatcher
 	{
-		TWeakPtr<FArtilleryNoGuaranteeReadOnly> MyStream; //and may god have mercy on my soul.
+		InputStreamKey MyStream; //and may god have mercy on my soul.
 		friend class FArtilleryBusyWorker;
 
 	public:
-		FConservedInputPatternMatcher()
+		FConservedInputPatternMatcher(InputStreamKey StreamToLink)
 		{
-			MyStreamKeys = MakeShareable(new TSet<InputStreamKey>());
 			AllPatternBinds = TMap<ArtIPMKey, TSharedPtr<TSet<FActionPatternParams>>>();
 			AllPatternsByName = TMap<ArtIPMKey, IPM::CanonPattern>();
+			MyStream=StreamToLink;
 		}
-
-		TSharedPtr<TSet<InputStreamKey>> MyStreamKeys;
 
 		//there's a bunch of reasons we use string_view here, but mostly, it's because we can make them constexprs!
 		//so this is... uh... pretty fast!
@@ -162,8 +160,14 @@ public:
 				UE_LOG(LogTemp, Display, TEXT("Still no resim, actually."));
 			}
 
-			//this needs to ALSO run per stream. I think maybe the pattern matcher will live on the input streams?
-			//Hard to really pin down if that's good
+			//while the pattern matcher lives in the stream, the stream instance is not guaranteed to persist
+			//In fact, it may get "swapped" and so we actually indirect through the ECS, grab the current stream whatever it is
+			//then pin it. at this point, we can be sure that we hold A STREAM that DOES exist.
+			
+			UCanonicalInputStreamECS* ECS = GWorld->GetSubsystem<UCanonicalInputStreamECS>();
+			auto Stream = ECS->GetStream(MyStream);
+			
+			
 			//the lack of reference (&) here causes a _copy of the shared pointer._ This is not accidental.
 			for (auto SetTuple : AllPatternBinds)
 			{
@@ -180,7 +184,7 @@ public:
 						Union.buttons |= Elem.ToSeek.buttons;
 						Union.events |= Elem.ToSeek.events;
 					}
-					if (currentPattern-> runPattern(InputCycleNumber, Union, MyStream.Pin()))
+					if (currentPattern-> runPattern(InputCycleNumber, Union, Stream))
 					{
 						for (FActionPatternParams& Elem : *currentSet)
 						{
@@ -194,7 +198,7 @@ public:
 								)
 								{
 									using std::optional;
-									auto time = this->MyStream.Pin()->peek(InputCycleNumber)->SentAt;
+									auto time = Stream->peek(InputCycleNumber)->SentAt;
 									//THIS IS NOT SUPER SAFE. HAHAHAH. YAY.
 									IN_PARAM_REF_TRIPLEBUFFER_LIFECYLEMANAGED.Add(TPair<ArtilleryTime, FGunKey>(
 											time,
@@ -230,6 +234,9 @@ public:
 		{
 			ECSParent = LF_ECSParent;
 			MyKey = ToBe;
+			MyPatternMatcher
+			= MakeShareable<UCanonicalInputStreamECS::FConservedInputPatternMatcher>(
+			new UCanonicalInputStreamECS::FConservedInputPatternMatcher(ToBe));
 		}
 
 		//Mom?
@@ -305,10 +312,8 @@ public:
 	protected:
 		volatile uint64_t highestInput = 0; // volatile is utterly useless for its intended purpose. 
 		UCanonicalInputStreamECS* ECSParent;
-		TSharedPtr<UCanonicalInputStreamECS::FConservedInputPatternMatcher> MyPatternMatcher
-			= MakeShareable<UCanonicalInputStreamECS::FConservedInputPatternMatcher>(
-				new UCanonicalInputStreamECS::FConservedInputPatternMatcher());
-		;
+		TSharedPtr<UCanonicalInputStreamECS::FConservedInputPatternMatcher> MyPatternMatcher;
+
 		//Add can only be used by the Artillery Worker Thread through the methods of the UCISArty.
 		void Add(INNNNCOMING shell, long SentAt)
 		{
@@ -356,6 +361,8 @@ protected:
 	virtual TStatId GetStatId() const override;
 	TSharedPtr<FConservedInputStream> getNewStreamConstruct( PlayerKey ByPlayerConcept);
 	TSharedPtr<TMap<PlayerKey, InputStreamKey>> SessionPlayerToStreamMapping;
+	
+	TSharedPtr<UCanonicalInputStreamECS::FConservedInputStream> GetStream(InputStreamKey StreamKey) const;
 
 public:
 private:
@@ -364,7 +371,6 @@ private:
 	TSharedPtr<TMap<InputStreamKey, ActorKey>> StreamToActorMapping;
 	TSharedPtr<TMap<ActorKey, InputStreamKey>> ActorToStreamMapping;
 	UBristleconeWorldSubsystem* MySquire; // World Subsystems are the last to go, making this a fairly safe idiom. ish.
-	long long monotonkey = 0; // :/
 };
 
 

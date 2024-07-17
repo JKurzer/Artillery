@@ -11,7 +11,6 @@
 #include <bitset>
 #include "ArtilleryShell.h"
 #include "Containers/CircularBuffer.h"
-#include <string>
 
 
 //See Desperate-thor.gif for more information.
