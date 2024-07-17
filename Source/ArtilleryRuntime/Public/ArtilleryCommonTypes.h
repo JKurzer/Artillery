@@ -12,9 +12,21 @@
 
 namespace Arty
 {
+	enum APlayer
+	{
+		CABLE = 1,
+		ECHO = 2,
+		TWO = 20,
+		THREE = 30,
+		FOUR = 40,
+		FIVE = 50,
+		SIX = 60,
+		SEVEN = 70,
+		EIGHT = 80
+	};
 	typedef TheCone::PacketElement INNNNCOMING;
 	typedef uint32_t InputStreamKey;
-	typedef uint32_t PlayerKey;
+	typedef APlayer PlayerKey;
 	typedef uint32_t ActorKey;
 	typedef uint32_t FireControlKey;
 	using BristleTime = long; //this will become uint32. don't bitbash this.

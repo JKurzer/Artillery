@@ -36,8 +36,8 @@ uint32 FArtilleryBusyWorker::Run()
 	uint64_t currentIndexBristlecone = 0;
 	bool burstDropDetected = false;
 	//you cannot reorder these. it is a magic ordering put in place for a hack. 
-	CablingControlStream = ContingentInputECSLinkage->getNewStreamConstruct();
-	BristleconeControlStream = ContingentInputECSLinkage->getNewStreamConstruct();
+	CablingControlStream = ContingentInputECSLinkage->getNewStreamConstruct(APlayer::CABLE);
+	BristleconeControlStream = ContingentInputECSLinkage->getNewStreamConstruct(APlayer::ECHO);
 	while (running)
 	{
 		currentIndexCabling = CablingControlStream->highestInput - 1;
@@ -149,16 +149,6 @@ uint32 FArtilleryBusyWorker::Run()
 			//today's sin is PRIDE, bigbird!
 			for (int i = currentIndexCabling; i < CablingControlStream->highestInput; ++i)
 			{
-				//TODO: refDangerous_LifeCycleManaged_Loco_TripleBuffered work goes here
-
-				CablingControlStream->MyPatternMatcher->runOneFrameWithSideEffects(
-					true,
-					0,
-					0,
-					i,
-					refDangerous_LifeCycleManaged_Abilities_TripleBuffered
-				); // this looks wrong but I'm pretty sure it ain' since we reserve highest.
-
 				//TODO: does this leak memory?
 				refDangerous_LifeCycleManaged_Loco_TripleBuffered.Add(
 					LocomotionParams(
@@ -168,6 +158,16 @@ uint32 FArtilleryBusyWorker::Run()
 						*CablingControlStream->peek(i)
 					)
 				);
+				
+				CablingControlStream->MyPatternMatcher->runOneFrameWithSideEffects(
+					true,
+					0,
+					0,
+					i,
+					refDangerous_LifeCycleManaged_Abilities_TripleBuffered
+				); // this looks wrong but I'm pretty sure it ain' since we reserve highest.
+
+
 				//even if this doesn't get played for some reason, this is the last chance we've got to make a
 				//truly informed decision about the matter. By the time we reach the dispatch system, that chance is gone.
 				//Better to skip a cosmetic once in a while than crash the game.

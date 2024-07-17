@@ -57,6 +57,7 @@ public:
 	//the UAS component, but I'm not totally sure.
 	//TObjectPtr<UAttributeSet> MyAttributes; 
 	FireControlKey MyKey;
+	bool Usable = false;
 
 	/** Who to route replication through if ReplicationProxyEnabled (if this returns null, when ReplicationProxyEnabled, we wont replicate)  */
 	//this is the tooling used in part by NPP's implementation, and we should consider using it as well to integrate with Iris and constrain
@@ -109,9 +110,9 @@ public:
 	//*******************************************************************************************
 
 	//IF YOU DO NOT CALL THIS FROM THE GAMETHREAD, YOU WILL HAVE A BAD TIME.
-	void pushPatternToRunner(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
+	void pushPatternToRunner(TSharedPtr<FActionPattern> ToBind, PlayerKey InputStreamByPlayer, FActionBitMask ToSeek, FGunKey ToFire)
 	{
-		FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, 0xbeef, ToFire);
+		FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, InputStreamByPlayer, ToFire);
 		MySquire->registerPattern(ToBind, myParams);
 		Arty::FArtilleryFireGunFromDispatch Inbound;
 		Inbound.BindUObject(this, &UFireControlMachine::FireGun);
@@ -120,9 +121,9 @@ public:
 	};
 
 	//IF YOU DO NOT CALL THIS FROM THE GAMETHREAD, YOU WILL HAVE A BAD TIME.
-	void popPatternFromRunner(TSharedPtr<FActionPattern> ToBind, FActionBitMask ToSeek, FGunKey ToFire)
+	void popPatternFromRunner(TSharedPtr<FActionPattern> ToBind, PlayerKey InputStreamByPlayer, FActionBitMask ToSeek, FGunKey ToFire)
 	{
-		FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, 0xbeef, ToFire);
+		FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, InputStreamByPlayer, ToFire);
 		MySquire->removePattern(ToBind, myParams);
 		MyDispatch->Deregister(ToFire);
 		MyGuns.Remove(ToFire);
@@ -134,12 +135,25 @@ public:
 	//IF YOU DO NOT CALL THIS FROM THE GAMETHREAD, YOU WILL HAVE A BAD TIME.
 	ActorKey CompleteRegistrationByActorParent(bool IsLocalPlayerCharacter, FArtilleryRunLocomotionFromDispatch LocomotionFromActor)
 	{
+		//these are initialized earlier under all intended orderings, but we cannot ensure that this function will be called correctly
+		//so we should do what we can to foolproof things. As long as the world subsystems are up, force-updating
+		//here will either:
+		//work correctly
+		//fail fast
+		MySquire = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
+		MyDispatch = GetWorld()->GetSubsystem<UArtilleryDispatch>();
 
-		//TODO: Find the idiomatic way to do this, cause I'm a liddle worried this could asplode.
 		TPair<ActorKey, InputStreamKey> Parent =  MySquire->RegisterKeysToParentActorMapping(GetOwner(), MyKey, true);
 		ParentKey = Parent.Key;
 		MyDispatch->RegisterLocomotion(ParentKey, LocomotionFromActor);
-		
+		Usable = true;
+		if(MyGuns.IsEmpty() && Usable)
+		{
+			FActionBitMask alef;
+			alef.buttons = Intents::A;
+			FMockArtilleryGun DummyGun = FMockArtilleryGun();
+			pushPatternToRunner(MakeShareable(new FActionPattern_SingleFrameFire), APlayer::CABLE, alef, DummyGun.MyGunKey);
+		}
 		return ParentKey;
 		//likely want to manage system component bind here by checking for actor parent.
 		//right now, we can push all our patterns here as well, and we can use a static set of patterns for
@@ -177,7 +191,7 @@ public:
 	void InitializeComponent() override
 	{
 		Super::InitializeComponent();
-		MyKey = UFireControlMachine::orderInInitialize++;
+a		MyKey = UFireControlMachine::orderInInitialize++;
 		//we rely on attribute replication, which I think is borderline necessary, but I wonder if we should use effect replication.
 		//historically, relying on gameplay effect replication has led to situations where key state was not managed through effects.
 		//for OUR situation, where we have few attributes and many effects, huge amounts of effects are likely not interesting for us to replicate.
@@ -192,21 +206,19 @@ public:
 		MySquire = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 		MyDispatch = GetWorld()->GetSubsystem<UArtilleryDispatch>();
 	}
+
+	//on components, begin play can fire twice, because we aren't allowed to have nice things.
+	//This can cause it to fire BEFORE the actor's begin play fires, which leaves you with
+	//very few good options. the bool Usable helps control this.
+	//This is, ironically, not a problem in actual usage, only testing, for us.
 	void BeginPlay() override
 	{
 		Super::BeginPlay(); 
 		MySquire = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 		MyDispatch = GetWorld()->GetSubsystem<UArtilleryDispatch>();
-		if(MyGuns.IsEmpty() && MyKey == 0)
-		{
-			FActionBitMask alef;
-			alef.buttons = Intents::A;
-			FMockArtilleryGun DummyGun = FMockArtilleryGun();
-			pushPatternToRunner(MakeShareable(new FActionPattern_SingleFrameFire), alef, DummyGun.MyGunKey);
-		}
-		
-	};
 
+	};
+	
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override
 	{
 		Super::OnComponentDestroyed(bDestroyingHierarchy);

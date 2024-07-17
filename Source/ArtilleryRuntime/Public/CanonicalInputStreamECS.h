@@ -50,6 +50,16 @@ class ARTILLERYRUNTIME_API UCanonicalInputStreamECS : public UTickableWorldSubsy
 {
 	GENERATED_BODY()
 
+
+	UCanonicalInputStreamECS()
+	{
+		StreamKeyToStreamMapping = MakeShareable(new TMap<InputStreamKey, TSharedPtr<FConservedInputStream>>);
+		LocalActorToFireControlMapping = MakeShareable(new TMap<ActorKey, FireControlKey>());
+		StreamToActorMapping = MakeShareable(new TMap<InputStreamKey, ActorKey>);
+		ActorToStreamMapping = MakeShareable(new TMap<ActorKey, InputStreamKey>);
+		SessionPlayerToStreamMapping = MakeShareable(new TMap<PlayerKey, InputStreamKey>());
+	}
+
 	/**
 	 * Conserved input streams record their last 8,192 inputs. Yes, that's a few megs across all streams. No, it doesn't really seem to matter.
 	 * Currently, this is for debug purposes, but we can use it with some additional features to provide a really expressive
@@ -73,6 +83,8 @@ public:
 	{
 		return MySquire->Now();
 	};
+
+
 	static const uint32_t InputConservationWindow = 8192;
 	static const uint32_t AddressableInputConservationWindow = InputConservationWindow - (2 *
 		TheCone::LongboySendHertz);
@@ -81,7 +93,8 @@ public:
 	InputStreamKey GetStreamForPlayer(PlayerKey);
 	bool registerPattern(TSharedPtr<FActionPattern> ToBind, FActionPatternParams FCM_Owner_ActorParams);
 	bool removePattern(TSharedPtr<FActionPattern> ToBind, FActionPatternParams FCM_Owner_ActorParams);
-	TPair<ActorKey, InputStreamKey>  RegisterKeysToParentActorMapping(AActor* parent, FireControlKey MachineKey, bool IsActorForLocalPlayer);
+	TPair<ActorKey, InputStreamKey> RegisterKeysToParentActorMapping(AActor* parent, FireControlKey MachineKey,
+	                                                                 bool IsActorForLocalPlayer);
 
 	//this is the most portable way to do a folding region in C++.
 #ifndef ARTILLERYECS_CLASSES_REGION_MARKER
@@ -93,22 +106,21 @@ public:
 		friend class FArtilleryBusyWorker;
 
 	public:
-
 		FConservedInputPatternMatcher()
 		{
 			MyStreamKeys = MakeShareable(new TSet<InputStreamKey>());
 			AllPatternBinds = TMap<FString, TSharedPtr<TSet<FActionPatternParams>>>();
-			Names = TArray<FString>();
 			AllPatternsByName = TMap<FString, TSharedPtr<FActionPattern_InternallyStateless>>();
 		}
-		TSharedPtr< TSet<InputStreamKey>> MyStreamKeys;
+
+		TSharedPtr<TSet<InputStreamKey>> MyStreamKeys;
 
 		//there's a bunch of reasons we use string_view here, but mostly, it's because we can make them constexprs!
 		//so this is... uh... pretty fast!
-		TMap<FString, TSharedPtr<TSet<FActionPatternParams>>>  AllPatternBinds;
+		TMap<FString, TSharedPtr<TSet<FActionPatternParams>>> AllPatternBinds;
 		//broadly, at the moment, there is ONE pattern matcher running
 
-		
+
 		//this array is never made smaller.
 		//there should only ever be about 10 patterns max,
 		//and it's literally more expensive to remove them.
@@ -120,7 +132,7 @@ public:
 		//same with this set, actually. patterns are stateless, and few. it's inefficient to destroy them.
 		//instead we check binds.
 		TMap<FString, TSharedPtr<FActionPattern_InternallyStateless>> AllPatternsByName;
-		
+
 
 		//***********************************************************
 		//
@@ -135,14 +147,14 @@ public:
 		//hard to say. we might need to revisit this if the FCMs prove too heavy as full actor components.
 
 		void runOneFrameWithSideEffects(bool isResim_Unimplemented,
-		                                                                //USED TO DEFINE HOW TO HIDE LATENCY BY TRIMMING LEAD-IN FRAMES OF AN ARTILLERYGUN
-		                                                                uint32_t leftTrimFrames,
-		                                                                //USED TO DEFINE HOW TO SHORTEN ARTILLERYGUNS BY SHORTENING TRAILING or INFIX DELAYS, SUCH AS DELAYED EXPLOSIONS, TRAJECTORIES, OR SPAWNS, TO HIDE LATENCY.
-		                                                                uint32_t rightTrimFrames,
-		                                                                uint64_t InputCycleNumber,
-		                                                                TArray<TPair<ArtilleryTime, FGunKey>>&
-		                                                                IN_PARAM_REF_TRIPLEBUFFER_LIFECYLEMANAGED
-		                                                                //frame's a misnomer, actually.
+		                                //USED TO DEFINE HOW TO HIDE LATENCY BY TRIMMING LEAD-IN FRAMES OF AN ARTILLERYGUN
+		                                uint32_t leftTrimFrames,
+		                                //USED TO DEFINE HOW TO SHORTEN ARTILLERYGUNS BY SHORTENING TRAILING or INFIX DELAYS, SUCH AS DELAYED EXPLOSIONS, TRAJECTORIES, OR SPAWNS, TO HIDE LATENCY.
+		                                uint32_t rightTrimFrames,
+		                                uint64_t InputCycleNumber,
+		                                TArray<TPair<ArtilleryTime, FGunKey>>&
+		                                IN_PARAM_REF_TRIPLEBUFFER_LIFECYLEMANAGED
+		                                //frame's a misnomer, actually.
 		)
 		{
 			if (!isResim_Unimplemented)
@@ -151,50 +163,48 @@ public:
 			}
 
 			//this needs to ALSO run per stream. I think maybe the pattern matcher will live on the input streams?
-			//Hard to really pin down if that's good.
-			for (FString Name : Names)
+			//Hard to really pin down if that's good
+			//the lack of reference (&) here causes a _copy of the shared pointer._ This is not accidental.
+			for (auto SetTuple : AllPatternBinds)
 			{
-				//note this checks BINDS. This is because our other mappings are _pure additive._
-				//this isn't a vanity thing. this idiosyncracy makes actual thread synchro much much easier.
-				//it's also why we aren't checking to see if the pointers are valid. if they _aren't_ then it's a lifecycle bug.
-				if (AllPatternBinds.Contains(Name))
+				if (SetTuple.Value->Num() > 0)
 				{
-					if (AllPatternBinds[Name]->Num() < 0)
+					TSharedPtr<FActionPattern_InternallyStateless> currentPattern = AllPatternsByName[SetTuple.Key];
+					FActionBitMask Union;
+					auto currentSet = SetTuple.Value.Get();
+					//TODO: remove and replace with a version that uses all bits set.
+					//lot of refactoring to do that. let's get this working first.
+					for (FActionPatternParams& Elem : *currentSet)
 					{
-						TSharedPtr<FActionPattern_InternallyStateless> currentPattern = AllPatternsByName[Name];
-						FActionBitMask Union;
-						for (FActionPatternParams& Elem : *AllPatternBinds[Name])
+						//todo: replace with toFlat(). ffs.
+						Union.buttons |= Elem.ToSeek.buttons;
+						Union.events |= Elem.ToSeek.events;
+					}
+					if (currentPattern->runPattern(InputCycleNumber, Union, MyStream.Pin()))
+					{
+						for (FActionPatternParams& Elem : *currentSet)
 						{
-							//todo: replace with toFlat(). ffs.
-							Union.buttons |= Elem.ToSeek.buttons;
-							Union.events |= Elem.ToSeek.events;
-						}
-						if (currentPattern->runPattern(InputCycleNumber, Union, MyStream.Pin()))
-						{
-							for (FActionPatternParams& Elem : *AllPatternBinds[Name])
+							if (Elem.ToSeek.buttons.any() || Elem.ToSeek.events.any())
 							{
-								if (Elem.ToSeek.buttons.any() || Elem.ToSeek.events.any())
+								//separating the buttons and events was stupid, but here we are.
+								if (
+									((Elem.ToSeek.buttons & Union.buttons) == Elem.ToSeek.buttons)
+									&&
+									((Elem.ToSeek.events & Union.events) == Elem.ToSeek.events)
+								)
 								{
-									//separating the buttons and events was stupid, but here we are.
-									if (
-										((Elem.ToSeek.buttons & Union.buttons) == Elem.ToSeek.buttons)
-										&&
-										((Elem.ToSeek.events & Union.events) == Elem.ToSeek.events)
-									)
-									{
-										using std::optional;
-										auto time = this->MyStream.Pin()->peek(InputCycleNumber)->SentAt;
-										//THIS IS NOT SUPER SAFE. HAHAHAH. YAY.
-										IN_PARAM_REF_TRIPLEBUFFER_LIFECYLEMANAGED.Add(TPair<ArtilleryTime, FGunKey>(
-												time,
-												Elem.ToFire)
-										);
-									}
+									using std::optional;
+									auto time = this->MyStream.Pin()->peek(InputCycleNumber)->SentAt;
+									//THIS IS NOT SUPER SAFE. HAHAHAH. YAY.
+									IN_PARAM_REF_TRIPLEBUFFER_LIFECYLEMANAGED.Add(TPair<ArtilleryTime, FGunKey>(
+											time,
+											Elem.ToFire)
+									);
 								}
-								else
-								{
-									continue;
-								}
+							}
+							else
+							{
+								continue;
 							}
 						}
 					}
@@ -281,7 +291,7 @@ public:
 		{
 			return ECSParent->ActorByStream(MyKey); // this lets us avoid exposing the key.
 		};
-		
+
 		InputStreamKey GetInputStreamKeyByPlayer(PlayerKey SessionLevelPlayerID)
 		{
 			return 0;
@@ -344,17 +354,17 @@ protected:
 	ActorKey StreamByActor(InputStreamKey Stream);
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
-	TSharedPtr<FConservedInputStream> getNewStreamConstruct();
-	TSharedPtr< TMap<PlayerKey, InputStreamKey>> SessionPlayerToStreamMapping;
+	TSharedPtr<FConservedInputStream> getNewStreamConstruct( PlayerKey ByPlayerConcept);
+	TSharedPtr<TMap<PlayerKey, InputStreamKey>> SessionPlayerToStreamMapping;
 
 public:
 private:
-	TSharedPtr<TMap<InputStreamKey, TSharedPtr<FConservedInputStream>>> InternalMapping;
+	TSharedPtr<TMap<InputStreamKey, TSharedPtr<FConservedInputStream>>> StreamKeyToStreamMapping;
 	TSharedPtr<TMap<ActorKey, FireControlKey>> LocalActorToFireControlMapping;
 	TSharedPtr<TMap<InputStreamKey, ActorKey>> StreamToActorMapping;
 	TSharedPtr<TMap<ActorKey, InputStreamKey>> ActorToStreamMapping;
 	UBristleconeWorldSubsystem* MySquire; // World Subsystems are the last to go, making this a fairly safe idiom. ish.
-	long long monotonkey = 0xb33f - 1; // :/
+	long long monotonkey = 0; // :/
 };
 
 
