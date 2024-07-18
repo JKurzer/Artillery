@@ -120,13 +120,15 @@ void UArtilleryDispatch::RunGuns()
 	if( RequestorQueue_Abilities_TripleBuffer->IsDirty())
 	//Sort is not stable. Sortedness appears to be lost for operations I would not expect.
 	{
+		RequestorQueue_Abilities_TripleBuffer->SwapReadBuffers();
 		for (auto x : RequestorQueue_Abilities_TripleBuffer->Read())
 		{
 			auto fired =  GunToFiringFunctionMapping->Find(x.Value)->ExecuteIfBound(
-				*GunByKey->Find(x.Value)
+				GunByKey->FindRef(x.Value)
 				, false);
 			TotalFirings += fired;
 		}
+		RequestorQueue_Abilities_TripleBuffer->Read().Reset();
 	}
 }
 
