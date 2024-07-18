@@ -130,6 +130,7 @@ public:
 	//TODO: IMPLEMENT THE GUNMAP FROM INSTANCE UNTO CLASS
 	//TODO: REMEMBER TO SAY AMMO A BUNCH
 	FGunKey GetGun(FString GunDefinitionID, FireControlKey MachineKey);
+	FGunKey RegisterExistingGun(FArtilleryGun* toBind, FireControlKey MachineKey);
 	bool ReleaseGun(FGunKey Key, FireControlKey MachineKey);
 
 	void RegisterReady(FGunKey Key, FArtilleryFireGunFromDispatch Machine)

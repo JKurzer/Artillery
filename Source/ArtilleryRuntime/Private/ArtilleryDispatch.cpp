@@ -75,7 +75,6 @@ FGunKey UArtilleryDispatch::GetGun(FString GunDefinitionID, FireControlKey Machi
 	FGunKey Key = FGunKey(GunDefinitionID, monotonkey++);
 	if(PooledGuns.Contains(GunDefinitionID))
 	{
-
 		TSharedPtr<FArtilleryGun> repurposing = *PooledGuns.Find(GunDefinitionID);
 		PooledGuns.RemoveSingle(GunDefinitionID, repurposing);
 		repurposing->FArtilleryGunRebind(Key);
@@ -87,6 +86,14 @@ FGunKey UArtilleryDispatch::GetGun(FString GunDefinitionID, FireControlKey Machi
 		GunByKey->Add(Key, NewGun);
 	}
 	return Key;	
+}
+
+FGunKey UArtilleryDispatch::RegisterExistingGun(FArtilleryGun* ToBind, FireControlKey MachineKey)
+{
+	//TODO: see if this code path needs to evolve to do more sophisticated management of the gunkey itself
+	TSharedPtr<FArtilleryGun> NewGun = MakeShareable(ToBind);
+	GunByKey->Add(ToBind->MyGunKey, NewGun);
+	return ToBind->MyGunKey;	
 }
 
 //returns false if already released.

@@ -151,8 +151,8 @@ public:
 		{
 			FActionBitMask alef;
 			alef.buttons = Intents::A;
-			FMockArtilleryGun DummyGun = FMockArtilleryGun();
-			pushPatternToRunner(IPM::GPress, APlayer::CABLE, alef, DummyGun.MyGunKey);
+			auto key = MyDispatch->RegisterExistingGun(new FMockArtilleryGun(FGunKey("Dummy", 1)), MyKey);
+			pushPatternToRunner(IPM::GPress, APlayer::CABLE, alef, key); 
 		}
 		return ParentKey;
 		//likely want to manage system component bind here by checking for actor parent.
