@@ -45,11 +45,12 @@ TStatId UCanonicalInputStreamECS::GetStatId() const
 TSharedPtr<UCanonicalInputStreamECS::FConservedInputStream> UCanonicalInputStreamECS::getNewStreamConstruct( PlayerKey ByPlayerConcept)
 {
 	
-	TSharedPtr<UCanonicalInputStreamECS::FConservedInputStream> ManagedStream = MakeShareable(
+	TSharedPtr<ArtilleryControlStream> ManagedStream = MakeShareable(
 	new FConservedInputStream(this, ByPlayerConcept) //using++ vs ++would be wrong here. inc then ret.
 	);
+	auto BifurcateOwnership = new TSharedPtr<ArtilleryControlStream>(ManagedStream);
 	SessionPlayerToStreamMapping->Add(ByPlayerConcept, ByPlayerConcept);//this will need, ultimately, to be revised. but for now, it's ordered, and consistent.
-	StreamKeyToStreamMapping->Add(ByPlayerConcept, CopyTemp(ManagedStream));//this is a sin.
+	StreamKeyToStreamMapping->Add(ByPlayerConcept, *BifurcateOwnership);//this is a sin.
 	return ManagedStream; 
 }
 

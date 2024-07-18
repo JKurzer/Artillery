@@ -104,13 +104,14 @@ public:
 	{
 		InputStreamKey MyStream; //and may god have mercy on my soul.
 		friend class FArtilleryBusyWorker;
-
+		UCanonicalInputStreamECS* ECS;
 	public:
-		FConservedInputPatternMatcher(InputStreamKey StreamToLink)
+		FConservedInputPatternMatcher(InputStreamKey StreamToLink, UCanonicalInputStreamECS* ParentECS)
 		{
 			AllPatternBinds = TMap<ArtIPMKey, TSharedPtr<TSet<FActionPatternParams>>>();
 			AllPatternsByName = TMap<ArtIPMKey, IPM::CanonPattern>();
 			MyStream=StreamToLink;
+			ECS = ParentECS;
 		}
 
 		//there's a bunch of reasons we use string_view here, but mostly, it's because we can make them constexprs!
@@ -164,7 +165,6 @@ public:
 			//In fact, it may get "swapped" and so we actually indirect through the ECS, grab the current stream whatever it is
 			//then pin it. at this point, we can be sure that we hold A STREAM that DOES exist.
 			
-			UCanonicalInputStreamECS* ECS = GWorld->GetSubsystem<UCanonicalInputStreamECS>();
 			auto Stream = ECS->GetStream(MyStream);
 			
 			
@@ -236,7 +236,7 @@ public:
 			MyKey = ToBe;
 			MyPatternMatcher
 			= MakeShareable<UCanonicalInputStreamECS::FConservedInputPatternMatcher>(
-			new UCanonicalInputStreamECS::FConservedInputPatternMatcher(ToBe));
+			new UCanonicalInputStreamECS::FConservedInputPatternMatcher(ToBe, ECSParent));
 		}
 
 		//Mom?
