@@ -164,7 +164,7 @@ public:
 			//while the pattern matcher lives in the stream, the stream instance is not guaranteed to persist
 			//In fact, it may get "swapped" and so we actually indirect through the ECS, grab the current stream whatever it is
 			//then pin it. at this point, we can be sure that we hold A STREAM that DOES exist.
-			
+			//TODO: settle on a coherent error handling strategy here.
 			auto Stream = ECS->GetStream(MyStream);
 			
 			
@@ -247,7 +247,6 @@ public:
 	public:
 		TCircularBuffer<FArtilleryShell> CurrentHistory = TCircularBuffer<FArtilleryShell>(InputConservationWindow);
 		InputStreamKey MyKey;
-		//in case, god help us, we need a lookup based on this for something else. that should NOT happen.
 
 
 		//Correct usage procedure is to null check then store a copy.
