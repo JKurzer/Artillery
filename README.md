@@ -38,7 +38,7 @@ This plugin will:
   - HOWEVER clients do FULLY simulate all player characters down to their ability systems.
   - This is because the cloned input from bristlecone is used to literally control those actors, out of band from the replication system.
   - This means that MOST of the time, when attributes and transforms are replicated from the server, they represent no changes or imperceptible changes.
-  - Cues and tags are replicated FROM the server in the PUSH model.
+  - Attributes and tags are replicated FROM the server in the PUSH model using relevance.
   - Cues MUST only have cosmetic effects.
   - Cues that have attribute changes associated with them WILL cause bugs.
   - We will need to enforce an At-Most-Once rule for Cues triggering visual effects, as remote player input representing an action may arrive LONG before the cues it would generate.
