@@ -29,5 +29,5 @@ int main(){
 ```
 
 So. this doesn't output anything. That's _REALLY_ interesting, actually. 
-That means two dyadics within the range 1/1024 to 1024/1024 produce a dyadic that fits in a float when
+That means two dyadics of the form x/1024 produce a dyadic that fits in a float when
 multiplied once. This sounds stupid, but has some ramifications that are interesting for us.
