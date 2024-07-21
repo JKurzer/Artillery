@@ -19,6 +19,11 @@
 			"Name": "ArtilleryRuntime",
 			"Type": "Runtime",
 			"LoadingPhase": "PostEngineInit"
+		},
+		{
+			"Name": "ArtilleryEditor",
+			"Type": "Editor",
+			"LoadingPhase":  "PostEngineInit"
 		}
 	],
 	"Plugins": [

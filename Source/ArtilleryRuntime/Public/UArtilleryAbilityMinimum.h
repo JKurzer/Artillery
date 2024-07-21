@@ -69,6 +69,7 @@
 	// ----------------------------------------------------------------------------------------------------------------
 
 	The K2 functions are wrappers that expose native behavior to the BP graph, and serve a few other functions.
+	Check out https://medium.com/trunk-of-code/how-to-easily-change-default-events-to-fit-your-needs-38e87cec16f0
 */
 
 enum FArtilleryStates
@@ -80,13 +81,17 @@ enum FArtilleryStates
 
 DECLARE_DELEGATE_FourParams(FArtilleryAbilityStateAlert, FArtilleryStates, int, const FGameplayAbilityActorInfo*, const FGameplayAbilityActivationInfo);
 
+
 UCLASS(BlueprintType)
 class ARTILLERYRUNTIME_API UArtilleryPerActorAbilityMinimum : public UGameplayAbility
 {
+	
 	GENERATED_BODY()
 
 	friend struct FArtilleryGun;
+	
 public:
+	
 	FArtilleryAbilityStateAlert GunBinder;
 	//ALMOST EVERYTHING THAT IS INTERESTING HAPPENS HERE RIGHT NOW.
 	//ONLY ATTRIBUTES ARE REPLICATED. _AGAIN_. ONLY ATTRIBUTES ARE REPLICATED.
@@ -177,6 +182,7 @@ public:
 	virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility) override;
 
 private:
+
 
 	//these have no function in the Artillery ability sequence.
 	void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override {};

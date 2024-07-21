@@ -171,8 +171,7 @@ public:
 	// FGameplayAbilitySpec and FGameplayAbilitySpecDef, as well as Handle.
 	// I'm deferring the solve for how we use them for now, in a desperate effort to
 	// make sure we can preserve as much of the ability framework as possible
-	// but spec management is going to be mission critical for determinism,
-	// so we may need to subclass the Ability Component. I'm not looking forward to that.
+	// but spec management is going to be mission critical for determinism
 	void FireGun(TSharedPtr<FArtilleryGun> Gun, bool InputAlreadyUsedOnce)
 	{
 		//frig.

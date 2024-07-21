@@ -52,12 +52,11 @@ void UArtilleryPerActorAbilityMinimum::ActivateAbility(const FGameplayAbilitySpe
 	if (TriggerEventData && bHasBlueprintActivateFromEvent)
 	{
 		// A Blueprinted ActivateAbility function must call CommitAbility somewhere in its execution chain.
-		K2_ActivateAbilityFromEvent(*TriggerEventData);
+		
 	}
 	else if (bHasBlueprintActivate)
 	{
-		// A Blueprinted ActivateAbility function must call CommitAbility somewhere in its execution chain.
-		K2_ActivateAbility();
+		
 	}
 	else if (bHasBlueprintActivateFromEvent)
 	{
@@ -72,7 +71,7 @@ void UArtilleryPerActorAbilityMinimum::ActivateAbility(const FGameplayAbilitySpe
 		constexpr bool bReplicateEndAbility = false;
 		constexpr bool bWasCancelled = true;
 		EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-		// Per the original code from UGA, we'll need to expand this significantly.
+		// Per the original code from UGA, we may need to expand this significantly.
 		
 		//	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 		//	{			
