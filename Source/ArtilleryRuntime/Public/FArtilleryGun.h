@@ -1,4 +1,4 @@
- // Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -11,8 +11,6 @@
 #include "Abilities/GameplayAbility.h"
 #include "UArtilleryAbilityMinimum.h"
 #include "FArtilleryGun.generated.h"
-
-
 
 
 /**
@@ -29,7 +27,7 @@
  * if we want to get serious about this.
  */
 USTRUCT(BlueprintType)
-struct ARTILLERYRUNTIME_API FArtilleryGun 
+struct ARTILLERYRUNTIME_API FArtilleryGun
 {
 	GENERATED_BODY()
 
@@ -58,13 +56,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UArtilleryPerActorAbilityMinimum> FailedFireCosmetic;
-	
+
 	//we use the GunBinder delegate to link the MECHANICAL abilities to phases.
 	//cosmetics don't get linked the same way.
 	FArtilleryGun(const FGunKey& KeyFromDispatch)
 	{
 		MyGunKey = KeyFromDispatch;
-		
+
 		//assign gunkey
 		Prefire->MyGunKey = MyGunKey;
 		PrefireCosmetic->MyGunKey = MyGunKey;
@@ -88,16 +86,12 @@ public:
 		bool RerunDueToReconcile = false,
 		int DallyFramesToOmit = 0)
 	{
-		// Delegate signature:
-		// DECLARE_DELEGATE_FiveParamsFArtilleryAbilityStateAlert,
-		// FArtilleryStates,
-		// int,
-		// const FGameplayAbilityActorInfo*,
-		// const FGameplayAbilityActivationInfo,
-		// const FGameplayEventData* 
-		Prefire->GunBinder.BindRaw(this, &FArtilleryGun::FireGun, RerunDueToReconcile, TriggerEventData);
-		Fire->GunBinder.BindRaw(this, &FArtilleryGun::PostFireGun, RerunDueToReconcile, TriggerEventData);
-		Prefire->CallActivateAbility(FGameplayAbilitySpecHandle(), ActorInfo, ActivationInfo, nullptr, TriggerEventData);
+		// Delegate type:
+		// DECLARE_DELEGATE_FiveParams FArtilleryAbilityStateAlert
+		Prefire->GunBinder.BindRaw(this, &FArtilleryGun::FireGun, RerunDueToReconcile, TriggerEventData, Handle);
+		Fire->GunBinder.BindRaw(this, &FArtilleryGun::PostFireGun, RerunDueToReconcile, TriggerEventData, Handle);
+		Prefire->CallActivateAbility(FGameplayAbilitySpecHandle(), ActorInfo, ActivationInfo, nullptr,
+		                             TriggerEventData);
 		if (!RerunDueToReconcile)
 		{
 			PrefireCosmetic->CallActivateAbility(Handle, ActorInfo, ActivationInfo, nullptr, TriggerEventData);
@@ -124,7 +118,8 @@ public:
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		bool RerunDueToReconcile,
-		const FGameplayEventData* TriggerEventData) const
+		const FGameplayEventData* TriggerEventData,
+		FGameplayAbilitySpecHandle Handle) const
 	{
 		if (OutcomeStates == FArtilleryStates::Fired)
 		{
@@ -155,7 +150,8 @@ public:
 		const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		bool RerunDueToReconcile,
-		const FGameplayEventData* TriggerEventData) const
+		const FGameplayEventData* TriggerEventData,
+		FGameplayAbilitySpecHandle Handle) const
 	{
 		if (OutcomeStates == FArtilleryStates::Fired)
 		{
@@ -197,9 +193,8 @@ public:
 	{
 		MyGunKey = Default;
 	}
-	private:
+
+private:
 	//Our debug value remains M6D.
 	static const inline FGunKey Default = FGunKey("M6D", UINT64_MAX);
-
-
 };
