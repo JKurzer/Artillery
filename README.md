@@ -67,6 +67,6 @@ Artillery will also serve to insulate our other tech from spaghetti usage of GAS
 - [Data Registries](https://dev.epicgames.com/documentation/en-us/unreal-engine/data-registries-in-unreal-engine)
 - [How to do damage](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#433-meta-attributes) 
 - [Procedural Animation With Character](https://www.youtube.com/watch?v=KPoeNZZ6H4s) - useful for missiles, turning turrets, etc.
-- [Momentum in Sonic](https://www.youtube.com/watch?v=w1CEN5gVs5Q)
-- [JUICE IT OR LOSE IT](https://www.youtube.com/watch?v=Fy0aCDmgnxg)
+- [Momentum in Sonic](https://www.youtube.com/watch?v=w1CEN5gVs5Q) - our goal is to make something like this easy.
+- [JUICE IT OR LOSE IT](https://www.youtube.com/watch?v=Fy0aCDmgnxg) - really useful for thinking about iterating on feel.
 - [Tech Design In Animation](https://www.youtube.com/watch?v=ueEmiDM94IE)
