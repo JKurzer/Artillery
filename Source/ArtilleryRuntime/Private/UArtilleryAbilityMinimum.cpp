@@ -51,7 +51,6 @@ void UArtilleryPerActorAbilityMinimum::ActivateAbility(const FGameplayAbilitySpe
 
 	if (TriggerEventData)
 	{
-		// A Blueprinted ActivateAbility function must call CommitAbility somewhere in its execution chain.
 		K2_ActivateViaArtillery(*ActorInfo);
 	}
 	else if (bHasBlueprintActivateFromEvent)

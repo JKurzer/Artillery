@@ -109,13 +109,13 @@ public:
 	//InstancingPolicy is ALWAYS EGameplayAbilityInstancingPolicy::NonInstanced for artillery abilities.
 	//Storing state outside of tags and game simulation attributes will not be replicated and will cause bugs during rollback.
 	//Only implementation graphs in THIS function are called by artillery. Anything else will be ignored.
+	//You must call end ability and commit ability as appropriate, or execution will not continue.
 	UFUNCTION(BlueprintNativeEvent, Category = Ability, DisplayName = "Artillery Ability Implementation", meta=(ScriptName = "ArtilleryActivation"))
-	int K2_ActivateViaArtillery(const FGameplayAbilityActorInfo& ActorInfo);
+	void K2_ActivateViaArtillery(const FGameplayAbilityActorInfo& ActorInfo);
 
 	//Default behavior, override to use C++!
-	virtual int K2_ActivateViaArtillery_Implementation(const FGameplayAbilityActorInfo& ActorInfo)
+	virtual void K2_ActivateViaArtillery_Implementation(const FGameplayAbilityActorInfo& ActorInfo)
 	{
-		return 0;
 	}
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gun")
