@@ -1,5 +1,5 @@
-# Artillery: Guns & Abilities Plugin for Lions
-Determinism, threaded input processing, and access management primitives married to a core set of basic tools used to bind to a weapon or character actor in a compositional and elegant way, compatible with GAS. Artillery provides, as of right now:
+# Artillery: Guns & Abilities Plugin 
+Determinism, threaded input processing, and access management primitives married to a core set of basic tools used to bind to a weapon or character actor in a compositional and elegant way, compatible with GAS while simplifying its usage considerably. Artillery provides, as of right now:
 
 - Integration with GAS through ArtilleryGuns
 - Separation of game simulation ticks from frames
@@ -67,6 +67,6 @@ Artillery will also serve to insulate our other tech from spaghetti usage of GAS
 - [Data Registries](https://dev.epicgames.com/documentation/en-us/unreal-engine/data-registries-in-unreal-engine)
 - [How to do damage](https://github.com/tranek/GASDocumentation?tab=readme-ov-file#433-meta-attributes) 
 - [Procedural Animation With Character](https://www.youtube.com/watch?v=KPoeNZZ6H4s) - useful for missiles, turning turrets, etc.
-- [Momentum in Sonic](https://www.youtube.com/watch?v=w1CEN5gVs5Q)
-- [JUICE IT OR LOSE IT](https://www.youtube.com/watch?v=Fy0aCDmgnxg)
+- [Momentum in Sonic](https://www.youtube.com/watch?v=w1CEN5gVs5Q) - our goal is to make something like this easy.
+- [JUICE IT OR LOSE IT](https://www.youtube.com/watch?v=Fy0aCDmgnxg) - really useful for thinking about iterating on feel.
 - [Tech Design In Animation](https://www.youtube.com/watch?v=ueEmiDM94IE)
