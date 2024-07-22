@@ -27,6 +27,10 @@ class FArtilleryBusyWorker : public FRunnable {
 	//and the dispatcher that owns this memory MUST manage this lifecycle.
 	TSharedPtr<BufferedMoveEvents>  RequestorQueue_Locomos_TripleBuffer;
 	TSharedPtr<BufferedEvents> RequestorQueue_Abilities_TripleBuffer;
+
+	//this is owned by the dispatch and used by busy worker to add ticklites to the ticklite set.
+	TSharedPtr<BufferedTicklites> RequestorQueue_Add_Ticklites;
+	FSharedEventRef StartTicklitesSim;
 	
 	virtual bool Init() override;
 	virtual uint32 Run() override;

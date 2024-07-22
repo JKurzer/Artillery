@@ -49,8 +49,101 @@ namespace Arty
 
 namespace Arty
 {
-	typedef  TArray<TPair<BristleTime,FGunKey>> EventBuffer;
+	typedef uint64_t ArtilleryDataSetKey;
+	typedef ArtilleryDataSetKey ADSKey;
+	typedef uint64_t TickliteKey;
+	
+	DECLARE_DELEGATE(CalculateTicklite);
+	//performs the actual data transformations.
+	DECLARE_DELEGATE(ApplyTicklite);
+	//resets any data related to apply
+	DECLARE_DELEGATE(ResetTicklike)
+	DECLARE_DELEGATE_TwoParams(NormalTicklite, ActorKey, ADSKey);
+	
+	enum TicklitePhase
+	{
+		Early = 0,
+		Normal = 1024,
+		Late = 2048
+	};
+	enum TickliteCadence
+	{
+		Critical = 2,
+		Tick = 4,
+		Lite = 10,
+		Slow = 60,
+		VisiblySlow = 120
+	};
+	enum TickliteLifecycles
+	{
+		Dropdead, //expires on a timer
+		OwnerTag, //while the owner has a tag. any key can own a ticklite but please don't use gunkeys. 
+		Owner	  //when the owner is released (fiddly)
+	};
+
+	namespace Ticklites
+	{
+	struct TicklikeMemoryBlock
+	{
+		TickliteCadence Cadence = TickliteCadence::Lite;
+		TicklitePhase RunGroup = TicklitePhase::Normal;
+		void* Core;
+		void* MemoryBlock;
+		TickliteLifecycles Life = TickliteLifecycles::Dropdead;
+		uint64_t MadeStamp = 0;
+	};
+	//in all its ugliness. i believe there's a newer, more elegant way to do this, but...
+	struct TickLikePrototype : TicklikeMemoryBlock
+	{
+		
+		virtual void CalculateTickable() = 0;
+		virtual void ApplyTickable() = 0;
+		virtual void ReturnToPool() = 0;
+		virtual ~TickLikePrototype() = 0;
+	};
+	
+	template <typename T, typename MyTIO>
+	struct Ticklite : public TickLikePrototype
+	{
+
+		using Ticklite_Impl = T;
+		using Impl_InOut = MyTIO;
+		void CalculateTickable()
+		override
+		{
+			static_cast<Impl_InOut*>(MemoryBlock)->Reset();
+			static_cast<Impl_InOut*>(MemoryBlock) = static_cast<Ticklite_Impl*>(Core)->Calculate();
+		}
+		void ApplyTickable()
+		override
+		{
+			static_cast<Ticklite_Impl*>(Core)->Apply(
+			static_cast<Impl_InOut*>(MemoryBlock)
+			);
+		}
+		void ReturnToPool()
+		override
+		{
+			static_cast<Ticklite_Impl*>(Core)->Reset();
+			static_cast<Impl_InOut*>(MemoryBlock)->Reset();
+		}
+		~Ticklite()
+		override
+		{
+			delete static_cast<Ticklite_Impl*>(Core);
+			delete static_cast<Ticklite_Impl*>(MemoryBlock);
+		}
+		//unfortunately, there's not a good way to avoid this, because we
+		//need to be able to _reverse_ expiration when rolling back.
+	};
+}
+
+	typedef TArray<Ticklites::TickLikePrototype> TickliteGroup;
+	typedef TArray<TPair<BristleTime,FGunKey>> EventBuffer;
 	typedef TTripleBuffer<EventBuffer> BufferedEvents;
+	typedef TPair<ArtilleryTime, Ticklites::TickLikePrototype> StampLitePair;
+	typedef TArray<StampLitePair> TickliteBuffer;
+	typedef TTripleBuffer<TickliteBuffer> BufferedTicklites;
 }
 
 //PATH TO DATA TABLES
