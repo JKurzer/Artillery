@@ -31,8 +31,11 @@ class FArtilleryBusyWorker : public FRunnable {
 	//this is owned by the dispatch and used by busy worker to add ticklites to the ticklite set.
 	TSharedPtr<BufferedTicklites> RequestorQueue_Add_Ticklites;
 	FSharedEventRef StartTicklitesSim;
+	FSharedEventRef StartTicklitesApply;
 	
 	virtual bool Init() override;
+	void RunStandardFrameSim(bool& missedPrior, uint64_t& currentIndexCabling, bool& burstDropDetected, TheCone::PacketElement& current,
+	            bool& RemoteInput) const;
 	virtual uint32 Run() override;
 	virtual void Exit() override;
 	virtual void Stop() override;

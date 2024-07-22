@@ -97,6 +97,7 @@ namespace Arty
 	{
 		
 		virtual void CalculateTickable() = 0;
+		virtual bool ShouldExpireTickable() = 0;
 		virtual void ApplyTickable() = 0;
 		virtual void ReturnToPool() = 0;
 		virtual ~TickLikePrototype() = 0;
@@ -126,6 +127,10 @@ namespace Arty
 		{
 			static_cast<Ticklite_Impl*>(Core)->Reset();
 			static_cast<Impl_InOut*>(MemoryBlock)->Reset();
+		}
+		virtual bool ShouldExpireTickable() override
+		{
+			return static_cast<Ticklite_Impl*>(Core)->CheckForExpiration();
 		}
 		~Ticklite()
 		override

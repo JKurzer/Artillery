@@ -89,14 +89,16 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	}
 	
 	FSharedEventRef StartTicklitesSim;
+	FSharedEventRef StartTicklitesApply;
 	public:
 	FArtilleryBusyWorker();
 	virtual ~FArtilleryTicklitesWorker() override
 	{
 		UE_LOG(LogTemp, Display, TEXT("Artillery: Destructing SimTicklites thread."));
 	};
-	void FBristleconeSender::SetWakeSender(FSharedEventRef NewWakeupEvent) {
-		StartTicklitesSim = NewWakeupEvent;
+	void FBristleconeSender::SetWakeSender(FSharedEventRef BeginSimEvent, FSharedEventRef BeginApplyEvent) {
+		StartTicklitesSim = BeginSimEvent;
+		StartTicklitesApply = BeginApplyEvent;
 	}
 
 	virtual bool QueueRollback()
@@ -123,17 +125,41 @@ class FArtilleryTicklitesWorker : public FRunnable {
 		while(running) {
 			for(auto& x : Group1)
 			{
-				x.CalculateTickable();
+				if( x.ShouldExpireTickable())
+				{
+					//TODO: swap from arrays to slab or true pool?
+					//Can't implement until we're sure that they _tick_
+				}
+				else
+				{
+					x.CalculateTickable();
+				}
 			}
 			for (auto& x : Group2)
 			{
-				x.CalculateTickable();
+				if( x.ShouldExpireTickable())
+				{
+					//TODO: swap from arrays to slab or true pool?
+					//Can't implement until we're sure that they _tick_
+				}
+				else
+				{
+					x.CalculateTickable();
+				}
 			}
 			for (auto& x : Group2)
 			{
-				x.CalculateTickable();
+				if( x.ShouldExpireTickable())
+				{
+					//TODO: swap from arrays to slab or true pool?
+					//Can't implement until we're sure that they _tick_
+				}
+				else
+				{
+					x.CalculateTickable();
+				}
 			}
-			StartTicklitesSim->Wait();
+			StartTicklitesApply->Wait();
 			for (auto& x : Group2)
 			{
 				x.ApplyTickable();
