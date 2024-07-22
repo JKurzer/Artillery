@@ -91,7 +91,8 @@ class ARTILLERYRUNTIME_API UArtilleryPerActorAbilityMinimum : public UGameplayAb
 	friend struct FArtilleryGun;
 	
 public:
-	
+	//As you can see, they all call through to commit ability.
+
 	FArtilleryAbilityStateAlert GunBinder;
 	//ALMOST EVERYTHING THAT IS INTERESTING HAPPENS HERE RIGHT NOW.
 	//ONLY ATTRIBUTES ARE REPLICATED. _AGAIN_. ONLY ATTRIBUTES ARE REPLICATED.
@@ -105,7 +106,11 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Latency Hiding")
 	int AvailableDallyFrames = 0;
-	//EGameplayAbilityInstancingPolicy::Type InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
+	//InstancingPolicy is ALWAYS EGameplayAbilityInstancingPolicy::NonInstanced for artillery abilities.
+	//Storing state outside of tags and game simulation attributes will not be replicated and will cause bugs during rollback.
+	//Only implementation graphs in THIS function are called by artillery. Anything else will be ignored.
+	UFUNCTION(BlueprintImplementableEvent, Category = Ability, DisplayName = "Artillery Ability Implementation", meta=(ScriptName = "ArtilleryActivation"))
+	void K2_ActivateViaArtillery(const FGameplayAbilityActorInfo& ActorInfo);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gun")
 	FGunKey MyGunKey;
@@ -151,6 +156,7 @@ public:
 	//virtual bool DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const;
 	//virtual bool IsBlockingOtherAbilities() const;
 
+	
 /**
 	 * The main function that defines what an ability does.
 	 *  -This function graph MUST call CommitAbility

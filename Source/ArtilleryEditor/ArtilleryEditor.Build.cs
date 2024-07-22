@@ -58,7 +58,9 @@ public class ArtilleryEditor : ModuleRules
                 "SlateCore",
 				"GameplayAbilities",
 				"Bristlecone",
-				"ArtilleryRuntime"
+				"ArtilleryRuntime",
+				"Kismet",
+				"UnrealEd"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -75,7 +77,10 @@ public class ArtilleryEditor : ModuleRules
 				"GameplayAbilities",
 				"GameplayTasks",
 				"GameplayTags",
-				"Bristlecone"
+				"ArtilleryRuntime",
+				"Bristlecone",
+				"Kismet",
+				"UnrealEd"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

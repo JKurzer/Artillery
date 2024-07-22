@@ -44,19 +44,15 @@ bool UGameplayAbility::K2_CommitAbilityCost(bool BroadcastCommitEvent)
 	return CommitAbilityCost(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
 }*/
 
-//As you can see, they all call through to commit ability.
+
 
 void UArtilleryPerActorAbilityMinimum::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 
-	if (TriggerEventData && bHasBlueprintActivateFromEvent)
+	if (TriggerEventData)
 	{
 		// A Blueprinted ActivateAbility function must call CommitAbility somewhere in its execution chain.
-		
-	}
-	else if (bHasBlueprintActivate)
-	{
-		
+		K2_ActivateViaArtillery(*ActorInfo);
 	}
 	else if (bHasBlueprintActivateFromEvent)
 	{
