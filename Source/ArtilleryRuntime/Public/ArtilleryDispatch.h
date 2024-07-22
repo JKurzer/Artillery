@@ -13,6 +13,8 @@
 #include "LocomotionParams.h"
 
 #include <map>
+
+#include "FArtilleryTicklitesThread.h"
 #include "ArtilleryDispatch.generated.h"
 
 
@@ -161,5 +163,14 @@ private:
 	//need to be split up. On the other hand, we want each loop iteration to run for around 2-4 milliseconds.
 	//this is quite a bit.
 	FArtilleryBusyWorker ArtilleryAsyncWorldSim;
+	//This runs the tickables alongside the worldsim, ticking each time the worldsim ticks
+	//but NOT using locks. So the processing is totally independent. This is extremely fast,
+	//extremely powerful, and the reason why we don't use ticklites when we don't need to.
+	//it's dangerous as __________ _____________________ _ _________.
+	
+	FArtilleryTicklitesWorker ArtilleryTicklitesWorker_LockstepToWorldSim;
 	TUniquePtr<FRunnableThread> WorldSim_Thread;
+	TUniquePtr<FRunnableThread> WorldSim_Ticklites_Thread;
+	FSharedEventRef StartTicklitesSim;
+	FSharedEventRef StartTicklitesApply;
 };

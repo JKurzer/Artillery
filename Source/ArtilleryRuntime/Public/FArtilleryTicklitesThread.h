@@ -58,7 +58,7 @@
 class FArtilleryTicklitesWorker : public FRunnable {
 
 	//This isn't super safe but like busy worker, ticklites only runs in one spot.
-	
+	friend class UArtilleryDispatch;
 	TSharedPtr<BufferedTicklites> RequestorQueue_Add_Ticklites;
 	TickliteGroup Group1;
 	TickliteGroup Group2;
@@ -87,26 +87,21 @@ class FArtilleryTicklitesWorker : public FRunnable {
 		}
 		return false;
 	}
-	
+	protected:
 	FSharedEventRef StartTicklitesSim;
 	FSharedEventRef StartTicklitesApply;
 	public:
-	FArtilleryBusyWorker();
+	FArtilleryTicklitesWorker();
 	virtual ~FArtilleryTicklitesWorker() override
 	{
 		UE_LOG(LogTemp, Display, TEXT("Artillery: Destructing SimTicklites thread."));
 	};
-	void FBristleconeSender::SetWakeSender(FSharedEventRef BeginSimEvent, FSharedEventRef BeginApplyEvent) {
-		StartTicklitesSim = BeginSimEvent;
-		StartTicklitesApply = BeginApplyEvent;
-	}
-
 	virtual bool QueueRollback()
 	{
 		//rollback is not implemented yet, but works by removing ticklikes added after the rollback's timestamp.
 		//then adding back in any expired ticklikes that should be revived, clearing the current tick, and beginning resim.
 		//Implementing this will not be easy, but it will suck a lot less than trying to do this with gameplay effects.
-		//This is one reason we advocate STRONGLY for the use of keys over references, as references to memmory location
+		//This is one reason we advocate STRONGLY for the use of KEYS over references, as references to memmory location
 		//are not durable across rollbacks.
 		throw; 
 	}
@@ -160,6 +155,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 				}
 			}
 			StartTicklitesApply->Wait();
+			StartTicklitesApply->Reset(); // we can run long on sim, not on apply.
 			for (auto& x : Group2)
 			{
 				x.ApplyTickable();
@@ -173,6 +169,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 				x.ApplyTickable();
 			}
 			StartTicklitesSim->Wait();
+			StartTicklitesSim->Reset();
 		}
 	
 		return 0;

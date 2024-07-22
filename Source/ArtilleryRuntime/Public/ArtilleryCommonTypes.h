@@ -102,7 +102,15 @@ namespace Arty
 		virtual void ReturnToPool() = 0;
 		virtual ~TickLikePrototype() = 0;
 	};
-	
+		
+		//conserved attributes mean that we always have a shadow copy ready.
+		// a successful Calculate function should reference the attribute not by most recent, but by exact index.
+		//good support for this isn't in yet, but during our early work, the conserved attributes will still
+		//protect us from partial memory commits and similar that might cause truly weird bugs.
+		//instead, we may just run tickables "across" ticks right now. That's obviously bad, and I'm thinking
+		//about solutions, but right now, what I've done is engineer some flex in so that when we understand
+		//the best way forward on that front, we can cohere the design down. this follows our
+		//measure, cut, fit, finish policy, as this is still in the _measure_ phase.
 	template <typename T, typename MyTIO>
 	struct Ticklite : public TickLikePrototype
 	{
@@ -113,6 +121,9 @@ namespace Arty
 		override
 		{
 			static_cast<Impl_InOut*>(MemoryBlock)->Reset();
+			//as always, the use of keys over references will make rollback far far easier.
+			//when performing operations here, do not expect floating point accuracy above 16 ulps.
+			//If you do, you will get fucked sooner or later. I guarantee it.
 			static_cast<Impl_InOut*>(MemoryBlock) = static_cast<Ticklite_Impl*>(Core)->Calculate();
 		}
 		void ApplyTickable()

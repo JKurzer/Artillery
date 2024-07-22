@@ -170,31 +170,64 @@ uint32 FArtilleryBusyWorker::Run()
 	uint64_t currentIndexCabling = 0;
 	uint64_t currentIndexBristlecone = 0;
 	bool burstDropDetected = false;
+	bool sent = false;
+	uint64_t seqNumber = 0;
+	//Hi! Jake here! Reminding you that this will CYCLE
+	//That's known. Isn't that fun? :) Don't reorder these, by the way.
+	uint32_t lastPollTime = ContingentInputECSLinkage->Now();
+	uint32_t lsbTime = ContingentInputECSLinkage->Now();
+	constexpr uint32_t sampleHertz = TheCone::CablingSampleHertz;
+	constexpr uint32_t sendHertz = LongboySendHertz;
+	constexpr uint32_t sendHertzFactor = sampleHertz/sendHertz; 
+	constexpr uint32_t periodInNano = 1000000 / sampleHertz; //swap to microseconds. standardizing.
 	//you cannot reorder these. it is a magic ordering put in place for a hack. 
 	CablingControlStream = ContingentInputECSLinkage->getNewStreamConstruct(APlayer::CABLE);
 	BristleconeControlStream = ContingentInputECSLinkage->getNewStreamConstruct(APlayer::ECHO);
 	while (running)
 	{
-		
-		StartTicklitesApply->Reset();
-		StartTicklitesSim->Trigger();
-		currentIndexCabling = CablingControlStream->highestInput - 1;
-		currentIndexBristlecone = BristleconeControlStream->highestInput - 1;
-		TheCone::PacketElement current = 0;
-		bool RemoteInput = false;
+		if ((lastPollTime + periodInNano) <= lsbTime)
+		{
+			lastPollTime = lsbTime;
+			if (!sent &&
+					(
+					InputRingBuffer != nullptr && !InputRingBuffer.Get()->IsEmpty()
+					|| seqNumber % sendHertzFactor == 0 //last chance. Not good.
+					)
+				)
+			{
+				//just in case. TODO: make sure this doesn't CAUSE a bug.
+				StartTicklitesApply->Reset();
+				StartTicklitesSim->Trigger();
+				currentIndexCabling = CablingControlStream->highestInput - 1;
+				currentIndexBristlecone = BristleconeControlStream->highestInput - 1;
+				TheCone::PacketElement current = 0;
+				bool RemoteInput = false;
 
-		RunStandardFrameSim(missedPrior, currentIndexCabling, burstDropDetected, current, RemoteInput);
-		/*
-		*
-		* Jolt will go here? No point in updating if we need to reconcile first.
-		* Note: We also have Iris performing intermittent state stomps to recover from more serious desyncs.
-		* Ultimately, rollback can never solve everything. The windows just get too wide.
-		* 
-		*
-		*/
-		StartTicklitesApply->Trigger();
-		StartTicklitesSim->Reset();
+				RunStandardFrameSim(missedPrior, currentIndexCabling, burstDropDetected, current, RemoteInput);
+				/*
+				*
+				* Jolt will go here? No point in updating if we need to reconcile first.
+				* Note: We also have Iris performing intermittent state stomps to recover from more serious desyncs.
+				* Ultimately, rollback can never solve everything. The windows just get too wide.
+				* 
+				*
+				*/
+				sent = true;
+				//you'll note we don't reset sim. Sim is reset in the other thread,
+				//such that we get only one swing through per trigger.
+				//We DO reset Apply, which should not cause anything drastic, but can
+				//lead to an apply getting skipped if things are truly on fire.
+				StartTicklitesApply->Trigger();
+			}
+			++seqNumber;
+		}
+		if ((seqNumber % sendHertzFactor) == 0)
+		{
+			sent = false;
+		}
+
 		std::this_thread::yield();
+		
 	}
 	return 0;
 }

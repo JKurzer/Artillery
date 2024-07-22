@@ -21,6 +21,11 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		// getting input from Bristle
 		UseNetworkInput.store(true);
 		UBristleconeWorldSubsystem* MySquire = GetWorld()->GetSubsystem<UBristleconeWorldSubsystem>();
+		ArtilleryTicklitesWorker_LockstepToWorldSim.DispatchOwner = this;
+		ArtilleryTicklitesWorker_LockstepToWorldSim.StartTicklitesApply = StartTicklitesApply;
+		ArtilleryTicklitesWorker_LockstepToWorldSim.StartTicklitesApply = StartTicklitesSim;
+		ArtilleryAsyncWorldSim.StartTicklitesApply = StartTicklitesApply;
+		ArtilleryAsyncWorldSim.StartTicklitesSim = StartTicklitesSim;
 		ArtilleryAsyncWorldSim.InputRingBuffer = MakeShareable(new PacketQ(256));
 		MySquire->QueueOfReceived = ArtilleryAsyncWorldSim.InputRingBuffer;
 		UCablingWorldSubsystem* DirectLocalInputSystem = GetWorld()->GetSubsystem<UCablingWorldSubsystem>();
@@ -32,7 +37,10 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		//TARRAY IS A VALUE TYPE. SO IS TRIPLEBUFF I THINK.
 		ArtilleryAsyncWorldSim.RequestorQueue_Abilities_TripleBuffer = RequestorQueue_Abilities_TripleBuffer;//OH BOY. REFERENCE TIME. GWAHAHAHA.
 		ArtilleryAsyncWorldSim.RequestorQueue_Locomos_TripleBuffer = RequestorQueue_Locomos_TripleBuffer;
+		
+		
 		WorldSim_Thread.Reset(FRunnableThread::Create(&ArtilleryAsyncWorldSim, TEXT("ARTILLERY_ONLINE.")));
+		WorldSim_Ticklites_Thread.Reset(FRunnableThread::Create(&ArtilleryTicklitesWorker_LockstepToWorldSim ,TEXT("BARRAGE_ONLINE.")));
 	}
 
 
