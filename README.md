@@ -2,6 +2,7 @@
 Determinism, threaded input processing, and access management primitives married to a core set of basic tools used to bind to a weapon or character actor in a compositional and elegant way, compatible with GAS while simplifying its usage considerably. Artillery provides, as of right now:
 
 - Integration with GAS through ArtilleryGuns
+- Elision of issues around complexity and reuse through ArtilleryGuns & DDG
 - Separation of game simulation ticks from frames
 - Separation of game simulation ticks from the game thread
 - Threaded input processing with support for strong timesync
