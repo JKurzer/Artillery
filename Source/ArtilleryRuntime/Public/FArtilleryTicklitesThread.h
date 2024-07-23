@@ -198,6 +198,8 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	
 private:
 	void Cleanup()
-	{};
+	{
+		running = false;
+	};
 	bool running;
 };

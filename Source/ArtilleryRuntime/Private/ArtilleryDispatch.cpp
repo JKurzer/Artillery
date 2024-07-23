@@ -53,12 +53,22 @@ void UArtilleryDispatch::Deinitialize()
 {
 
 	Super::Deinitialize();
+	StartTicklitesSim->Trigger();
+	ArtilleryTicklitesWorker_LockstepToWorldSim.running = false;
 	ArtilleryAsyncWorldSim.Stop();
-	//We have to wait.
+	StartTicklitesApply->Trigger();
+	ArtilleryTicklitesWorker_LockstepToWorldSim.Stop();
+	//We have to wait on worldsim, but we actually can just hard kill ticklites.
 	if(WorldSim_Thread.IsValid())
 	{
 		//if we don't wait, this will crash when the truth of the matter is referenced. That's just the facts.
 		WorldSim_Thread->Kill(true);
+	}
+	if(WorldSim_Ticklites_Thread.IsValid())
+	{
+		//otoh, we need to hard kill the ticklites, so far as I can tell, and keep rolling. This should actually generally
+		//not proc.
+		WorldSim_Ticklites_Thread->Kill(false);
 	}
 }
 

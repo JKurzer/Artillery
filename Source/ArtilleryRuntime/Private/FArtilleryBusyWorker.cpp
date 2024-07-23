@@ -159,7 +159,6 @@ uint32 FArtilleryBusyWorker::Run()
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Running Artillery thread"));
 	if (RequestorQueue_Abilities_TripleBuffer == nullptr)
 	{
-		//oh no you bloody don't.
 #ifdef UE_BUILD_SHIPPING
 		return -1;
 #else
@@ -171,7 +170,9 @@ uint32 FArtilleryBusyWorker::Run()
 	uint64_t currentIndexBristlecone = 0;
 	bool burstDropDetected = false;
 	bool sent = false;
-	uint64_t seqNumber = 0;
+	//TODO: remember why this needs to be an int. Overflow would take a match running for 1000 hours.
+	//if you wanna use this for a really long lived session, you'll need to fix it.
+	int seqNumber = 0;
 	//Hi! Jake here! Reminding you that this will CYCLE
 	//That's known. Isn't that fun? :) Don't reorder these, by the way.
 	uint32_t lastPollTime = ContingentInputECSLinkage->Now();
@@ -227,7 +228,7 @@ uint32 FArtilleryBusyWorker::Run()
 		}
 
 		std::this_thread::yield();
-		
+		lsbTime = ContingentInputECSLinkage->Now();
 	}
 	return 0;
 }
