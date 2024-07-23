@@ -100,7 +100,11 @@ namespace Arty
 		virtual bool ShouldExpireTickable() = 0;
 		virtual void ApplyTickable() = 0;
 		virtual void ReturnToPool() = 0;
-		virtual ~TickLikePrototype() = 0;
+		virtual ~TickLikePrototype()
+		{
+			delete Core;
+			delete MemoryBlock;
+		};
 	};
 		
 		//conserved attributes mean that we always have a shadow copy ready.
@@ -143,7 +147,8 @@ namespace Arty
 		{
 			return static_cast<Ticklite_Impl*>(Core)->CheckForExpiration();
 		}
-		~Ticklite()
+
+		virtual ~Ticklite()
 		override
 		{
 			delete static_cast<Ticklite_Impl*>(Core);

@@ -73,6 +73,8 @@ public:
 		FailedFireCosmetic->MyGunKey = MyGunKey;
 	};
 
+	virtual ~FArtilleryGun()
+	{}
 
 	//I'm sick and tired of the endless layers of abstraction.
 	//Here's how it works. we fire the abilities from the gun.

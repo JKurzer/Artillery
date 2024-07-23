@@ -91,7 +91,10 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	FSharedEventRef StartTicklitesSim;
 	FSharedEventRef StartTicklitesApply;
 	public:
-	FArtilleryTicklitesWorker();
+	FArtilleryTicklitesWorker(): DispatchOwner(nullptr), running(false)
+	{
+	}
+
 	virtual ~FArtilleryTicklitesWorker() override
 	{
 		UE_LOG(LogTemp, Display, TEXT("Artillery: Destructing SimTicklites thread."));
@@ -194,6 +197,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	
 	
 private:
-	void Cleanup();
+	void Cleanup()
+	{};
 	bool running;
 };
