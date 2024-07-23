@@ -95,12 +95,13 @@ FGunKey UArtilleryDispatch::GetGun(FString GunDefinitionID, FireControlKey Machi
 	{
 		TSharedPtr<FArtilleryGun> repurposing = *PooledGuns.Find(GunDefinitionID);
 		PooledGuns.RemoveSingle(GunDefinitionID, repurposing);
-		repurposing->FArtilleryGunRebind(Key);
+		repurposing->Initialize(Key, false);
 		GunByKey->Add(Key, repurposing);
 	}
 	else
 	{
 		TSharedPtr<FArtilleryGun> NewGun = MakeShareable(new FArtilleryGun(Key));
+		NewGun->Initialize(Key, false);
 		GunByKey->Add(Key, NewGun);
 	}
 	return Key;	

@@ -87,10 +87,10 @@ public:
 			throw;
 	};
 
-	virtual void FArtilleryGunRebind(const FGunKey& KeyFromDispatch)
+	virtual bool Initialize(const FGunKey& KeyFromDispatch, bool MyCodeWillHandleKeys)
 		override
 	{
-		MyGunKey = KeyFromDispatch;
+		return Super::Initialize(KeyFromDispatch, MyCodeWillHandleKeys);
 	}
 
 	FMockArtilleryGun()

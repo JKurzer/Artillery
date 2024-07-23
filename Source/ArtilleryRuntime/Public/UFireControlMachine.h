@@ -151,7 +151,10 @@ public:
 		{
 			FActionBitMask alef;
 			alef.buttons = Intents::A;
-			auto key = MyDispatch->RegisterExistingGun(new FMockArtilleryGun(FGunKey("Dummy", 1)), MyKey);
+			auto temp = new FMockArtilleryGun(FGunKey("Dummy", 1));
+			temp->Initialize(FGunKey("Dummy", 1), false);
+			auto key = MyDispatch->RegisterExistingGun(temp, MyKey);
+			
 			pushPatternToRunner(IPM::GPress, APlayer::CABLE, alef, key); 
 		}
 		return ParentKey;

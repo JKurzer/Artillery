@@ -14,17 +14,16 @@
 
 
 /**
+ * * GUNS MUST BE INITIALIZED. This is handled in the various loaders and builders, but any unique gun MUST be initialized.
  * This class will be a data-driven instance of a gun that encapsulates a generic structured ability,
  * then exposes bindings for the phases of that ability as a component to be bound as specific gameplay abilities.
  *
  * 
- * Artillery gun is a not a UObject. This allows us to safely interact with it off the game thread.
- * Triggering the abilities is likely a no-go off the thread, but we can modify the attributes as needed.
- * This allows us to do some very powerful stuff to ensure that we always have the most up to date data.
- * Some dark things.
+ * Artillery gun is a not a UObject. This allows us to safely interact with it off the game thread TO AN EXTENT.
  *
  * Ultimately, we'll need something like https://github.com/facebook/folly/blob/main/folly/concurrency/ConcurrentHashMap.h
  * if we want to get serious about this.
+ *
  */
 USTRUCT(BlueprintType)
 struct ARTILLERYRUNTIME_API FArtilleryGun
@@ -35,7 +34,11 @@ public:
 	// this can be handed into abilities.
 	friend class UArtilleryPerActorAbilityMinimum;
 	FGunKey MyGunKey;
+	bool ReadyToFire = false;
 
+	//As these are UProperties, they should NOT need to become strong pointers or get attached to root
+	//to _exist_ when created off main thread, but that doesn't solve the bulk of the issues and the guarantee
+	//hasn't held up as well as I would like.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UArtilleryPerActorAbilityMinimum> Prefire;
 
@@ -62,15 +65,6 @@ public:
 	FArtilleryGun(const FGunKey& KeyFromDispatch)
 	{
 		MyGunKey = KeyFromDispatch;
-
-		//assign gunkey
-		Prefire->MyGunKey = MyGunKey;
-		PrefireCosmetic->MyGunKey = MyGunKey;
-		Fire->MyGunKey = MyGunKey;
-		FireCosmetic->MyGunKey = MyGunKey;
-		PostFire->MyGunKey = MyGunKey;
-		PostFireCosmetic->MyGunKey = MyGunKey;
-		FailedFireCosmetic->MyGunKey = MyGunKey;
 	};
 
 	virtual ~FArtilleryGun()
@@ -123,6 +117,10 @@ public:
 		const FGameplayEventData* TriggerEventData,
 		FGameplayAbilitySpecHandle Handle) const
 	{
+		if(!ReadyToFire)
+		{
+			throw; //your gun is broken. if you don't like this, override this function.
+		}
 		if (OutcomeStates == FArtilleryStates::Fired)
 		{
 			Fire->CallActivateAbility(FGameplayAbilitySpecHandle(), ActorInfo, ActivationInfo, nullptr,
@@ -178,10 +176,38 @@ public:
 		}
 	};
 
-	virtual void FArtilleryGunRebind(const FGunKey& KeyFromDispatch)
+	//The unusual presence of the modal switch AND a requirement for the related parameter is due to the
+	//various fun vagaries of inheritance. IF you override this function, and any valid child class should,
+	//then you'll want to have some assurance of fine-grained control there over all your parent classes.
+	//for a variety of reasons, a gunkey might not be null, but might not be usable or desirable.
+	//please ensure your child classes respect this as well. thank you!
+	//returns readytofire
+	virtual bool Initialize(const FGunKey& KeyFromDispatch, bool MyCodeWillSetGunKey)
 	{
 		MyGunKey = KeyFromDispatch;
 		//assign gunkey
+		
+		//we'd like to do it earlier, but there's actually not a great moment to do this.
+		if(Prefire == nullptr || !Prefire)
+		{
+			Prefire = NewObject<UArtilleryPerActorAbilityMinimum>();
+			PrefireCosmetic  = NewObject<UArtilleryPerActorAbilityMinimum>();
+			Fire = NewObject<UArtilleryPerActorAbilityMinimum>();
+			FireCosmetic = NewObject<UArtilleryPerActorAbilityMinimum>();
+			PostFire = NewObject<UArtilleryPerActorAbilityMinimum>();
+			PostFireCosmetic = NewObject<UArtilleryPerActorAbilityMinimum>();
+			FailedFireCosmetic = NewObject<UArtilleryPerActorAbilityMinimum>();
+		}
+		if(!MyCodeWillSetGunKey)
+		{
+			SetGunKey(MyGunKey);
+		}
+		ReadyToFire = ReadyToFire || !MyCodeWillSetGunKey;
+		return ReadyToFire;
+	}
+
+	void SetGunKey(FGunKey NewKey) const
+	{
 		Prefire->MyGunKey = MyGunKey;
 		PrefireCosmetic->MyGunKey = MyGunKey;
 		Fire->MyGunKey = MyGunKey;
@@ -190,11 +216,11 @@ public:
 		PostFireCosmetic->MyGunKey = MyGunKey;
 		FailedFireCosmetic->MyGunKey = MyGunKey;
 	}
-
 	FArtilleryGun()
 	{
 		MyGunKey = Default;
 	}
+
 
 private:
 	//Our debug value remains M6D.

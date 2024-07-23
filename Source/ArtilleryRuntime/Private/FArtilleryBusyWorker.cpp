@@ -18,7 +18,9 @@ bool FArtilleryBusyWorker::Init()
 	return true;
 }
 
-void FArtilleryBusyWorker::RunStandardFrameSim(bool& missedPrior, uint64_t& currentIndexCabling, bool& burstDropDetected, TheCone::PacketElement& current, bool& RemoteInput) const
+void FArtilleryBusyWorker::RunStandardFrameSim(bool& missedPrior, uint64_t& currentIndexCabling,
+                                               bool& burstDropDetected, TheCone::PacketElement& current,
+                                               bool& RemoteInput) const
 {
 	while (InputRingBuffer != nullptr && !InputRingBuffer.Get()->IsEmpty())
 	{
@@ -125,7 +127,7 @@ void FArtilleryBusyWorker::RunStandardFrameSim(bool& missedPrior, uint64_t& curr
 					*CablingControlStream->peek(i)
 				)
 			);
-				
+
 			CablingControlStream->MyPatternMatcher->runOneFrameWithSideEffects(
 				true,
 				0,
@@ -175,58 +177,55 @@ uint32 FArtilleryBusyWorker::Run()
 	int seqNumber = 0;
 	//Hi! Jake here! Reminding you that this will CYCLE
 	//That's known. Isn't that fun? :) Don't reorder these, by the way.
-	uint32_t lastPollTime = ContingentInputECSLinkage->Now();
+	uint32_t LastIncrementWindow = ContingentInputECSLinkage->Now();
 	uint32_t lsbTime = ContingentInputECSLinkage->Now();
 	constexpr uint32_t sampleHertz = TheCone::CablingSampleHertz;
 	constexpr uint32_t sendHertz = LongboySendHertz;
-	constexpr uint32_t sendHertzFactor = sampleHertz/sendHertz; 
+	constexpr uint32_t sendHertzFactor = sampleHertz / sendHertz;
 	constexpr uint32_t periodInNano = 1000000 / sampleHertz; //swap to microseconds. standardizing.
 	//you cannot reorder these. it is a magic ordering put in place for a hack. 
 	CablingControlStream = ContingentInputECSLinkage->getNewStreamConstruct(APlayer::CABLE);
 	BristleconeControlStream = ContingentInputECSLinkage->getNewStreamConstruct(APlayer::ECHO);
 	while (running)
 	{
-		if ((lastPollTime + periodInNano) <= lsbTime)
+		if (!sent &&
+			(
+				InputRingBuffer != nullptr && !InputRingBuffer.Get()->IsEmpty()
+				|| seqNumber % sendHertzFactor == 0 //last chance. Not good.
+			)
+		)
 		{
-			lastPollTime = lsbTime;
-			if (!sent &&
-					(
-					InputRingBuffer != nullptr && !InputRingBuffer.Get()->IsEmpty()
-					|| seqNumber % sendHertzFactor == 0 //last chance. Not good.
-					)
-				)
-			{
-				//just in case. TODO: make sure this doesn't CAUSE a bug.
-				StartTicklitesApply->Reset();
-				StartTicklitesSim->Trigger();
-				currentIndexCabling = CablingControlStream->highestInput - 1;
-				currentIndexBristlecone = BristleconeControlStream->highestInput - 1;
-				TheCone::PacketElement current = 0;
-				bool RemoteInput = false;
+			//just in case. TODO: make sure this doesn't CAUSE a bug.
+			StartTicklitesApply->Reset();
+			StartTicklitesSim->Trigger();
+			currentIndexCabling = CablingControlStream->highestInput - 1;
+			currentIndexBristlecone = BristleconeControlStream->highestInput - 1;
+			TheCone::PacketElement current = 0;
+			bool RemoteInput = false;
 
-				RunStandardFrameSim(missedPrior, currentIndexCabling, burstDropDetected, current, RemoteInput);
-				/*
-				*
-				* Jolt will go here? No point in updating if we need to reconcile first.
-				* Note: We also have Iris performing intermittent state stomps to recover from more serious desyncs.
-				* Ultimately, rollback can never solve everything. The windows just get too wide.
-				* 
-				*
-				*/
-				sent = true;
-				//you'll note we don't reset sim. Sim is reset in the other thread,
-				//such that we get only one swing through per trigger.
-				//We DO reset Apply, which should not cause anything drastic, but can
-				//lead to an apply getting skipped if things are truly on fire.
-				StartTicklitesApply->Trigger();
+			RunStandardFrameSim(missedPrior, currentIndexCabling, burstDropDetected, current, RemoteInput);
+			/*
+			*
+			* Jolt will go here? No point in updating if we need to reconcile first.
+			* Note: We also have Iris performing intermittent state stomps to recover from more serious desyncs.
+			* Ultimately, rollback can never solve everything. The window's just get too wide.
+			*/
+			sent = true;
+			StartTicklitesApply->Trigger();
+		}
+
+		//unlike cabling, we do our time keeping HERE. It may be worth switching cabling to also follow this.
+		//though if we end up using frameworks where the poll isn't free, we'll get dorked for doing it this way.
+		//Increment window is still used to ensure we have at least two milliseconds to run, though.
+		if ((LastIncrementWindow + periodInNano) <= lsbTime)
+		{
+			LastIncrementWindow = lsbTime;
+			if ((seqNumber % sendHertzFactor) == 0)
+			{
+				sent = false;
 			}
 			++seqNumber;
 		}
-		if ((seqNumber % sendHertzFactor) == 0)
-		{
-			sent = false;
-		}
-
 		std::this_thread::yield();
 		lsbTime = ContingentInputECSLinkage->Now();
 	}
