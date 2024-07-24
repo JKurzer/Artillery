@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+s// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 /**
@@ -124,28 +124,28 @@ namespace Arty
 		void CalculateTickable()
 		override
 		{
-			static_cast<Impl_InOut*>(MemoryBlock)->Reset();
+			static_cast<Impl_InOut*>(MemoryBlock)->TICKLITE_StateReset();
 			//as always, the use of keys over references will make rollback far far easier.
 			//when performing operations here, do not expect floating point accuracy above 16 ulps.
 			//If you do, you will get fucked sooner or later. I guarantee it.
-			static_cast<Impl_InOut*>(MemoryBlock) = static_cast<Ticklite_Impl*>(Core)->Calculate();
+			static_cast<Impl_InOut*>(MemoryBlock) = static_cast<Ticklite_Impl*>(Core)->TICKLITE_Calculate();
 		}
 		void ApplyTickable()
 		override
 		{
-			static_cast<Ticklite_Impl*>(Core)->Apply(
+			static_cast<Ticklite_Impl*>(Core)->TICKLITE_Apply(
 			static_cast<Impl_InOut*>(MemoryBlock)
 			);
 		}
 		void ReturnToPool()
 		override
 		{
-			static_cast<Ticklite_Impl*>(Core)->Reset();
-			static_cast<Impl_InOut*>(MemoryBlock)->Reset();
+			static_cast<Ticklite_Impl*>(Core)->TICKLITE_CoreReset();
+			static_cast<Impl_InOut*>(MemoryBlock)->TICKLITE_StateReset();
 		}
 		virtual bool ShouldExpireTickable() override
 		{
-			return static_cast<Ticklite_Impl*>(Core)->CheckForExpiration();
+			return static_cast<Ticklite_Impl*>(Core)->TICKLITE_CheckForExpiration();
 		}
 
 		virtual ~Ticklite()

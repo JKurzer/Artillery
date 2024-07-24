@@ -145,7 +145,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 					x.CalculateTickable();
 				}
 			}
-			for (auto& x : Group2)
+			for (auto& x : Group3)
 			{
 				if( x.ShouldExpireTickable())
 				{
@@ -159,7 +159,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 			}
 			StartTicklitesApply->Wait();
 			StartTicklitesApply->Reset(); // we can run long on sim, not on apply.
-			for (auto& x : Group2)
+			for (auto& x : Group1)
 			{
 				x.ApplyTickable();
 			}
@@ -167,7 +167,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 			{
 				x.ApplyTickable();
 			}
-			for (auto& x : Group2)
+			for (auto& x : Group3)
 			{
 				x.ApplyTickable();
 			}
