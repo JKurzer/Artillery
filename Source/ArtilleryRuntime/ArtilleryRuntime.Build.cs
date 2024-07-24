@@ -13,7 +13,11 @@ public class ArtilleryRuntime : ModuleRules
 
 		PublicIncludePaths.AddRange(
 			new string[] {
-				Path.Combine(PluginDirectory,"Source/ArtilleryRuntime")
+				Path.Combine(PluginDirectory,"Source/ArtilleryRuntime/"),
+				Path.Combine(PluginDirectory,"Source/ArtilleryRuntime/Public/EssentialTypes/"),
+				Path.Combine(PluginDirectory,"Source/ArtilleryRuntime/Public/BasicTypes/"),
+				Path.Combine(PluginDirectory,"Source/ArtilleryRuntime/Public/Systems/"),
+				Path.Combine(PluginDirectory,"Source/ArtilleryRuntime/Public/TestTypes/")
 			}
 		);
 

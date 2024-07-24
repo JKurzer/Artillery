@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "ArtilleryEditorModule.h"
-#include "ArtilleryRuntime/Public/UArtilleryAbilityMinimum.h"
+#include "UArtilleryAbilityMinimum.h"
 
 #define LOCTEXT_NAMESPACE "FArtilleryEditorModule"
 

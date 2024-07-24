@@ -13,13 +13,13 @@ public class ArtilleryEditor : ModuleRules
 		PublicIncludePaths.AddRange(
 			new string[]
 			{
-				"ArtilleryEditor/Public"
+				Path.Combine(PluginDirectory,"Source/ArtilleryEditor/Public")
 			});
 
 		PrivateIncludePaths.AddRange(
 			new string[] 
 			{
-				"ArtilleryEditor/Private"
+				Path.Combine(PluginDirectory,"Source/ArtilleryEditor/Private")
 			});
 
 		PublicIncludePaths.AddRange(
