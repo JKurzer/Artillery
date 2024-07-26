@@ -234,7 +234,7 @@ void UArtilleryDispatch::LoadGunData()
 	FString AccumulatePath = FPaths::Combine(FPaths::ProjectPluginsDir(), "Artillery", "Data", "GunData");
 		
 }
-
+//unused atm, but will be the way to ask for an eventish or triggered gun to fire, probably.
 void UArtilleryDispatch::QueueFire(FGunKey Key, Arty::ArtilleryTime Time)
 {
 	if (ActionsToOrder && ActionsToOrder.IsValid())

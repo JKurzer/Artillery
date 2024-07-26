@@ -93,11 +93,20 @@ namespace Arty
 		uint64_t MadeStamp = 0;
 	};
 
-	//in all its ugliness. i believe there's a newer, more elegant way to do this, but...
+	//You might notice Ticklite is the name used in implementation, but you might derive other ticklikes.
+	//In fact, this class exists as what is, effectively, a poor man's trait. This will be deprecated eventually
+	//if we don't find any uses for it, and the ticklite template will supersede it, but I think that won't happen.
 	struct TickLikePrototype : TicklikeMemoryBlock
 	{
 		virtual void CalculateTickable() = 0;
 		virtual bool ShouldExpireTickable() = 0;
+
+		//About half of tickables don't do anything here.
+		//Some may use it for lifecycle management, but that's dicey as we're still working out our semantics.
+		//but about half of them apply or remove something when they expire
+		//where possible, we should use events for this, but it won't always be viable.
+		//use your best judgment.
+		virtual bool OnExpireTickable() = 0;
 		virtual void ApplyTickable() = 0;
 		virtual void ReturnToPool() = 0;
 
@@ -111,6 +120,16 @@ namespace Arty
 
 	typedef TArray<TPair<BristleTime,FGunKey>> EventBuffer;
 	typedef TTripleBuffer<EventBuffer> BufferedEvents;
+	typedef TPair<ArtilleryTime, TickLikePrototype> StampLitePair;
+	typedef TArray<TickLikePrototype> TickliteGroup;
+	typedef TArray<StampLitePair> TickliteBuffer;
+	typedef TTripleBuffer<TickliteBuffer> BufferedTicklites;
+	//Ever see the motto of the old naval railgun project? I won't spoil it for you.
+	typedef FVector3d VelocityVec;
+	typedef TTuple<ArtilleryTime, ObjectKey, VelocityVec> VelocityEvent;
+
+	typedef TCircularQueue<VelocityEvent> VelocityStack;
+	typedef TSharedPtr<VelocityStack> VelocityEP; //event pump, if you must know.
 }
 
 //PATH TO DATA TABLES

@@ -57,8 +57,6 @@ namespace Arty
 		bool RunAtLeastOnce,
 		bool Smear);
 
-	
-
 }
 
 class UCanonicalInputStreamECS;
@@ -177,7 +175,7 @@ private:
 	//extremely powerful, and the reason why we don't use ticklites when we don't need to.
 	//it's dangerous as __________ _____________________ _ _________.
 	
-	FArtilleryTicklitesWorker ArtilleryTicklitesWorker_LockstepToWorldSim;
+	FArtilleryTicklitesWorker<UArtilleryDispatch> ArtilleryTicklitesWorker_LockstepToWorldSim;
 	TUniquePtr<FRunnableThread> WorldSim_Thread;
 	TUniquePtr<FRunnableThread> WorldSim_Ticklites_Thread;
 	FSharedEventRef StartTicklitesSim;

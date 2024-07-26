@@ -57,6 +57,7 @@
 // Any additional ordering benefits they provide should be considered UB for the time being, and should not be relied on.
 // 
 //  Good luck, and may the force be with you.
+template <typename UDispatch>
 class FArtilleryTicklitesWorker : public FRunnable {
 
 	//This isn't super safe but like busy worker, ticklites only runs in one spot.
@@ -74,17 +75,17 @@ class FArtilleryTicklitesWorker : public FRunnable {
 		{
 		case TicklitePhase::Early :
 			{
-				Group1.Add( Ticklites::Ticklite<TypeOfTicklite, IOForm>());
+				Group1.Add( Ticklites::Ticklite<TypeOfTicklite, IOForm, UDispatch>());
 				return true;
 			}
 		case TicklitePhase::Normal :
 			{
-				Group2.Add( Ticklites::Ticklite<TypeOfTicklite, IOForm>());
+				Group2.Add( Ticklites::Ticklite<TypeOfTicklite, IOForm, UDispatch>());
 				return true;
 			}
 		case TicklitePhase::Late :
 			{
-				Group3.Add( Ticklites::Ticklite<TypeOfTicklite, IOForm>());
+				Group3.Add( Ticklites::Ticklite<TypeOfTicklite, IOForm, UDispatch>());
 				return true;
 			}
 		}
@@ -94,9 +95,8 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	FSharedEventRef StartTicklitesSim;
 	FSharedEventRef StartTicklitesApply;
 	public:
-	//this is a hack and MIGHT be replaced with an ECS lookup
-	//though the clarity gain is quite nice, and privileging Cabling makes sense
-	UArtilleryDispatch* DispatchOwner;
+	//Templating here is used to both make reparenting easier if needed later and to simplify our dependency tree
+	UDispatch* DispatchOwner;
 	
 	FArtilleryTicklitesWorker(): DispatchOwner(nullptr), running(false)
 	{
