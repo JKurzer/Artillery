@@ -38,7 +38,6 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		ArtilleryAsyncWorldSim.RequestorQueue_Abilities_TripleBuffer = RequestorQueue_Abilities_TripleBuffer;//OH BOY. REFERENCE TIME. GWAHAHAHA.
 		ArtilleryAsyncWorldSim.RequestorQueue_Locomos_TripleBuffer = RequestorQueue_Locomos_TripleBuffer;
 		
-		
 		WorldSim_Thread.Reset(FRunnableThread::Create(&ArtilleryAsyncWorldSim, TEXT("ARTILLERY_ONLINE.")));
 		WorldSim_Ticklites_Thread.Reset(FRunnableThread::Create(&ArtilleryTicklitesWorker_LockstepToWorldSim ,TEXT("BARRAGE_ONLINE.")));
 	}
@@ -189,11 +188,24 @@ void UArtilleryDispatch::RunRecharges()
 
 }
 
-void UArtilleryDispatch::RunGunFireEvents()
+void UArtilleryDispatch::RunGunFireTimers()
 {
 
 }
 
+//this peeks the various queues of things to do in the future, such as the velocity queue or the gun timer queues
+//it also checks the local sorted list, allowing us to manage timers in amortized log(n) time in the worst case.
+//normally a design like this isn't practical, but since we can allocate a thread to the process of maintaining the sort
+//and only push events ready to go, there's only one thread touching the sorted sets, allowing us to go totally lockfree
+//in exchange for some extra copy ops that we'd have needed to incur anyway to allow data shadowing.
+//this is one of the huge advantages to the data shadowing scheme, namely, it turns weakness into strength.
+//this always gets called from the busy worker, and populates the velocity and gun events stacks. eventually, those
+//will be obsoleted to some extent and at least some of the events can be run immediately on the artillery busy worker thread
+//thanks again to data shadowing, which ensures that in a race condition, _both values are stored_
+void UArtilleryDispatch::CheckFutures()
+{
+	
+}
 //this needs work and extension.
 //TODO: add smear support.
 void UArtilleryDispatch::HACK_RunVelocityStack()
