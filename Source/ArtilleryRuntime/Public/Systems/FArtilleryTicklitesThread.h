@@ -102,6 +102,13 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	{
 	}
 
+
+	inline ArtilleryTime GetShadowNow()
+	const
+	{
+		return DispatchOwner->GetShadowNow();
+	}
+	
 	virtual ~FArtilleryTicklitesWorker() override
 	{
 		UE_LOG(LogTemp, Display, TEXT("Artillery: Destructing SimTicklites thread."));

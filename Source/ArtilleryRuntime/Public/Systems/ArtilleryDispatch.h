@@ -120,7 +120,8 @@ protected:
 	void CheckFutures();
 	//The current start of the tick boundary that ticklites should run on. this allows the ticklites
 	//to run in frozen time.
-	ArtilleryTime TickliteNow()
+	inline ArtilleryTime GetShadowNow()
+	const
 	{
 		return ArtilleryAsyncWorldSim.TickliteNow;
 	};

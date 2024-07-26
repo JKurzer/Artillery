@@ -20,6 +20,10 @@ namespace Ticklites
 		using Ticklite_Impl = YourImplementation;
 		using Impl_InOut = YourThreadsafeState;
 
+		ArtilleryTime GetShadowNow()
+		{
+			return ADispatch->GetShadowNow();
+		}
 		virtual void CalculateTickable()
 		override
 		{
@@ -52,7 +56,7 @@ namespace Ticklites
 		virtual bool OnExpireTickable()
 		override
 		{
-			return static_cast<Ticklite_Impl*>(Core)->TICKLITE_CheckForExpiration();
+			return static_cast<Ticklite_Impl*>(Core)->TICKLITE_OnExpiration();
 		}
 
 		virtual ~Ticklite()
@@ -71,8 +75,6 @@ namespace Ticklites
 			MemoryBlock = MemoryInstance;
 		}
 	};
-	
-	
 }
 
 
