@@ -184,6 +184,22 @@ void UArtilleryDispatch::RunLocomotions()
 	}
 }
 
+void UArtilleryDispatch::RunRecharges()
+{
+
+}
+
+void UArtilleryDispatch::RunGunFireEvents()
+{
+
+}
+
+//this needs work and extension.
+//TODO: add smear support.
+void UArtilleryDispatch::HACK_RunVelocityStack()
+{
+
+}
 
 void UArtilleryDispatch::RERunGuns()
 {

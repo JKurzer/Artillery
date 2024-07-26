@@ -116,8 +116,11 @@ protected:
 	//However, our particular design is running fast relative to most games except quake.
 	void RunGuns();
 	void RunLocomotions();
+	void RunRecharges();
 
 
+	void RunGunFireEvents();
+	void HACK_RunVelocityStack();
 	//********************************
 	//DUMMY. USED BY RECONCILE AND RERUN.
 	//Here to demonstrate that we actually queue normal and rerun separately.
