@@ -5,10 +5,12 @@
 #include "SocketSubsystem.h"
 #include "CanonicalInputStreamECS.h"
 #include <thread>
+#include <Ticklite.h>
+
+
 #include "BristleconeCommonTypes.h"
 #include "Containers/TripleBuffer.h"
 #include "LocomotionParams.h"
-
 
 //this is a busy-style thread, which runs preset bodies of work in a specified order. Generally, the goal is that it never
 //actually sleeps. In fact, it yields rather than sleeps, in general operation.
@@ -55,10 +57,12 @@
 // Any additional ordering benefits they provide should be considered UB for the time being, and should not be relied on.
 // 
 //  Good luck, and may the force be with you.
+template <typename UDispatch>
 class FArtilleryTicklitesWorker : public FRunnable {
 
 	//This isn't super safe but like busy worker, ticklites only runs in one spot.
 	friend class UArtilleryDispatch;
+	ArtilleryTime LocalNow;
 	TSharedPtr<BufferedTicklites> RequestorQueue_Add_Ticklites;
 	TickliteGroup Group1;
 	TickliteGroup Group2;
@@ -71,17 +75,17 @@ class FArtilleryTicklitesWorker : public FRunnable {
 		{
 		case TicklitePhase::Early :
 			{
-				Group1.Add( Ticklites::Ticklite<TypeOfTicklite, IOForm>());
+				Group1.Add( Ticklites::Ticklite<TypeOfTicklite, IOForm, UDispatch>());
 				return true;
 			}
 		case TicklitePhase::Normal :
 			{
-				Group2.Add( Ticklites::Ticklite<TypeOfTicklite, IOForm>());
+				Group2.Add( Ticklites::Ticklite<TypeOfTicklite, IOForm, UDispatch>());
 				return true;
 			}
 		case TicklitePhase::Late :
 			{
-				Group3.Add( Ticklites::Ticklite<TypeOfTicklite, IOForm>());
+				Group3.Add( Ticklites::Ticklite<TypeOfTicklite, IOForm, UDispatch>());
 				return true;
 			}
 		}
@@ -91,6 +95,9 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	FSharedEventRef StartTicklitesSim;
 	FSharedEventRef StartTicklitesApply;
 	public:
+	//Templating here is used to both make reparenting easier if needed later and to simplify our dependency tree
+	UDispatch* DispatchOwner;
+	
 	FArtilleryTicklitesWorker(): DispatchOwner(nullptr), running(false)
 	{
 	}
@@ -111,7 +118,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 
 	virtual bool Init() override
 	{
-		
+		LocalNow = 0;
 		UE_LOG(LogTemp, Display, TEXT("Artillery: Booting SimTicklites thread."));
 		running = true;
 		return true;
@@ -121,6 +128,9 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	virtual uint32 Run() override
 	{
 		while(running) {
+			StartTicklitesSim->Wait();
+			StartTicklitesSim->Reset();
+			
 			for(auto& x : Group1)
 			{
 				if( x.ShouldExpireTickable())
@@ -158,6 +168,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 				}
 			}
 			StartTicklitesApply->Wait();
+			
 			StartTicklitesApply->Reset(); // we can run long on sim, not on apply.
 			for (auto& x : Group1)
 			{
@@ -171,8 +182,6 @@ class FArtilleryTicklitesWorker : public FRunnable {
 			{
 				x.ApplyTickable();
 			}
-			StartTicklitesSim->Wait();
-			StartTicklitesSim->Reset();
 		}
 	
 		return 0;
@@ -191,9 +200,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	}
 
 
-	//this is a hack and MIGHT be replaced with an ECS lookup
-	//though the clarity gain is quite nice, and privileging Cabling makes sense
-	UArtilleryDispatch* DispatchOwner;
+
 	
 	
 private:

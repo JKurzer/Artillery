@@ -1,4 +1,4 @@
-s// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 /**
@@ -31,6 +31,8 @@ namespace Arty
 	typedef uint32_t FireControlKey;
 	using BristleTime = long; //this will become uint32. don't bitbash this.
 	using ArtilleryTime = BristleTime;
+
+
 }
 
 
@@ -52,7 +54,8 @@ namespace Arty
 	typedef uint64_t ArtilleryDataSetKey;
 	typedef ArtilleryDataSetKey ADSKey;
 	typedef uint64_t TickliteKey;
-	
+	//this must use the same type as actor keys and artillery object keys like like projectile or mesh
+	typedef uint64_t ObjectKey;
 	DECLARE_DELEGATE(CalculateTicklite);
 	//performs the actual data transformations.
 	DECLARE_DELEGATE(ApplyTicklite);
@@ -80,9 +83,6 @@ namespace Arty
 		OwnerTag, //while the owner has a tag. any key can own a ticklite but please don't use gunkeys. 
 		Owner	  //when the owner is released (fiddly)
 	};
-
-	namespace Ticklites
-	{
 	struct TicklikeMemoryBlock
 	{
 		TickliteCadence Cadence = TickliteCadence::Lite;
@@ -92,79 +92,44 @@ namespace Arty
 		TickliteLifecycles Life = TickliteLifecycles::Dropdead;
 		uint64_t MadeStamp = 0;
 	};
-	//in all its ugliness. i believe there's a newer, more elegant way to do this, but...
+
+	//You might notice Ticklite is the name used in implementation, but you might derive other ticklikes.
+	//In fact, this class exists as what is, effectively, a poor man's trait. This will be deprecated eventually
+	//if we don't find any uses for it, and the ticklite template will supersede it, but I think that won't happen.
 	struct TickLikePrototype : TicklikeMemoryBlock
 	{
-		
 		virtual void CalculateTickable() = 0;
 		virtual bool ShouldExpireTickable() = 0;
+
+		//About half of tickables don't do anything here.
+		//Some may use it for lifecycle management, but that's dicey as we're still working out our semantics.
+		//but about half of them apply or remove something when they expire
+		//where possible, we should use events for this, but it won't always be viable.
+		//use your best judgment.
+		virtual bool OnExpireTickable() = 0;
 		virtual void ApplyTickable() = 0;
 		virtual void ReturnToPool() = 0;
+
 		virtual ~TickLikePrototype()
 		{
 			delete Core;
 			delete MemoryBlock;
 		};
 	};
-		
-		//conserved attributes mean that we always have a shadow copy ready.
-		// a successful Calculate function should reference the attribute not by most recent, but by exact index.
-		//good support for this isn't in yet, but during our early work, the conserved attributes will still
-		//protect us from partial memory commits and similar that might cause truly weird bugs.
-		//instead, we may just run tickables "across" ticks right now. That's obviously bad, and I'm thinking
-		//about solutions, but right now, what I've done is engineer some flex in so that when we understand
-		//the best way forward on that front, we can cohere the design down. this follows our
-		//measure, cut, fit, finish policy, as this is still in the _measure_ phase.
-	template <typename T, typename MyTIO>
-	struct Ticklite : public TickLikePrototype
-	{
 
-		using Ticklite_Impl = T;
-		using Impl_InOut = MyTIO;
-		void CalculateTickable()
-		override
-		{
-			static_cast<Impl_InOut*>(MemoryBlock)->TICKLITE_StateReset();
-			//as always, the use of keys over references will make rollback far far easier.
-			//when performing operations here, do not expect floating point accuracy above 16 ulps.
-			//If you do, you will get fucked sooner or later. I guarantee it.
-			static_cast<Impl_InOut*>(MemoryBlock) = static_cast<Ticklite_Impl*>(Core)->TICKLITE_Calculate();
-		}
-		void ApplyTickable()
-		override
-		{
-			static_cast<Ticklite_Impl*>(Core)->TICKLITE_Apply(
-			static_cast<Impl_InOut*>(MemoryBlock)
-			);
-		}
-		void ReturnToPool()
-		override
-		{
-			static_cast<Ticklite_Impl*>(Core)->TICKLITE_CoreReset();
-			static_cast<Impl_InOut*>(MemoryBlock)->TICKLITE_StateReset();
-		}
-		virtual bool ShouldExpireTickable() override
-		{
-			return static_cast<Ticklite_Impl*>(Core)->TICKLITE_CheckForExpiration();
-		}
 
-		virtual ~Ticklite()
-		override
-		{
-			delete static_cast<Ticklite_Impl*>(Core);
-			delete static_cast<Ticklite_Impl*>(MemoryBlock);
-		}
-		//unfortunately, there's not a good way to avoid this, because we
-		//need to be able to _reverse_ expiration when rolling back.
-	};
-}
-
-	typedef TArray<Ticklites::TickLikePrototype> TickliteGroup;
 	typedef TArray<TPair<BristleTime,FGunKey>> EventBuffer;
 	typedef TTripleBuffer<EventBuffer> BufferedEvents;
-	typedef TPair<ArtilleryTime, Ticklites::TickLikePrototype> StampLitePair;
+	typedef TPair<ArtilleryTime, TickLikePrototype> StampLitePair;
+	typedef TArray<TickLikePrototype> TickliteGroup;
 	typedef TArray<StampLitePair> TickliteBuffer;
 	typedef TTripleBuffer<TickliteBuffer> BufferedTicklites;
+	//Ever see the motto of the old naval railgun project? I won't spoil it for you.
+	typedef FVector3d VelocityVec;
+	typedef TTuple<ArtilleryTime, ObjectKey, VelocityVec> VelocityEvent;
+
+	typedef TCircularQueue<VelocityEvent> VelocityStack;
+	typedef TSharedPtr<VelocityStack> VelocityEP; //event pump, if you must know.
 }
 
 //PATH TO DATA TABLES

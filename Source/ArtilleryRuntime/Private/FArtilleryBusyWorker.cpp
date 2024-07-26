@@ -211,6 +211,7 @@ uint32 FArtilleryBusyWorker::Run()
 			* Ultimately, rollback can never solve everything. The window's just get too wide.
 			*/
 			sent = true;
+			TickliteNow = ContingentInputECSLinkage->Now(); // this updates ONCE PER CYCLE.
 			StartTicklitesApply->Trigger();
 		}
 

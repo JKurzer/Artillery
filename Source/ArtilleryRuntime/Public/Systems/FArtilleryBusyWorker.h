@@ -8,6 +8,7 @@
 #include "BristleconeCommonTypes.h"
 #include "Containers/TripleBuffer.h"
 #include "LocomotionParams.h"
+#include <Ticklite.h>
 
 
 //this is a busy-style thread, which runs preset bodies of work in a specified order. Generally, the goal is that it never
@@ -27,7 +28,7 @@ class FArtilleryBusyWorker : public FRunnable {
 	//and the dispatcher that owns this memory MUST manage this lifecycle.
 	TSharedPtr<BufferedMoveEvents>  RequestorQueue_Locomos_TripleBuffer;
 	TSharedPtr<BufferedEvents> RequestorQueue_Abilities_TripleBuffer;
-
+	ArtilleryTime TickliteNow = 0;
 	//this is owned by the dispatch and used by busy worker to add ticklites to the ticklite set.
 	TSharedPtr<BufferedTicklites> RequestorQueue_Add_Ticklites;
 	FSharedEventRef StartTicklitesSim;

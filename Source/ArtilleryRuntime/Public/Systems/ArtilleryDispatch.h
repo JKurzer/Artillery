@@ -57,7 +57,6 @@ namespace Arty
 		bool RunAtLeastOnce,
 		bool Smear);
 
-
 }
 
 class UCanonicalInputStreamECS;
@@ -111,15 +110,20 @@ protected:
 
 	void QueueResim(FGunKey Key, Arty::ArtilleryTime Time);
 
-	//the separation of tick and frame is inspired by the Serious Engine and Quake.
+	//the separation of tick and frame is inspired by the Serious Engine and others.
 	//In fact, it's pretty common to this day, with Unity also using a similar model.
 	//However, our particular design is running fast relative to most games except quake.
 	void RunGuns();
 	void RunLocomotions();
 	void RunRecharges();
-
-
-	void RunGunFireEvents();
+	void RunGunFireTimers();
+	void CheckFutures();
+	//The current start of the tick boundary that ticklites should run on. this allows the ticklites
+	//to run in frozen time.
+	ArtilleryTime TickliteNow()
+	{
+		return ArtilleryAsyncWorldSim.TickliteNow;
+	};
 	void HACK_RunVelocityStack();
 	//********************************
 	//DUMMY. USED BY RECONCILE AND RERUN.
@@ -171,7 +175,7 @@ private:
 	//extremely powerful, and the reason why we don't use ticklites when we don't need to.
 	//it's dangerous as __________ _____________________ _ _________.
 	
-	FArtilleryTicklitesWorker ArtilleryTicklitesWorker_LockstepToWorldSim;
+	FArtilleryTicklitesWorker<UArtilleryDispatch> ArtilleryTicklitesWorker_LockstepToWorldSim;
 	TUniquePtr<FRunnableThread> WorldSim_Thread;
 	TUniquePtr<FRunnableThread> WorldSim_Ticklites_Thread;
 	FSharedEventRef StartTicklitesSim;
