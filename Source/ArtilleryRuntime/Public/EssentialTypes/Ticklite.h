@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "ArtilleryCommonTypes.h"
-#include "ArtilleryDispatch.h"
 
 
 namespace Ticklites
