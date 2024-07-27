@@ -11,22 +11,13 @@ namespace Ticklites
 	//instead, right now, we just run tickables "across" ticks right now.
 	//This conforms with our measure, cut, fit, finish policy, as this is still in the _measure_ phase.
 	template <typename YourImplementation,
-	typename ParentThreadAnchor,
 	typename YourThreadsafeState=YourImplementation,
 	typename ExpirationPolicy=YourImplementation>
 	struct Ticklite : public TickLikePrototype 
 	{
-		//Each class generated gets a unique static. Each kind of dispatcher will get a unique class.
-		//TODO: If you run more than one of the parent threads, this gets unsafe. We don't so...
-		//As is, it saves a huge amount of memory and indirection costs.
-		static ParentThreadAnchor* ADispatch = nullptr; 
 		using Ticklite_Impl = YourImplementation;
 		using Impl_InOut = YourThreadsafeState;
-
-		ArtilleryTime GetShadowNow()
-		{
-			return ADispatch->GetShadowNow();
-		}
+		
 		virtual void CalculateTickable()
 		override
 		{

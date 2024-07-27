@@ -2,6 +2,7 @@
 #include "Ticklite.h"
 #include "ArtilleryDispatch.h"
 #include "FArtilleryTicklitesThread.h"
+#include "TL_Impl.h"
 
 
 //A ticklite's impl component(s) must provide:
@@ -10,8 +11,9 @@
 //TICKLITE_Apply(MemoryBlock*) on the impl aspect, consuming the memory block aspect's state
 //TICKLITE_CoreReset on the impl aspect
 //TICKLITE_CheckForExpiration on the impl aspect
-//TICKLITE_OnExpiration 
-class FTLinearVelocity /*Facaded*/
+//TICKLITE_OnExpiration
+template<typename ParentThreadAnchor>
+class FTLinearVelocity : public TL_Impl<ParentThreadAnchor> /*Facaded*/
 {
 public:
 	ObjectKey VelocityTarget;
@@ -44,4 +46,4 @@ public:
 	}
 };
 //behold!
-typedef Ticklites::Ticklite<FTLinearVelocity, FArtilleryTicklitesWorker*> TL_LinearVelocity;
+typedef Ticklites::Ticklite<FTLinearVelocity<FArtilleryTicklitesWorker*>> TL_LinearVelocity;
