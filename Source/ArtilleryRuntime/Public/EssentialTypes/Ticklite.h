@@ -10,7 +10,10 @@ namespace Ticklites
 	//protect us from partial memory commits and similar that might cause truly weird bugs.
 	//instead, right now, we just run tickables "across" ticks right now.
 	//This conforms with our measure, cut, fit, finish policy, as this is still in the _measure_ phase.
-	template <typename YourImplementation, typename YourThreadsafeState, typename ParentThreadAnchor>
+	template <typename YourImplementation,
+	typename ParentThreadAnchor,
+	typename YourThreadsafeState=YourImplementation,
+	typename ExpirationPolicy=YourImplementation>
 	struct Ticklite : public TickLikePrototype 
 	{
 		//Each class generated gets a unique static. Each kind of dispatcher will get a unique class.
@@ -51,12 +54,12 @@ namespace Ticklites
 
 		virtual bool ShouldExpireTickable() override
 		{
-			return static_cast<Ticklite_Impl*>(Core)->TICKLITE_CheckForExpiration();
+			return static_cast<ExpirationPolicy*>(Core)->TICKLITE_CheckForExpiration();
 		}
 		virtual bool OnExpireTickable()
 		override
 		{
-			return static_cast<Ticklite_Impl*>(Core)->TICKLITE_OnExpiration();
+			return static_cast<ExpirationPolicy*>(Core)->TICKLITE_OnExpiration();
 		}
 
 		virtual ~Ticklite()

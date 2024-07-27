@@ -47,6 +47,6 @@ public:
 	}
 };
 //behold!
-typedef Ticklites::Ticklite<FTLinearVelocity, FTLinearVelocity, FArtilleryTicklitesWorker*> TL_LinearVelocity;
+typedef Ticklites::Ticklite<FTLinearVelocity, FArtilleryTicklitesWorker*> TL_LinearVelocity;
 
 ```
