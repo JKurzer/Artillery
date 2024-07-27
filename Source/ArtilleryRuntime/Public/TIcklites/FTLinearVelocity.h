@@ -29,28 +29,26 @@ public:
 		ObjectKey Target,
 		VelocityVec Velocity,
 		uint32 Duration
-		): TL_Impl<ParentThreadAnchor>(Anchor), VelocityTarget(Target), TicksToSplitVelocityOver(Duration), TicksRemaining(Duration),
-	PerTickVelocityToApply(VelocityVec::ZeroVector), Velocity(Velocity)
+		) : TL_Impl<ParentThreadAnchor>(Anchor), VelocityTarget(Target), TicksToSplitVelocityOver(Duration), TicksRemaining(Duration),
+	PerTickVelocityToApply(Velocity/Duration), Velocity(Velocity)
 	{
 	}
 	void TICKLITE_StateReset()
 	{
-		PerTickVelocityToApply = PerTickVelocityToApply.ZeroVector;
 	}
 	void TICKLITE_Calculate()
 	{
-		PerTickVelocityToApply = Velocity/TicksToSplitVelocityOver;
 	}
 	void TICKLITE_Apply(FTLinearVelocity* SelfRef)
 	{
-
+		ArtilleryTime Now = this->GetShadowNow();
+		--TicksRemaining;
+		FTransform3d& Transform = this->ADispatch->GetTransformShadowByObjectKey(VelocityTarget, Now);
+		Transform.AddToTranslation(PerTickVelocityToApply);
 	}
 	void TICKLITE_CoreReset()
 	{
-		PerTickVelocityToApply = VelocityVec::ZeroVector;
-		Velocity = VelocityVec::ZeroVector;
-		TicksRemaining = 0; TicksToSplitVelocityOver = 0;
-		VelocityTarget = 0;
+		TicksRemaining = TicksToSplitVelocityOver;
 	}
 	
 	bool TICKLITE_CheckForExpiration()

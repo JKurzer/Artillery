@@ -82,7 +82,27 @@ protected:
 	//This is more straightforward than the guns problem.
 	//We can actually map this quite directly.
 	TSharedPtr< TMap<ActorKey, FArtilleryRunLocomotionFromDispatch>> ActorToLocomotionMapping;
-	//Time, Actorkey, Prior, Current.
+
+	//We can't touch the uobjects, but the ftransforms are simply PODs.
+	//by modifying a parent transform rather than the actual transform, we can avoid a data contention.
+	//by using a gamesimT parent over the gamedisplayT, we can actually do this. Jesus christ. for now,
+	//we hack it, but...... this works. this is threadsafe. monstrous, but threadsafe after a fashion.
+	//by god.
+	//this likely needs to be a write-safe conc data structure for true speed.
+	//I'm considering GrowOnlyLockFreeHash.h
+	//temporarily, I'm just locking and prayin', prayin and lockin'.
+	//todo: add proper shadowing either with a conserved transform (OUGH) or something clever. good luck.
+	TSharedPtr< TMap<ObjectKey, FTransform3d*>> ObjectToTransformMapping;
+	TSharedPtr< TMap<ObjectKey, FGameplayAttributeData>> ObjectToAttribs;
+	FTransform3d&  GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) const
+	{
+		return *ObjectToTransformMapping->FindChecked(Target);
+	}
+	FTransform3d&  GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) const
+	{
+		return *ObjectToTransformMapping->FindChecked(Target);
+	} 
+	
 	TSharedPtr<BufferedMoveEvents> RequestorQueue_Locomos_TripleBuffer;
 
 	static inline long long TotalFirings = 0; //2024 was rough.

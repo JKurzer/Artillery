@@ -68,6 +68,10 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	TickliteGroup Group2;
 	TickliteGroup Group3;
 
+	FTransform3d& GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now)
+	{
+		return DispatchOwner->GetTransformShadowByObjectKey(Target,  Now);
+	}
 	template <typename TypeOfTicklite, typename IOForm>
 	bool TickliteOffThreadAdd(TicklitePhase Group)
 	{
