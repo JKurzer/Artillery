@@ -25,3 +25,20 @@ that point in time.
 
 # Reminder: Ticklite resim is needed for multiplayer
 Again, we ship with most of the ticklites you're likely to want and Game Sim abilities use read-only records of prior states to allow safe multithreaded access in a novel and elegant way. So this isn't as bad as it sounds. But it does mean that reset needs to work 100% of the time, and Apply must be very fast.
+
+## Best Practices
+I strongly recommend including the following header comment in any ticklite implementation:
+```c++
+//A ticklite's impl component(s) must provide:
+//TICKLITE_StateReset on the memory block aspect
+//TICKLITE_Calculate on the impl aspect
+//TICKLITE_Apply(MemoryBlock*) on the impl aspect, consuming the memory block aspect's state
+//TICKLITE_CoreReset on the impl aspect
+//TICKLITE_CheckForExpiration on the impl aspect, though this should use one of the standard helpers.
+//TICKLITE_OnExpiration, though this can be a no-op.
+
+```
+I also recommend specifying if this tickable will use containment, facade, or composition with the following:
+```c++
+/* CHOICE OF INHERITANCE */
+```

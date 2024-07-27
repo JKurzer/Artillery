@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿```c++
+//provided as a suitable base to cut down on cloney-rigatoni
+//replace MemoryBlock* as appropriate
+#pragma once
 #include "Ticklite.h"
 #include "ArtilleryDispatch.h"
 #include "FArtilleryTicklitesThread.h"
@@ -24,7 +27,7 @@ public:
 	{
 		
 	}
-	void TICKLITE_Apply(FTLinearVelocity* SelfRef)
+	void TICKLITE_Apply(MemoryBlock* SelfRef)
 	{
 		
 	}
@@ -45,3 +48,5 @@ public:
 };
 //behold!
 typedef Ticklites::Ticklite<FTLinearVelocity, FTLinearVelocity, FArtilleryTicklitesWorker*> TL_LinearVelocity;
+
+```
