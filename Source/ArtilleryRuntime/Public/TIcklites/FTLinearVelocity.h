@@ -17,32 +17,50 @@ class FTLinearVelocity : public TL_Impl<ParentThreadAnchor> /*Facaded*/
 {
 public:
 	ObjectKey VelocityTarget;
-	VelocityVec VelocityToApply;
+	VelocityVec PerTickVelocityToApply;
+	uint32 TicksToSplitVelocityOver;
+	uint32 TicksRemaining; //TODO: make this rollback correctly.
+	VelocityVec Velocity;
+	FTLinearVelocity(ParentThreadAnchor* Anchor): TL_Impl<ParentThreadAnchor>(Anchor), VelocityTarget(0), TicksToSplitVelocityOver(1), TicksRemaining(0)
+	{
+	}
+
+	FTLinearVelocity(ParentThreadAnchor* Anchor,
+		ObjectKey Target,
+		VelocityVec Velocity,
+		uint32 Duration
+		): TL_Impl<ParentThreadAnchor>(Anchor), VelocityTarget(Target), TicksToSplitVelocityOver(Duration), TicksRemaining(Duration),
+	PerTickVelocityToApply(VelocityVec::ZeroVector), Velocity(Velocity)
+	{
+	}
 	void TICKLITE_StateReset()
 	{
-		
+		PerTickVelocityToApply = PerTickVelocityToApply.ZeroVector;
 	}
 	void TICKLITE_Calculate()
 	{
-		
+		PerTickVelocityToApply = Velocity/TicksToSplitVelocityOver;
 	}
 	void TICKLITE_Apply(FTLinearVelocity* SelfRef)
 	{
-		
+
 	}
 	void TICKLITE_CoreReset()
 	{
-		
+		PerTickVelocityToApply = VelocityVec::ZeroVector;
+		Velocity = VelocityVec::ZeroVector;
+		TicksRemaining = 0; TicksToSplitVelocityOver = 0;
+		VelocityTarget = 0;
 	}
 	
-	void TICKLITE_CheckForExpiration()
+	bool TICKLITE_CheckForExpiration()
 	{
-		
+		return TicksRemaining == 0;
 	}
 
-	TICKLITE_OnExpiration()
+	void TICKLITE_OnExpiration()
 	{
-		
+		//no op
 	}
 };
 //behold!

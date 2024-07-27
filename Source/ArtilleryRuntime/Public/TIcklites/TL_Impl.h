@@ -4,6 +4,7 @@
 template<typename ParentThreadAnchor>
 struct TL_Impl
 {
+	friend class TickLikePrototypep;
 	//Each class generated gets a unique static. Each kind of dispatcher will get a unique class.
 	//TODO: If you run more than one of the parent threads, this gets unsafe. We don't so...
 	//As is, it saves a huge amount of memory and indirection costs.
