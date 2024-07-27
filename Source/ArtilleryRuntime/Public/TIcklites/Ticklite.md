@@ -8,9 +8,13 @@ You can find the Ticklite template facade in Essential Types. A Ticklite combine
 
 And this creates a ticklite object. This is a typesafe and encapsulating way
 of presenting a tickable function. It requires that any side-effects happen
-only during the Apply function, and that it be fully thread-agnostic.  
+only during the Apply function, and that it be fully thread-agnostic.
 
 Thread safety is of course recommended, but like, you do you I guess.  
+  
+Finally, note that while ticklite templates currently use pointers, this may have to change to a key driven system to fully support  
+rollback and determinism without also requiring unusual lifecycle management by users. The other option we're considering  
+is providing pool or slab allocation for tickable_impls and memory_blocks. Ultimately, both approaches are of interest.  
 
 # Reminder: Ticklites are _not_ run on the game thread.
 They can trigger things that are by eventing against the Artillery Dispatcher, and many of the apply helpers provided do 
