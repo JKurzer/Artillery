@@ -27,20 +27,32 @@ struct ARTILLERYRUNTIME_API FConservedAttributeData : public FGameplayAttributeD
 	TCircularBuffer<double> BaseHistory = TCircularBuffer<double>(128);
 
 	virtual void SetCurrentValue(float NewValue) override {
+		SetCurrentValue(static_cast<double>(NewValue));
+	};
+
+	virtual void SetCurrentValue(double NewValue) {
 		CurrentHistory[CurrentHistory.GetNextIndex(counterBase)] = CurrentValue;
 		CurrentValue = NewValue;
 		++counterBase;
 	};
 
 	virtual void SetRemoteValue(float NewValue) {
+		SetRemoteValue(static_cast<double>(NewValue));
+	};
+	
+	virtual void SetRemoteValue(double NewValue) {
 		RemoteHistory[RemoteHistory.GetNextIndex(counterBase)] = NewValue;
 		++counterBase;
 	};
 	
 	virtual void SetBaseValue(float NewValue) override {
+		SetBaseValue(static_cast<double>(NewValue));
+	};
+
+	virtual void SetBaseValue(double NewValue) {
 		BaseHistory[BaseHistory.GetNextIndex(counterBase)] = BaseValue;
 		BaseValue = NewValue;
 		++counterBase;
 	};
-
+	
 };

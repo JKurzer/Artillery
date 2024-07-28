@@ -135,7 +135,7 @@ public:
 	//IF YOU DO NOT CALL THIS FROM THE GAMETHREAD, YOU WILL HAVE A BAD TIME.
 	ActorKey CompleteRegistrationByActorParent(bool IsLocalPlayerCharacter,
 		FArtilleryRunLocomotionFromDispatch LocomotionFromActor,
-		TSet<AttribKey> Attributes)
+		TMap<AttribKey, double> Attributes)
 	{
 		//these are initialized earlier under all intended orderings, but we cannot ensure that this function will be called correctly
 		//so we should do what we can to foolproof things. As long as the world subsystems are up, force-updating
@@ -162,9 +162,11 @@ public:
 		AttrMapPtr MyAttributes = MakeShareable(new AttributeMap());
 		for(auto x : Attributes)
 		{
-			MyAttributes->Add(x);
+			MyAttributes->Add(x.Key);
+			MyAttributes->FindChecked(x.Key).SetBaseValue(x.Value);
+			MyAttributes->FindChecked(x.Key).SetCurrentValue(x.Value);
 		}
-		MyDispatch->
+		
 		return ParentKey;
 		//likely want to manage system component bind here by checking for actor parent.
 		//right now, we can push all our patterns here as well, and we can use a static set of patterns for
