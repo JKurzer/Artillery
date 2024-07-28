@@ -43,7 +43,8 @@
  */
 namespace Arty
 {
-	
+	typedef TMap<AttribKey, FConservedAttributeData> AttributeMap;
+	typedef TSharedPtr<AttributeMap> AttrMapPtr;
 	DECLARE_DELEGATE_TwoParams(FArtilleryFireGunFromDispatch,
 		TSharedPtr<FArtilleryGun> Gun,
 		bool InputAlreadyUsedOnce);
@@ -92,7 +93,7 @@ protected:
 	//todo: add proper shadowing either with a conserved transform (OUGH) or something clever. good luck.
 	TSharedPtr< TMap<ObjectKey, FTransform3d*>> ObjectToTransformMapping;
 	//todo, build FAttributeSet. :/
-	TSharedPtr<TMap<ObjectKey, TSharedPtr<TMap<AttribKey, FConservedAttributeData>>>> AttributeSetToDataMapping;
+	TSharedPtr<TMap<ObjectKey, AttrMapPtr>> AttributeSetToDataMapping;
 	FTransform3d&  GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) const
 	{
 		return *ObjectToTransformMapping->FindChecked(Target);
@@ -177,6 +178,10 @@ public:
 	{
 		GunToFiringFunctionMapping->Remove(Key);
 		//TODO: add the rest of the wipe here?
+	}
+	void RegisterAttributes(ObjectKey in, AttrMapPtr Attributes)
+	{
+		AttributeSetToDataMapping->Add(in, Attributes);
 	}
 	std::atomic_bool UseNetworkInput;
 	bool missedPrior = false;

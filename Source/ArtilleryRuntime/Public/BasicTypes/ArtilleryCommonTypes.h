@@ -138,7 +138,7 @@ namespace Arty
 	//Ever see the motto of the old naval railgun project? I won't spoil it for you.
 	typedef FVector3d VelocityVec;
 	typedef TTuple<ArtilleryTime, ObjectKey, VelocityVec> VelocityEvent;
-
+	
 	typedef TCircularQueue<VelocityEvent> VelocityStack;
 	typedef TSharedPtr<VelocityStack> VelocityEP; //event pump, if you must know.
 }

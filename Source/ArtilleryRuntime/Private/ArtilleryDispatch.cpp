@@ -11,6 +11,8 @@ void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)
 	RequestorQueue_Locomos_TripleBuffer = MakeShareable( new TTripleBuffer<TArray<LocomotionParams>>());
 	GunToFiringFunctionMapping = MakeShareable(new TMap<FGunKey, FArtilleryFireGunFromDispatch>());
 	ActorToLocomotionMapping = MakeShareable(new TMap<ActorKey, FArtilleryRunLocomotionFromDispatch>());
+	AttributeSetToDataMapping = MakeShareable( new TMap<ObjectKey, AttrMapPtr>());
+	ObjectToTransformMapping = MakeShareable(new TMap<ObjectKey, FTransform3d*>);
 	GunByKey = MakeShareable(new TMap<FGunKey, TSharedPtr<FArtilleryGun>>());
 }
 
