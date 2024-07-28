@@ -54,8 +54,19 @@ namespace Arty
 	typedef uint64_t ArtilleryDataSetKey;
 	typedef ArtilleryDataSetKey ADSKey;
 	typedef uint64_t TickliteKey;
-	//this must use the same type as actor keys and artillery object keys like like projectile or mesh
+	//this must use the same type as actor keys and artillery object keys like  projectile or mesh
 	typedef uint64_t ObjectKey;
+	enum AttribKey
+	{
+		Speed,
+		Health,
+		Shields,
+		DashCharges,
+		Ammo,
+		Charge,
+		JumpHeight,
+		Damage
+	};
 	DECLARE_DELEGATE(CalculateTicklite);
 	//performs the actual data transformations.
 	DECLARE_DELEGATE(ApplyTicklite);

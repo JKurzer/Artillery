@@ -11,9 +11,7 @@
 #include "FArtilleryBusyWorker.h"
 #include "FArtilleryGun.h"
 #include "LocomotionParams.h"
-
-#include <map>
-
+#include "ConservedAttribute.h"
 #include "FArtilleryTicklitesThread.h"
 #include "ArtilleryDispatch.generated.h"
 
@@ -93,14 +91,18 @@ protected:
 	//temporarily, I'm just locking and prayin', prayin and lockin'.
 	//todo: add proper shadowing either with a conserved transform (OUGH) or something clever. good luck.
 	TSharedPtr< TMap<ObjectKey, FTransform3d*>> ObjectToTransformMapping;
-	TSharedPtr< TMap<ObjectKey, FGameplayAttributeData>> ObjectToAttribs;
+	//todo, build FAttributeSet. :/
+	TSharedPtr<TMap<ObjectKey, TSharedPtr<TMap<AttribKey, FConservedAttributeData>>>> AttributeSetToDataMapping;
 	FTransform3d&  GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) const
 	{
 		return *ObjectToTransformMapping->FindChecked(Target);
 	}
-	FTransform3d&  GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) const
+	//todo: convert conserved attribute to use a timestamp for versioning to create a true temporal shadowstack.
+	//todo: swap the fuck to FAttributeSet after building it. :/
+	TSharedPtr<TMap<AttribKey, FConservedAttributeData>> GetAttribSetShadowByObjectKey(
+		ObjectKey Target, ArtilleryTime Now) const
 	{
-		return *ObjectToTransformMapping->FindChecked(Target);
+		return AttributeSetToDataMapping->FindChecked(Target);
 	} 
 	
 	TSharedPtr<BufferedMoveEvents> RequestorQueue_Locomos_TripleBuffer;

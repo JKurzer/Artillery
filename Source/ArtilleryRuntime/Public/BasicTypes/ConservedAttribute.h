@@ -14,15 +14,17 @@
  * Currently, this is for debug purposes, but we can use it with some additional features to provide a really expressive
  * model for rollback at a SUPER granular level if needed. 
  */
+
+
 USTRUCT(BlueprintType)
 struct ARTILLERYRUNTIME_API FConservedAttributeData : public FGameplayAttributeData
 {
 	GENERATED_BODY()
 	uint64_t counterBase = 0;
 	uint64_t counterCurrent = 0;
-	TCircularBuffer<float> CurrentHistory = TCircularBuffer<float>(128);
-	TCircularBuffer<float> RemoteHistory = TCircularBuffer<float>(128);
-	TCircularBuffer<float> BaseHistory = TCircularBuffer<float>(128);
+	TCircularBuffer<double> CurrentHistory = TCircularBuffer<double>(128);
+	TCircularBuffer<double> RemoteHistory = TCircularBuffer<double>(128);
+	TCircularBuffer<double> BaseHistory = TCircularBuffer<double>(128);
 
 	virtual void SetCurrentValue(float NewValue) override {
 		CurrentHistory[CurrentHistory.GetNextIndex(counterBase)] = CurrentValue;
