@@ -45,6 +45,7 @@ namespace Arty
 {
 	typedef TMap<AttribKey, FConservedAttributeData> AttributeMap;
 	typedef TSharedPtr<AttributeMap> AttrMapPtr;
+	typedef TPair<FTransform3d*, FTransform3d> RealAndShadowTransform;
 	DECLARE_DELEGATE_TwoParams(FArtilleryFireGunFromDispatch,
 		TSharedPtr<FArtilleryGun> Gun,
 		bool InputAlreadyUsedOnce);
@@ -91,12 +92,28 @@ protected:
 	//I'm considering GrowOnlyLockFreeHash.h
 	//temporarily, I'm just locking and prayin', prayin and lockin'.
 	//todo: add proper shadowing either with a conserved transform (OUGH) or something clever. good luck.
-	TSharedPtr< TMap<ObjectKey, FTransform3d*>> ObjectToTransformMapping;
+	TSharedPtr< TMap<ObjectKey, RealAndShadowTransform>> ObjectToTransformMapping;
 	//todo, build FAttributeSet. :/
 	TSharedPtr<TMap<ObjectKey, AttrMapPtr>> AttributeSetToDataMapping;
+
+	//THIS CREATES A COPY FOR THE SHADOW BUT UPDATES THE SHADOW EVERY TICK.
+	//THIS IS NOT CHEAP.
+	void RegisterObjectToTransformMappingForShadowTransform(ObjectKey Target, FTransform3d* Original)
+	{
+		ObjectToTransformMapping->Add(Target, RealAndShadowTransform(Original, FTransform3d(*Original)));
+	}
 	FTransform3d&  GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) const
 	{
-		return *ObjectToTransformMapping->FindChecked(Target);
+		return ObjectToTransformMapping->FindChecked(Target).Value;
+	}
+	//this is about as safe as eating live hornets right now.
+	void ApplyShadowTransforms() const
+	{
+			for(RealAndShadowTransform& x : ObjectToTransformMapping)
+			{
+				(x.Key)->Accumulate(x.Value);
+				x.Value = *(x.Key); //yike. just... yike.
+			}
 	}
 	//todo: convert conserved attribute to use a timestamp for versioning to create a true temporal shadowstack.
 	//todo: swap the fuck to FAttributeSet after building it. :/
