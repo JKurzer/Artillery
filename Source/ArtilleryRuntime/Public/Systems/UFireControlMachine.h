@@ -160,6 +160,10 @@ public:
 			pushPatternToRunner(IPM::GPress, APlayer::CABLE, alef, key); 
 		}
 		AttrMapPtr MyAttributes = MakeShareable(new AttributeMap());
+
+		//TODO: swap this to loading values from a data table, and REMOVE this fallback.
+		//If we want defaults, those defaults should ALSO live in a data table, that way when a defaulting bug screws us
+		//maybe we can fix it without going through a full cert using a data only update.
 		for(auto x : Attributes)
 		{
 			MyAttributes->Add(x.Key);
@@ -168,10 +172,11 @@ public:
 		}
 		
 		return ParentKey;
-		//likely want to manage system component bind here by checking for actor parent.
+
 		//right now, we can push all our patterns here as well, and we can use a static set of patterns for
 		//each of our fire control machines. you can basically think of a fire control machine as a full set
 		//of related abilities, their attributes, and similar required to, you know, actually fire a gun.
+		//it is also the gas component, if you're using gas.
 		//There's a bit more blueprint exposure work to do here as a result.
 #ifdef CONTROL_TEST_MODE
 

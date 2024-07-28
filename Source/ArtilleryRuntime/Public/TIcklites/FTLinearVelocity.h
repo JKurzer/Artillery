@@ -5,6 +5,7 @@
 #include "TL_Impl.h"
 
 
+
 //A ticklite's impl component(s) must provide:
 //TICKLITE_StateReset on the memory block aspect
 //TICKLITE_Calculate on the impl aspect
@@ -50,7 +51,7 @@ public:
 	{
 		TicksRemaining = TicksToSplitVelocityOver;
 	}
-	
+
 	bool TICKLITE_CheckForExpiration()
 	{
 		return TicksRemaining == 0;
@@ -62,4 +63,5 @@ public:
 	}
 };
 //behold!
+// FTLinearVelocity<FArtilleryTicklitesWorker*>& would allow you to use a reference indirection here, I believe.
 typedef Ticklites::Ticklite<FTLinearVelocity<FArtilleryTicklitesWorker*>> TL_LinearVelocity;

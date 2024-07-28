@@ -82,25 +82,18 @@ namespace Arty
 	};
 	enum TickliteCadence
 	{
-		Critical = 2,
-		Tick = 4,
-		Lite = 10,
-		Slow = 60,
-		VisiblySlow = 120
+		Critical = 1,
+		Tick = 2,
+		Lite = 8,
+		Slow = 32
 	};
-	enum TickliteLifecycles
-	{
-		Dropdead, //expires on a timer
-		OwnerTag, //while the owner has a tag. any key can own a ticklite but please don't use gunkeys. 
-		Owner	  //when the owner is released (fiddly)
-	};
+
 	struct TicklikeMemoryBlock
 	{
 		TickliteCadence Cadence = TickliteCadence::Lite;
 		TicklitePhase RunGroup = TicklitePhase::Normal;
 		void* Core;
 		void* MemoryBlock;
-		TickliteLifecycles Life = TickliteLifecycles::Dropdead;
 		uint64_t MadeStamp = 0;
 	};
 
@@ -111,20 +104,18 @@ namespace Arty
 	{
 		virtual void CalculateTickable() = 0;
 		virtual bool ShouldExpireTickable() = 0;
+		
 
-		//About half of tickables don't do anything here.
-		//Some may use it for lifecycle management, but that's dicey as we're still working out our semantics.
-		//but about half of them apply or remove something when they expire
-		//where possible, we should use events for this, but it won't always be viable.
+
+		//This trigger effects and this is borderline necessary for some semantics, like popping a poison tag off
+		//when an effect ends. where possible, we should prefer ArtilleryEvents for this, but it won't always be viable.
 		//use your best judgment.
-		virtual bool OnExpireTickable() = 0;
+		virtual void OnExpireTickable() = 0;
 		virtual void ApplyTickable() = 0;
 		virtual void ReturnToPool() = 0;
 
 		virtual ~TickLikePrototype()
 		{
-			delete Core;
-			delete MemoryBlock;
 		};
 	};
 

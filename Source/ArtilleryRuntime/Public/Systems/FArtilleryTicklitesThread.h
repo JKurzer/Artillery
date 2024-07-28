@@ -146,8 +146,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 			{
 				if( x.ShouldExpireTickable())
 				{
-					//TODO: swap from arrays to slab or true pool?
-					//Can't implement until we're sure that they _tick_
+					
 				}
 				else
 				{

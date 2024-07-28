@@ -10,63 +10,63 @@ namespace Ticklites
 	//protect us from partial memory commits and similar that might cause truly weird bugs.
 	//instead, right now, we just run tickables "across" ticks right now.
 	//This conforms with our measure, cut, fit, finish policy, as this is still in the _measure_ phase.
-	template <typename YourImplementation,
-	typename YourThreadsafeState=YourImplementation,
-	typename ExpirationPolicy=YourImplementation>
+	
+	template <typename YourImplementation>
 	struct Ticklite : public TickLikePrototype 
 	{
 		using Ticklite_Impl = YourImplementation;
-		using Impl_InOut = YourThreadsafeState;
-		
+		YourImplementation Core;
 		virtual void CalculateTickable()
 		override
 		{
-			static_cast<Impl_InOut*>(MemoryBlock)->TICKLITE_StateReset();
+			Core.TICKLITE_StateReset();
 			//as always, the use of keys over references will make rollback far far easier.
 			//when performing operations here, do not expect floating point accuracy above 16 ulps.
 			//If you do, you will get fucked sooner or later. I guarantee it.
-			static_cast<Impl_InOut*>(MemoryBlock) = static_cast<Ticklite_Impl*>(Core)->TICKLITE_Calculate();
+			Core.TICKLITE_Calculate();
 		}
 
 		virtual void ApplyTickable()
 		override
 		{
-			static_cast<Ticklite_Impl*>(Core)->TICKLITE_Apply(
-				static_cast<Impl_InOut*>(MemoryBlock)
-			);
+			Core.TICKLITE_Apply();
 		}
 
 		virtual void ReturnToPool()
 		override
 		{
-			static_cast<Ticklite_Impl*>(Core)->TICKLITE_CoreReset();
-			static_cast<Impl_InOut*>(MemoryBlock)->TICKLITE_StateReset();
+			Core.TICKLITE_CoreReset();
+			Core.TICKLITE_StateReset();
 		}
 
+		//expiration will likely get factored out into a delegate or pushed into the TL_Impl
+		//to help ensure that we don't end up with 20 million tickables, each of which expires in a slightly different way.
 		virtual bool ShouldExpireTickable() override
 		{
-			return static_cast<ExpirationPolicy*>(Core)->TICKLITE_CheckForExpiration();
+			return Core.TICKLITE_CheckForExpiration();
 		}
-		virtual bool OnExpireTickable()
+
+		//expiration will likely get factored out into a delegate or pushed into the TL_Impl
+		//to help ensure that we don't end up with 20 million tickables, each of which expires in a slightly different way.
+		virtual void OnExpireTickable()
 		override
 		{
-			return static_cast<ExpirationPolicy*>(Core)->TICKLITE_OnExpiration();
+			return Core.TICKLITE_OnExpiration();
 		}
 
 		virtual ~Ticklite()
 		override
 		{
-			delete static_cast<Ticklite_Impl*>(Core);
-			delete static_cast<Impl_InOut*>(MemoryBlock);
 		}
 
 		//You may wish to implement a ticklite that uses reference counting.
 		//this DOES NOT. Ticklites and their implementations are assumed to have different lifecycles,
 		//with the ticklite either dying at the same time, or dying first. Anything besides this will cause bugs.
-		Ticklite(Ticklite_Impl* ImplInstance, Impl_InOut* MemoryInstance)
+		//this can be optimized to remove the copy operation with a little work. once I'm sure this is the FINAL FORM
+		//I'll do the work.
+		Ticklite(Ticklite_Impl ImplInstance)
 		{
 			Core = ImplInstance;
-			MemoryBlock = MemoryInstance;
 		}
 	};
 }
