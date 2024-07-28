@@ -192,6 +192,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 			{
 				x.ApplyTickable();
 			}
+			DispatchOwner->ApplyShadowTransforms();
 		}
 	
 		return 0;

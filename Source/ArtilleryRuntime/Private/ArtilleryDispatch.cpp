@@ -12,7 +12,7 @@ void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)
 	GunToFiringFunctionMapping = MakeShareable(new TMap<FGunKey, FArtilleryFireGunFromDispatch>());
 	ActorToLocomotionMapping = MakeShareable(new TMap<ActorKey, FArtilleryRunLocomotionFromDispatch>());
 	AttributeSetToDataMapping = MakeShareable( new TMap<ObjectKey, AttrMapPtr>());
-	ObjectToTransformMapping = MakeShareable(new TMap<ObjectKey, FTransform3d*>);
+	ObjectToTransformMapping = MakeShareable(new TMap<ObjectKey, RealAndShadowTransform>);
 	GunByKey = MakeShareable(new TMap<FGunKey, TSharedPtr<FArtilleryGun>>());
 }
 
@@ -43,7 +43,7 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		WorldSim_Thread.Reset(FRunnableThread::Create(&ArtilleryAsyncWorldSim, TEXT("ARTILLERY_ONLINE.")));
 		WorldSim_Ticklites_Thread.Reset(FRunnableThread::Create(&ArtilleryTicklitesWorker_LockstepToWorldSim ,TEXT("BARRAGE_ONLINE.")));
 	}
-
+	
 
 	// Q: how do we get PlayerKey?
 	// ANS: Currently, we don't. 
@@ -71,6 +71,35 @@ void UArtilleryDispatch::Deinitialize()
 		//not proc.
 		WorldSim_Ticklites_Thread->Kill(false);
 	}
+}
+
+void UArtilleryDispatch::RegisterObjectToShadowTransform(ObjectKey Target, const FTransform3d* Original) const
+{
+	ObjectToTransformMapping->Add(Target, RealAndShadowTransform(Original, FTransform3d(*Original)));
+}
+
+FTransform3d& UArtilleryDispatch::GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) const
+{
+	return ObjectToTransformMapping->FindChecked(Target).Value;
+}
+
+void UArtilleryDispatch::ApplyShadowTransforms() const
+{
+	for(RealAndShadowTransform& x : ObjectToTransformMapping)
+	{
+		//if the transform hasn't changed, this can explode. honestly, this can just explode. it's just oofa.
+		//we really want the transform delta to be _additive_ but that's gonna take quite a bit more work.
+		//good news, it'll be much faster, cause we'll zero the delta instead? I think? I think? rgh.
+		//it's not a problem atm. mostly.
+		(x.Key)->Accumulate(x.Value);
+		x.Value = *(x.Key); //yike. just... yike.
+	}
+}
+
+TSharedPtr<TMap<AttribKey, FConservedAttributeData>> UArtilleryDispatch::GetAttribSetShadowByObjectKey(ObjectKey Target,
+	ArtilleryTime Now) const
+{
+	return AttributeSetToDataMapping->FindChecked(Target);
 }
 
 void UArtilleryDispatch::Tick(float DeltaTime)

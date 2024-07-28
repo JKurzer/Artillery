@@ -45,7 +45,7 @@ namespace Arty
 {
 	typedef TMap<AttribKey, FConservedAttributeData> AttributeMap;
 	typedef TSharedPtr<AttributeMap> AttrMapPtr;
-	typedef TPair<FTransform3d*, FTransform3d> RealAndShadowTransform;
+	typedef TPair<const FTransform3d*, FTransform3d> RealAndShadowTransform;
 	DECLARE_DELEGATE_TwoParams(FArtilleryFireGunFromDispatch,
 		TSharedPtr<FArtilleryGun> Gun,
 		bool InputAlreadyUsedOnce);
@@ -96,33 +96,15 @@ protected:
 	//todo, build FAttributeSet. :/
 	TSharedPtr<TMap<ObjectKey, AttrMapPtr>> AttributeSetToDataMapping;
 
-	//THIS CREATES A COPY FOR THE SHADOW BUT UPDATES THE SHADOW EVERY TICK.
-	//THIS IS NOT CHEAP.
-	void RegisterObjectToTransformMappingForShadowTransform(ObjectKey Target, FTransform3d* Original)
-	{
-		ObjectToTransformMapping->Add(Target, RealAndShadowTransform(Original, FTransform3d(*Original)));
-	}
-	FTransform3d&  GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) const
-	{
-		return ObjectToTransformMapping->FindChecked(Target).Value;
-	}
+
+	FTransform3d&  GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) const;
 	//this is about as safe as eating live hornets right now.
-	void ApplyShadowTransforms() const
-	{
-			for(RealAndShadowTransform& x : ObjectToTransformMapping)
-			{
-				(x.Key)->Accumulate(x.Value);
-				x.Value = *(x.Key); //yike. just... yike.
-			}
-	}
+	void ApplyShadowTransforms() const;
 	//todo: convert conserved attribute to use a timestamp for versioning to create a true temporal shadowstack.
 	//todo: swap the fuck to FAttributeSet after building it. :/
 	TSharedPtr<TMap<AttribKey, FConservedAttributeData>> GetAttribSetShadowByObjectKey(
-		ObjectKey Target, ArtilleryTime Now) const
-	{
-		return AttributeSetToDataMapping->FindChecked(Target);
-	} 
-	
+		ObjectKey Target, ArtilleryTime Now) const;
+
 	TSharedPtr<BufferedMoveEvents> RequestorQueue_Locomos_TripleBuffer;
 
 	static inline long long TotalFirings = 0; //2024 was rough.
@@ -200,6 +182,10 @@ public:
 	{
 		AttributeSetToDataMapping->Add(in, Attributes);
 	}
+	
+	//THIS CREATES A COPY FOR THE SHADOW BUT UPDATES THE SHADOW EVERY TICK.
+	//THIS IS NOT CHEAP.
+	void RegisterObjectToShadowTransform(ObjectKey Target, const FTransform3d* Original) const;
 	std::atomic_bool UseNetworkInput;
 	bool missedPrior = false;
 	bool burstDropDetected = false;

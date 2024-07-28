@@ -115,6 +115,7 @@ void FArtilleryBusyWorker::RunStandardFrameSim(bool& missedPrior, uint64_t& curr
 		EventBuffer& refDangerous_LifeCycleManaged_Abilities_TripleBuffered
 			= RequestorQueue_Abilities_TripleBuffer->GetWriteBuffer();
 
+		
 		//today's sin is PRIDE, bigbird!
 		for (int i = currentIndexCabling; i < CablingControlStream->highestInput; ++i)
 		{

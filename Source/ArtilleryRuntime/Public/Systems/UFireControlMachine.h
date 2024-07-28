@@ -46,8 +46,7 @@ class ARTILLERYRUNTIME_API UFireControlMachine : public UAbilitySystemComponent
 
 public:
 	static inline int orderInInitialize = 0;
-	UPROPERTY(BlueprintReadOnly)
-	UCanonicalInputStreamECS* MySquire;
+	UCanonicalInputStreamECS* MyInput;
 	ActorKey ParentKey;
 	//this needs to be replicated in iris, interestin'ly.
 	TSet<FGunKey> MyGuns;
@@ -113,7 +112,7 @@ public:
 	void pushPatternToRunner(IPM::CanonPattern ToBind, PlayerKey InputStreamByPlayer, FActionBitMask ToSeek, FGunKey ToFire)
 	{
 		FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, InputStreamByPlayer, ToFire);
-		MySquire->registerPattern(ToBind, myParams);
+		MyInput->registerPattern(ToBind, myParams);
 		Arty::FArtilleryFireGunFromDispatch Inbound;
 		Inbound.BindUObject(this, &UFireControlMachine::FireGun);
 		MyDispatch->RegisterReady(ToFire, Inbound);
@@ -124,7 +123,7 @@ public:
 	void popPatternFromRunner(FActionPattern* ToBind, PlayerKey InputStreamByPlayer, FActionBitMask ToSeek, FGunKey ToFire)
 	{
 		FActionPatternParams myParams = FActionPatternParams(ToSeek, MyKey, InputStreamByPlayer, ToFire);
-		MySquire->removePattern(ToBind, myParams);
+		MyInput->removePattern(ToBind, myParams);
 		MyDispatch->Deregister(ToFire);
 		MyGuns.Remove(ToFire);
 
@@ -142,10 +141,10 @@ public:
 		//here will either:
 		//work correctly
 		//fail fast
-		MySquire = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
+		MyInput = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 		MyDispatch = GetWorld()->GetSubsystem<UArtilleryDispatch>();
 
-		TPair<ActorKey, InputStreamKey> Parent =  MySquire->RegisterKeysToParentActorMapping(GetOwner(), MyKey, true);
+		TPair<ActorKey, InputStreamKey> Parent =  MyInput->RegisterKeysToParentActorMapping(GetOwner(), MyKey, true);
 		ParentKey = Parent.Key;
 		MyDispatch->RegisterLocomotion(ParentKey, LocomotionFromActor);
 		Usable = true;
@@ -170,7 +169,8 @@ public:
 			MyAttributes->FindChecked(x.Key).SetBaseValue(x.Value);
 			MyAttributes->FindChecked(x.Key).SetCurrentValue(x.Value);
 		}
-		
+		MyDispatch->RegisterAttributes(ParentKey, MyAttributes);
+		MyDispatch->RegisterObjectToShadowTransform(ParentKey, &GetOwner()->GetTransform());
 		return ParentKey;
 
 		//right now, we can push all our patterns here as well, and we can use a static set of patterns for
@@ -220,7 +220,7 @@ public:
 	void ReadyForReplication() override
 	{
 		Super::ReadyForReplication();
-		MySquire = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
+		MyInput = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 		MyDispatch = GetWorld()->GetSubsystem<UArtilleryDispatch>();
 	}
 
@@ -231,7 +231,7 @@ public:
 	void BeginPlay() override
 	{
 		Super::BeginPlay(); 
-		MySquire = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
+		MyInput = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 		MyDispatch = GetWorld()->GetSubsystem<UArtilleryDispatch>();
 
 	};
