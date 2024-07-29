@@ -115,7 +115,7 @@ TStatId UArtilleryDispatch::GetStatId() const
 }
 
 
-FGunKey UArtilleryDispatch::GetGun(FString GunDefinitionID, FireControlKey MachineKey)
+FGunKey UArtilleryDispatch::GetGun(FString GunDefinitionID, ActorKey ProbableOwner)
 {
 	//We know it. We have known it. We continue to know it.
 	//See you soon, Chief.
@@ -126,21 +126,24 @@ FGunKey UArtilleryDispatch::GetGun(FString GunDefinitionID, FireControlKey Machi
 		TSharedPtr<FArtilleryGun> repurposing = *PooledGuns.Find(GunDefinitionID);
 		PooledGuns.RemoveSingle(GunDefinitionID, repurposing);
 		repurposing->Initialize(Key, false);
+		repurposing->UpdateProbableOwner(ProbableOwner);
 		GunByKey->Add(Key, repurposing);
 	}
 	else
 	{
 		TSharedPtr<FArtilleryGun> NewGun = MakeShareable(new FArtilleryGun(Key));
 		NewGun->Initialize(Key, false);
+		NewGun->UpdateProbableOwner(ProbableOwner);
 		GunByKey->Add(Key, NewGun);
 	}
 	return Key;	
 }
 
-FGunKey UArtilleryDispatch::RegisterExistingGun(FArtilleryGun* ToBind, FireControlKey MachineKey)
+FGunKey UArtilleryDispatch::RegisterExistingGun(FArtilleryGun* ToBind, ActorKey ProbableOwner) const
 {
 	//TODO: see if this code path needs to evolve to do more sophisticated management of the gunkey itself
 	TSharedPtr<FArtilleryGun> NewGun = MakeShareable(ToBind);
+	NewGun->UpdateProbableOwner(ProbableOwner);
 	GunByKey->Add(ToBind->MyGunKey, NewGun);
 	return ToBind->MyGunKey;	
 }
@@ -167,6 +170,19 @@ void UArtilleryDispatch::QueueResim(FGunKey Key, Arty::ArtilleryTime Time)
 	{
 		ActionsToReconcile->Enqueue(std::pair<FGunKey, Arty::ArtilleryTime>(Key, Time));
 	}
+}
+
+std::optional<FConservedAttributeData&>  UArtilleryDispatch::GetAttrib(ActorKey Owner, AttribKey Attrib)
+{
+		if(AttributeSetToDataMapping->Contains(Owner))
+		{
+			auto a = AttributeSetToDataMapping->FindChecked(Owner);
+			if(a->Contains(Attrib))
+			{
+				return AttributeSetToDataMapping->FindChecked(Owner)->FindChecked(Attrib);
+			}
+		}
+		return std::nullopt;
 }
 
 void UArtilleryDispatch::RunGuns()

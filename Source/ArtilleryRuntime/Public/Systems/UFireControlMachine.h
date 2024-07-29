@@ -154,7 +154,7 @@ public:
 			alef.buttons = Intents::A;
 			auto temp = new FMockArtilleryGun(FGunKey("Dummy", 1));
 			temp->Initialize(FGunKey("Dummy", 1), false);
-			auto key = MyDispatch->RegisterExistingGun(temp, MyKey);
+			auto key = MyDispatch->RegisterExistingGun(temp, ParentKey);
 			
 			pushPatternToRunner(IPM::GPress, APlayer::CABLE, alef, key); 
 		}

@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "CoreTypes.h"
 #include <unordered_map>
+
+#include "ArtilleryCommonTypes.h"
 #include "FGunKey.h"
 #include "GameplayEffectTypes.h"
 #include "GameplayEffect.h"
@@ -34,6 +36,7 @@ public:
 	// this can be handed into abilities.
 	friend class UArtilleryPerActorAbilityMinimum;
 	FGunKey MyGunKey;
+	ActorKey MyProbableOwner = 0;
 	bool ReadyToFire = false;
 
 	//As these are UProperties, they should NOT need to become strong pointers or get attached to root
@@ -70,6 +73,10 @@ public:
 	virtual ~FArtilleryGun()
 	{}
 
+	void UpdateProbableOwner(ActorKey ProbableOwner)
+	{
+		MyProbableOwner= ProbableOwner;
+	}
 	//I'm sick and tired of the endless layers of abstraction.
 	//Here's how it works. we fire the abilities from the gun.
 	//OnGameplayAbilityEnded doesn't actually let you know if the ability was canceled.

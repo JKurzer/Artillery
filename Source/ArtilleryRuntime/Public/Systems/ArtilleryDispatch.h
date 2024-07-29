@@ -131,6 +131,7 @@ protected:
 	void QueueFire(FGunKey Key, Arty::ArtilleryTime Time);
 
 	void QueueResim(FGunKey Key, Arty::ArtilleryTime Time);
+	std::optional<FConservedAttributeData&> GetAttrib(ActorKey Owner, AttribKey Attrib);
 
 	//the separation of tick and frame is inspired by the Serious Engine and others.
 	//In fact, it's pretty common to this day, with Unity also using a similar model.
@@ -162,7 +163,7 @@ public:
 	//TODO: IMPLEMENT THE GUNMAP FROM INSTANCE UNTO CLASS
 	//TODO: REMEMBER TO SAY AMMO A BUNCH
 	FGunKey GetGun(FString GunDefinitionID, FireControlKey MachineKey);
-	FGunKey RegisterExistingGun(FArtilleryGun* toBind, FireControlKey MachineKey);
+	FGunKey RegisterExistingGun(FArtilleryGun* toBind, ActorKey ProbableOwner) const;
 	bool ReleaseGun(FGunKey Key, FireControlKey MachineKey);
 
 	void RegisterReady(FGunKey Key, FArtilleryFireGunFromDispatch Machine)
