@@ -56,7 +56,7 @@ void UArtilleryPerActorAbilityMinimum::ActivateAbility(const FGameplayAbilitySpe
 
 	if (TriggerEventData)
 	{
-		K2_ActivateViaArtillery(*ActorInfo, *TriggerEventData);
+		K2_ActivateViaArtillery(*ActorInfo, *TriggerEventData, MyGunKey);
 	}
 	else if (bHasBlueprintActivateFromEvent)
 	{

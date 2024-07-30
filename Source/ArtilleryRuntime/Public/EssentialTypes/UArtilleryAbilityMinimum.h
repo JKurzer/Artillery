@@ -163,10 +163,10 @@ public:
 	//You MUST call end ability and commit ability as appropriate, or execution will not continue.
 	//Prefire should use commit\end vs. cancel to signal if execution should continue, but all abilities can.
 	UFUNCTION(BlueprintNativeEvent, Category = Ability, DisplayName = "Artillery Ability Implementation", meta=(ScriptName = "ArtilleryActivation"))
-	void K2_ActivateViaArtillery(const FGameplayAbilityActorInfo& ActorInfo, const FGameplayEventData& Event);
+	void K2_ActivateViaArtillery(const FGameplayAbilityActorInfo& ActorInfo, const FGameplayEventData& Event, const FGunKey& MyGun);
 
 	//Default behavior, override to use C++!
-	virtual void K2_ActivateViaArtillery_Implementation(const FGameplayAbilityActorInfo& ActorInfo,const FGameplayEventData& Event)
+	virtual void K2_ActivateViaArtillery_Implementation(const FGameplayAbilityActorInfo& ActorInfo,const FGameplayEventData& Event, const FGunKey& MyGun)
 	{
 	}
 
