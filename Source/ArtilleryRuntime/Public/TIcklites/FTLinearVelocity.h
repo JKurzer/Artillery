@@ -13,6 +13,7 @@
 //TICKLITE_CoreReset on the impl aspect
 //TICKLITE_CheckForExpiration on the impl aspect
 //TICKLITE_OnExpiration
+//TODO: add stop on collide.
 template<typename ParentThreadAnchor>
 class FTLinearVelocity : public TL_Impl<ParentThreadAnchor> /*Facaded*/
 {

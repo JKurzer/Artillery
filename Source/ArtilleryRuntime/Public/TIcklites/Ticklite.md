@@ -2,8 +2,8 @@
 This folder contains the IMPLEMENTATIONS for the various necessary ticklites.
 
 You can find the Ticklite template facade in Essential Types. A Ticklite combines:
--  The Ticklite Facade
--  An implementation for the Tick_ and HACK_ functions by the template types.
+-  The Ticklite Facade and the base impl which provides a few functions most ticklites use.
+-  An implementation for the Tick_ and HACK_ functions used by the template types.
 -  The Ticklites thread
 
 And this creates a ticklite object. This is a typesafe and encapsulating way
