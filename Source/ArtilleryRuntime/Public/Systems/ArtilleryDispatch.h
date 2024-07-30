@@ -43,9 +43,10 @@
  */
 namespace Arty
 {
-	typedef TMap<AttribKey, FConservedAttributeData> AttributeMap;
+	typedef TSharedPtr<FConservedAttributeData> AttrPtr;
+	typedef TMap<AttribKey, AttrPtr> AttributeMap;
 	typedef TSharedPtr<AttributeMap> AttrMapPtr;
-	typedef TPair<const FTransform3d*, FTransform3d> RealAndShadowTransform;
+	typedef TPair<FTransform3d*, FTransform3d> RealAndShadowTransform;
 	DECLARE_DELEGATE_TwoParams(FArtilleryFireGunFromDispatch,
 		TSharedPtr<FArtilleryGun> Gun,
 		bool InputAlreadyUsedOnce);
@@ -97,12 +98,12 @@ protected:
 	TSharedPtr<TMap<ObjectKey, AttrMapPtr>> AttributeSetToDataMapping;
 
 
-	FTransform3d&  GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) const;
+	FTransform3d&  GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now);
 	//this is about as safe as eating live hornets right now.
-	void ApplyShadowTransforms() const;
+	
 	//todo: convert conserved attribute to use a timestamp for versioning to create a true temporal shadowstack.
 	//todo: swap the fuck to FAttributeSet after building it. :/
-	TSharedPtr<TMap<AttribKey, FConservedAttributeData>> GetAttribSetShadowByObjectKey(
+	AttrMapPtr GetAttribSetShadowByObjectKey(
 		ObjectKey Target, ArtilleryTime Now) const;
 
 	TSharedPtr<BufferedMoveEvents> RequestorQueue_Locomos_TripleBuffer;
@@ -131,7 +132,6 @@ protected:
 	void QueueFire(FGunKey Key, Arty::ArtilleryTime Time);
 
 	void QueueResim(FGunKey Key, Arty::ArtilleryTime Time);
-	std::optional<FConservedAttributeData&> GetAttrib(ActorKey Owner, AttribKey Attrib);
 
 	//the separation of tick and frame is inspired by the Serious Engine and others.
 	//In fact, it's pretty common to this day, with Unity also using a similar model.
@@ -162,10 +162,13 @@ public:
 	//DUMMY FOR NOW.
 	//TODO: IMPLEMENT THE GUNMAP FROM INSTANCE UNTO CLASS
 	//TODO: REMEMBER TO SAY AMMO A BUNCH
+	void ApplyShadowTransforms();
 	FGunKey GetGun(FString GunDefinitionID, FireControlKey MachineKey);
 	FGunKey RegisterExistingGun(FArtilleryGun* toBind, ActorKey ProbableOwner) const;
 	bool ReleaseGun(FGunKey Key, FireControlKey MachineKey);
 
+	AttrPtr GetAttrib(ActorKey Owner, AttribKey Attrib);
+	
 	void RegisterReady(FGunKey Key, FArtilleryFireGunFromDispatch Machine)
 	{
 		GunToFiringFunctionMapping->Add(Key, Machine);
@@ -186,7 +189,7 @@ public:
 	
 	//THIS CREATES A COPY FOR THE SHADOW BUT UPDATES THE SHADOW EVERY TICK.
 	//THIS IS NOT CHEAP.
-	void RegisterObjectToShadowTransform(ObjectKey Target, const FTransform3d* Original) const;
+	void RegisterObjectToShadowTransform(ObjectKey Target, FTransform3d* Original);
 	std::atomic_bool UseNetworkInput;
 	bool missedPrior = false;
 	bool burstDropDetected = false;

@@ -52,9 +52,9 @@ public:
 		override
 	{
 		auto bind =  MyDispatch->GetAttrib(MyProbableOwner, AttribKey::DashCharges);
-		if(bind != std::nullopt && bind.value() > 0)
+		if(bind != nullptr && bind->counterCurrent > 0)
 		{
-			FireGun(FArtilleryStates::Fired, 0, ActorInfo, ActivationInfo, TriggerEventData, false, Handle);
+			FireGun(FArtilleryStates::Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData , Handle);
 		}
 	};
 
@@ -65,7 +65,7 @@ public:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		bool RerunDueToReconcile,
 		const FGameplayEventData* TriggerEventData,
-		FGameplayAbilitySpecHandle Handle) const 
+		FGameplayAbilitySpecHandle Handle) 
 		override
 	{
 		
@@ -78,10 +78,15 @@ public:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		bool RerunDueToReconcile,
 		const FGameplayEventData* TriggerEventData,
-		FGameplayAbilitySpecHandle Handle) const
+		FGameplayAbilitySpecHandle Handle)
 		override
 	{
-			throw;
+		auto bind =  MyDispatch->GetAttrib(MyProbableOwner, AttribKey::DashCharges);
+		double Currently = bind == nullptr ? bind->counterCurrent : 0;
+		if(Currently && bind->counterCurrent > 0)
+		{
+			bind->SetCurrentValue(Currently - 1.0);
+		}
 	};
 
 	virtual bool Initialize(const FGunKey& KeyFromDispatch, bool MyCodeWillHandleKeys)

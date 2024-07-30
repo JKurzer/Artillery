@@ -166,11 +166,11 @@ public:
 		for(auto x : Attributes)
 		{
 			MyAttributes->Add(x.Key);
-			MyAttributes->FindChecked(x.Key).SetBaseValue(x.Value);
-			MyAttributes->FindChecked(x.Key).SetCurrentValue(x.Value);
+			MyAttributes->FindChecked(x.Key)->SetBaseValue(x.Value);
+			MyAttributes->FindChecked(x.Key)->SetCurrentValue(x.Value);
 		}
 		MyDispatch->RegisterAttributes(ParentKey, MyAttributes);
-		MyDispatch->RegisterObjectToShadowTransform(ParentKey, &GetOwner()->GetTransform());
+		MyDispatch->RegisterObjectToShadowTransform(ParentKey, &GetOwner()->GetActorTransform());
 		return ParentKey;
 
 		//right now, we can push all our patterns here as well, and we can use a static set of patterns for

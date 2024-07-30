@@ -73,30 +73,33 @@ void UArtilleryDispatch::Deinitialize()
 	}
 }
 
-void UArtilleryDispatch::RegisterObjectToShadowTransform(ObjectKey Target, const FTransform3d* Original) const
+void UArtilleryDispatch::RegisterObjectToShadowTransform(ObjectKey Target, FTransform3d* Original)
 {
 	ObjectToTransformMapping->Add(Target, RealAndShadowTransform(Original, FTransform3d(*Original)));
 }
 
-FTransform3d& UArtilleryDispatch::GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) const
+FTransform3d& UArtilleryDispatch::GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) 
 {
 	return ObjectToTransformMapping->FindChecked(Target).Value;
 }
 
-void UArtilleryDispatch::ApplyShadowTransforms() const
+void UArtilleryDispatch::ApplyShadowTransforms()
 {
-	for(RealAndShadowTransform& x : ObjectToTransformMapping)
+	for(auto& x : *ObjectToTransformMapping)
 	{
+		auto& destructure = x.Value;
+		const auto& bindConst = destructure.Value;
 		//if the transform hasn't changed, this can explode. honestly, this can just explode. it's just oofa.
 		//we really want the transform delta to be _additive_ but that's gonna take quite a bit more work.
 		//good news, it'll be much faster, cause we'll zero the delta instead? I think? I think? rgh.
 		//it's not a problem atm. mostly.
-		(x.Key)->Accumulate(x.Value);
-		x.Value = *(x.Key); //yike. just... yike.
+		
+		(destructure.Key)->Accumulate(bindConst);
+		destructure.Value = *(destructure.Key); //yike. just... yike.
 	}
 }
 
-TSharedPtr<TMap<AttribKey, FConservedAttributeData>> UArtilleryDispatch::GetAttribSetShadowByObjectKey(ObjectKey Target,
+AttrMapPtr UArtilleryDispatch::GetAttribSetShadowByObjectKey(ObjectKey Target,
 	ArtilleryTime Now) const
 {
 	return AttributeSetToDataMapping->FindChecked(Target);
@@ -172,7 +175,7 @@ void UArtilleryDispatch::QueueResim(FGunKey Key, Arty::ArtilleryTime Time)
 	}
 }
 
-std::optional<FConservedAttributeData&>  UArtilleryDispatch::GetAttrib(ActorKey Owner, AttribKey Attrib)
+AttrPtr UArtilleryDispatch::GetAttrib(ActorKey Owner, AttribKey Attrib)
 {
 		if(AttributeSetToDataMapping->Contains(Owner))
 		{
@@ -182,7 +185,7 @@ std::optional<FConservedAttributeData&>  UArtilleryDispatch::GetAttrib(ActorKey 
 				return AttributeSetToDataMapping->FindChecked(Owner)->FindChecked(Attrib);
 			}
 		}
-		return std::nullopt;
+		return nullptr;
 }
 
 void UArtilleryDispatch::RunGuns()

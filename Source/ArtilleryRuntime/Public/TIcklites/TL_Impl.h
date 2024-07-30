@@ -1,8 +1,13 @@
 ﻿#pragma once
 #include "ArtilleryCommonTypes.h"
 
+struct TL_Tag
+{
+	
+};
+
 template<typename ParentThreadAnchor>
-struct TL_Impl
+struct TL_Impl : public TL_Tag
 {
 	friend class TickLikePrototypep;
 	//Each class generated gets a unique static. Each kind of dispatcher will get a unique class.

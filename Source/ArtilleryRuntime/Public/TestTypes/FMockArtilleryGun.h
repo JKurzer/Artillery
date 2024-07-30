@@ -68,7 +68,7 @@ public:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		bool RerunDueToReconcile,
 		const FGameplayEventData* TriggerEventData,
-		FGameplayAbilitySpecHandle Handle) const 
+		FGameplayAbilitySpecHandle Handle) 
 		override
 	{
 		throw;
@@ -81,7 +81,7 @@ public:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		bool RerunDueToReconcile,
 		const FGameplayEventData* TriggerEventData,
-		FGameplayAbilitySpecHandle Handle) const
+		FGameplayAbilitySpecHandle Handle) 
 		override
 	{
 			throw;

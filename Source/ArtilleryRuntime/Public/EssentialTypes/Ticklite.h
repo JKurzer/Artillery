@@ -1,9 +1,12 @@
 ﻿#pragma once
 #include "ArtilleryCommonTypes.h"
+#include "TL_Impl.h"
 
 
 namespace Ticklites
 {
+	template<class YourImplementation>
+	concept Derived_TLI = std::derived_from<TL_Tag, YourImplementation>;
 	//conserved attributes mean that we always have a shadow copy ready.
 	// a successful Calculate function should reference the attribute not by most recent, but by exact index.
 	//good support for this isn't in yet, but during our early work, the conserved attributes will still
@@ -11,7 +14,7 @@ namespace Ticklites
 	//instead, right now, we just run tickables "across" ticks right now.
 	//This conforms with our measure, cut, fit, finish policy, as this is still in the _measure_ phase.
 	
-	template <typename YourImplementation>
+	template <typename YourImplementation> requires Derived_TLI<YourImplementation> 
 	struct Ticklite : public TickLikePrototype 
 	{
 		using Ticklite_Impl = YourImplementation;

@@ -72,24 +72,24 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	{
 		return DispatchOwner->GetTransformShadowByObjectKey(Target,  Now);
 	}
-	template <typename TypeOfTicklite, typename IOForm>
+	template <typename TypeOfTicklite>
 	bool TickliteOffThreadAdd(TicklitePhase Group)
 	{
 		switch (Group)
 		{
 		case TicklitePhase::Early :
 			{
-				Group1.Add( Ticklites::Ticklite<TypeOfTicklite, IOForm, UDispatch>());
+				Group1.Add( Ticklites::Ticklite<TypeOfTicklite, UDispatch>());
 				return true;
 			}
 		case TicklitePhase::Normal :
 			{
-				Group2.Add( Ticklites::Ticklite<TypeOfTicklite, IOForm, UDispatch>());
+				Group2.Add( Ticklites::Ticklite<TypeOfTicklite, UDispatch>());
 				return true;
 			}
 		case TicklitePhase::Late :
 			{
-				Group3.Add( Ticklites::Ticklite<TypeOfTicklite, IOForm, UDispatch>());
+				Group3.Add( Ticklites::Ticklite<TypeOfTicklite, UDispatch>());
 				return true;
 			}
 		}

@@ -122,7 +122,7 @@ public:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		bool RerunDueToReconcile,
 		const FGameplayEventData* TriggerEventData,
-		FGameplayAbilitySpecHandle Handle) const
+		FGameplayAbilitySpecHandle Handle)
 	{
 		if(!ReadyToFire)
 		{
@@ -158,7 +158,7 @@ public:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		bool RerunDueToReconcile,
 		const FGameplayEventData* TriggerEventData,
-		FGameplayAbilitySpecHandle Handle) const
+		FGameplayAbilitySpecHandle Handle) 
 	{
 		if (OutcomeStates == FArtilleryStates::Fired)
 		{
