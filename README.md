@@ -36,7 +36,7 @@ I intend to expand the conserved attribute to support timestamping its changes, 
 
 ## Networking  
 This plugin will:   
-- Disable replication and RPCs for all played or used abilities FROM CLIENT TO SERVER. Clients trigger GAS abilities based on input and on replication from the server.
+- Disable replication and RPCs for all played or used abilities FROM CLIENT TO SERVER. Clients trigger Artillery abilities based on input and on replication from the server.
   - We are **fully server authoritative** AND clients **do not** push cues to the server.
   - HOWEVER clients do FULLY simulate all player characters down to their ability systems.
   - This is because the cloned input from bristlecone is used to literally control those actors, out of band from the replication system.
