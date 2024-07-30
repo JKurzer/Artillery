@@ -106,18 +106,7 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Latency Hiding")
 	int AvailableDallyFrames = 0;
-	//InstancingPolicy is ALWAYS EGameplayAbilityInstancingPolicy::NonInstanced for artillery abilities.
-	//Storing state outside of tags and game simulation attributes will not be replicated and will cause bugs during rollback.
-	//Only implementation graphs in THIS function are called by artillery. Anything else will be ignored.
-	//You MUST call end ability and commit ability as appropriate, or execution will not continue.
-	//Prefire should use commit\end vs. cancel to signal if execution should continue, but all abilities can.
-	UFUNCTION(BlueprintNativeEvent, Category = Ability, DisplayName = "Artillery Ability Implementation", meta=(ScriptName = "ArtilleryActivation"))
-	void K2_ActivateViaArtillery(const FGameplayAbilityActorInfo& ActorInfo);
 
-	//Default behavior, override to use C++!
-	virtual void K2_ActivateViaArtillery_Implementation(const FGameplayAbilityActorInfo& ActorInfo)
-	{
-	}
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gun")
 	FGunKey MyGunKey;
@@ -163,17 +152,23 @@ public:
 	//virtual bool DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const;
 	//virtual bool IsBlockingOtherAbilities() const;
 
-	
-/**
-	 * The main function that defines what an ability does.
-	 *  -This function graph MUST call CommitAbility
-	 *  -This function graph MUST call EndAbility
-	 *
-	 *  THE USE OF ANY LATENT OR ASYNC ACTIONS THAT ARE NOT PART OF THE ARTILLERY SET WILL FAIL.
-	 *
+	/**
+	 * THIS IS SUPERSEDED BY ACTIVATEBYARTILLERY.
 	 */
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
+	//InstancingPolicy is ALWAYS EGameplayAbilityInstancingPolicy::NonInstanced for artillery abilities.
+	//Storing state outside of tags and game simulation attributes will not be replicated and will cause bugs during rollback.
+	//Only implementation graphs in THIS function are called by artillery. Anything else will be ignored.
+	//You MUST call end ability and commit ability as appropriate, or execution will not continue.
+	//Prefire should use commit\end vs. cancel to signal if execution should continue, but all abilities can.
+	UFUNCTION(BlueprintNativeEvent, Category = Ability, DisplayName = "Artillery Ability Implementation", meta=(ScriptName = "ArtilleryActivation"))
+	void K2_ActivateViaArtillery(const FGameplayAbilityActorInfo& ActorInfo, const FGameplayEventData& Event);
+
+	//Default behavior, override to use C++!
+	virtual void K2_ActivateViaArtillery_Implementation(const FGameplayAbilityActorInfo& ActorInfo,const FGameplayEventData& Event)
+	{
+	}
 
 	/** Do boilerplate init stuff and then call ActivateAbility */
 	//You get a much better sense of how this flows looking at the 

@@ -45,24 +45,29 @@ bool UGameplayAbility::K2_CommitAbilityCost(bool BroadcastCommitEvent)
 }*/
 
 
-
+//This routes to K2_ActivateViaArtillery_Implementation for C++ or K2_ActivateViaArtillery for blueprint.
+// in event data, you can expect 
+//		Instigator(nullptr)
+//		Target(nullptr)
+//to provide actorkeys that will allow you to access artillery if they are gamesim objects.
+//If you need additional keys at the start of the ability, it may unfortunately be necessary to write your ability partially or fully as an artillery gun.
 void UArtilleryPerActorAbilityMinimum::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 
 	if (TriggerEventData)
 	{
-		K2_ActivateViaArtillery(*ActorInfo);
+		K2_ActivateViaArtillery(*ActorInfo, *TriggerEventData);
 	}
 	else if (bHasBlueprintActivateFromEvent)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Artillery Ability %s expects event data but none is being supplied. Use 'Activate Ability' instead of 'Activate Ability From Event' in the Blueprint."), *GetName());
+		UE_LOG(LogTemp, Warning, TEXT("Artillery Ability %s expects event data but none is being supplied. Only ActivateViaArtillery will be called."), *GetName());
 		constexpr bool bReplicateEndAbility = false;
 		constexpr bool bWasCancelled = true;
 		EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Artillery Ability %s expects to be activated by FArtilleryGun with a valid Blueprint Graph implemented and an event."), *GetName());
+		UE_LOG(LogTemp, Warning, TEXT("Artillery Ability %s expects to be activated by FArtilleryGun and routes to ActivateViaArtillery. Either override this or try again with a valid Blueprint Graph implemented and an event."), *GetName());
 		constexpr bool bReplicateEndAbility = false;
 		constexpr bool bWasCancelled = true;
 		EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
