@@ -63,7 +63,6 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	//This isn't super safe but like busy worker, ticklites only runs in one spot.
 	friend class UArtilleryDispatch;
 	ArtilleryTime LocalNow;
-	TSharedPtr<BufferedTicklites> RequestorQueue_Add_Ticklites;
 	TickliteGroup Group1;
 	TickliteGroup Group2;
 	TickliteGroup Group3;
@@ -72,30 +71,34 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	{
 		return DispatchOwner->GetTransformShadowByObjectKey(Target,  Now);
 	}
-	template <typename TypeOfTicklite>
-	bool TickliteOffThreadAdd(TicklitePhase Group)
+
+	
+	
+	protected:
+	TickliteBuffer QueuedAdds;
+	
+	bool TickliteAdd(TSharedPtr<TicklitePrototype> AllocatedTL,  TicklitePhase Group)
 	{
 		switch (Group)
 		{
 		case TicklitePhase::Early :
 			{
-				Group1.Add( Ticklites::Ticklite<TypeOfTicklite, UDispatch>());
+				Group1.Add(AllocatedTL);
 				return true;
 			}
 		case TicklitePhase::Normal :
 			{
-				Group2.Add( Ticklites::Ticklite<TypeOfTicklite, UDispatch>());
+				Group2.Add( AllocatedTL);
 				return true;
 			}
 		case TicklitePhase::Late :
 			{
-				Group3.Add( Ticklites::Ticklite<TypeOfTicklite, UDispatch>());
+				Group3.Add(AllocatedTL);
 				return true;
 			}
 		}
 		return false;
 	}
-	protected:
 	FSharedEventRef StartTicklitesSim;
 	FSharedEventRef StartTicklitesApply;
 	public:
@@ -106,7 +109,11 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	{
 	}
 
-
+	void RequestAddTicklite(TSharedPtr<TicklitePrototype> ToAdd, TicklitePhase Group)
+	{
+		QueuedAdds->Enqueue(StampLiteRequest(GetShadowNow(), ToAdd, Group));
+	}
+	
 	inline ArtilleryTime GetShadowNow()
 	const
 	{
@@ -142,57 +149,64 @@ class FArtilleryTicklitesWorker : public FRunnable {
 			StartTicklitesSim->Wait();
 			StartTicklitesSim->Reset();
 			
-			for(auto& x : Group1)
+			for(auto x : Group1)
 			{
-				if( x.ShouldExpireTickable())
+				if( x->ShouldExpireTickable())
 				{
 					
 				}
 				else
 				{
-					x.CalculateTickable();
+					x->CalculateTickable();
 				}
 			}
-			for (auto& x : Group2)
+			for (auto x : Group2)
 			{
-				if( x.ShouldExpireTickable())
+				if( x->ShouldExpireTickable())
 				{
 					//TODO: swap from arrays to slab or true pool?
 					//Can't implement until we're sure that they _tick_
 				}
 				else
 				{
-					x.CalculateTickable();
+					x->CalculateTickable();
 				}
 			}
-			for (auto& x : Group3)
+			for (auto x : Group3)
 			{
-				if( x.ShouldExpireTickable())
+				if( x->ShouldExpireTickable())
 				{
 					//TODO: swap from arrays to slab or true pool?
 					//Can't implement until we're sure that they _tick_
 				}
 				else
 				{
-					x.CalculateTickable();
+					x->CalculateTickable();
 				}
 			}
 			StartTicklitesApply->Wait();
 			
 			StartTicklitesApply->Reset(); // we can run long on sim, not on apply.
-			for (auto& x : Group1)
+			for (auto x : Group1)
 			{
-				x.ApplyTickable();
+				x->ApplyTickable();
 			}
-			for (auto& x : Group2)
+			for (auto x : Group2)
 			{
-				x.ApplyTickable();
+				x->ApplyTickable();
 			}
-			for (auto& x : Group3)
+			for (auto x : Group3)
 			{
-				x.ApplyTickable();
+				x->ApplyTickable();
 			}
 			DispatchOwner->ApplyShadowTransforms();
+			while(!QueuedAdds->IsEmpty())
+			{
+				const auto& AddTup = QueuedAdds->Peek();
+				TickliteAdd(AddTup->Get<1>(), AddTup->Get<2>());
+				QueuedAdds->Dequeue();
+			}
+				
 		}
 	
 		return 0;

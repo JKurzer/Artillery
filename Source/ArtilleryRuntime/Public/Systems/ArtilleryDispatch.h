@@ -162,6 +162,10 @@ public:
 	//DUMMY FOR NOW.
 	//TODO: IMPLEMENT THE GUNMAP FROM INSTANCE UNTO CLASS
 	//TODO: REMEMBER TO SAY AMMO A BUNCH
+	void RequestAddTicklite(TSharedPtr<TicklitePrototype> ToAdd, TicklitePhase Group)
+	{
+		ArtilleryTicklitesWorker_LockstepToWorldSim.RequestAddTicklite(ToAdd, Group);
+	}
 	void ApplyShadowTransforms();
 	FGunKey GetGun(FString GunDefinitionID, FireControlKey MachineKey);
 	FGunKey RegisterExistingGun(FArtilleryGun* toBind, ActorKey ProbableOwner) const;

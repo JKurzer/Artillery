@@ -15,7 +15,7 @@ namespace Ticklites
 	//This conforms with our measure, cut, fit, finish policy, as this is still in the _measure_ phase.
 	
 	template <typename YourImplementation> requires Derived_TLI<YourImplementation> 
-	struct Ticklite : public TickLikePrototype 
+	struct Ticklite : public TicklitePrototype 
 	{
 		using Ticklite_Impl = YourImplementation;
 		YourImplementation Core;
