@@ -14,6 +14,7 @@
 #include "Abilities/GameplayAbility.h"
 #include "UArtilleryAbilityMinimum.h"
 #include "FArtilleryGun.h"
+#include "FTLinearVelocity.h"
 #include "FMockDashGun.generated.h"
 
 
@@ -68,7 +69,9 @@ public:
 		FGameplayAbilitySpecHandle Handle) 
 		override
 	{
-		
+		//todo: fix parametrica. RequestAdd should probably set the Anchor. tbh, atm, anchor is always the thread but.
+		MyDispatch->RequestAddTicklite(TL_LinearVelocity(), TicklitePhase::Normal);
+		PostFireGun(FArtilleryStates::Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
 	};
 
 	virtual void PostFireGun(
