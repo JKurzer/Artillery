@@ -67,6 +67,7 @@ class ARTILLERYRUNTIME_API UArtilleryDispatch : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
 	friend class FArtilleryBusyWorker;
+	friend class FArtilleryTicklitesWorker<UArtilleryDispatch>;
 	friend class UCanonicalInputStreamECS;
 public:
 	inline ArtilleryTime GetShadowNow()

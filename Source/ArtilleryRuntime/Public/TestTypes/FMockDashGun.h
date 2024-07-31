@@ -15,6 +15,7 @@
 #include "UArtilleryAbilityMinimum.h"
 #include "FArtilleryGun.h"
 #include "FTLinearVelocity.h"
+#include "GameFramework/MovementComponent.h"
 #include "FMockDashGun.generated.h"
 
 
@@ -69,8 +70,19 @@ public:
 		FGameplayAbilitySpecHandle Handle) 
 		override
 	{
-		//todo: fix parametrica. RequestAdd should probably set the Anchor. tbh, atm, anchor is always the thread but.
-		MyDispatch->RequestAddTicklite(TL_LinearVelocity(), TicklitePhase::Normal);
+		//todo: fix parametrica. RequestAdd should probably set the Anchor. tbh, atm, anchor is always the thread but
+		FTLinearVelocity temp =
+			FTLinearVelocity(
+				FTLinearVelocity(
+					MyProbableOwner,
+					ActorInfo->MovementComponent->Velocity.Projection() * 20,
+					20
+				)
+			);
+
+		MyDispatch->RequestAddTicklite(
+			MakeShareable(new TL_LinearVelocity(temp)),
+			TicklitePhase::Early);
 		PostFireGun(FArtilleryStates::Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
 	}
 

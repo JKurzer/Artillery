@@ -39,7 +39,7 @@ public:
 	void TICKLITE_Calculate()
 	{
 	}
-	void TICKLITE_Apply(FTLinearVelocity* SelfRef)
+	void TICKLITE_Apply()
 	{
 		ArtilleryTime Now = this->GetShadowNow();
 		--TicksRemaining;
