@@ -99,6 +99,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	}
 	FArtilleryTicklitesWorker(): DispatchOwner(nullptr), running(false)
 	{
+		QueuedAdds = MakeShareable(new TickliteRequests(128));
 	}
 
 	void RequestAddTicklite(TSharedPtr<TicklitePrototype> ToAdd, TicklitePhase Group)
@@ -194,8 +195,8 @@ class FArtilleryTicklitesWorker : public FRunnable {
 			DispatchOwner->ApplyShadowTransforms();
 			while(!QueuedAdds->IsEmpty())
 			{
-				const StampLiteRequest* AddTup = QueuedAdds->Peek();
-				TickliteAdd(AddTup->Key, AddTup->Value);
+				const StampLiteRequest AddTup = *QueuedAdds->Peek();
+				TickliteAdd(AddTup.Key, AddTup.Value);
 				QueuedAdds->Dequeue();
 			}
 				

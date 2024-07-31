@@ -74,6 +74,7 @@ namespace Arty
 {
 	typedef TPair<TSharedPtr<TicklitePrototype>, TicklitePhase> StampLiteRequest;
 	typedef TArray< TSharedPtr<TicklitePrototype>> TickliteGroup;
+	typedef TCircularQueue<StampLiteRequest> TickliteRequests;
 	typedef TSharedPtr<TCircularQueue<StampLiteRequest>> TickliteBuffer;
 }
 

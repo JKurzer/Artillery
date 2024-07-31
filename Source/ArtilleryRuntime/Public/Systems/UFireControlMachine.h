@@ -159,12 +159,12 @@ public:
 			
 			pushPatternToRunner(IPM::GPress, APlayer::CABLE, alef, key);
 
-			alef.buttons.reset();
-			alef.buttons = Intents::B;
+			FActionBitMask bet;
+			bet.buttons = Intents::B;
 			auto dash = new FMockDashGun(FGunKey("DummyDash", 1));
-			dummy->Initialize(FGunKey("DummyDash", 1), false);
+			dash->Initialize(FGunKey("DummyDash", 1), false);
 			auto dashkey = MyDispatch->RegisterExistingGun(dash, ParentKey);
-			pushPatternToRunner(IPM::GPress, APlayer::CABLE, alef, dashkey);
+			pushPatternToRunner(IPM::GPress, APlayer::CABLE, bet, dashkey);
 			
 		}
 		AttrMapPtr MyAttributes = MakeShareable(new AttributeMap());
