@@ -14,6 +14,7 @@ void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)
 	AttributeSetToDataMapping = MakeShareable( new TMap<ObjectKey, AttrMapPtr>());
 	ObjectToTransformMapping = MakeShareable(new TMap<ObjectKey, RealAndShadowTransform>);
 	GunByKey = MakeShareable(new TMap<FGunKey, TSharedPtr<FArtilleryGun>>());
+	TL_ThreadedImpl::ADispatch = &ArtilleryTicklitesWorker_LockstepToWorldSim;
 }
 
 void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
@@ -42,6 +43,7 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		
 		WorldSim_Thread.Reset(FRunnableThread::Create(&ArtilleryAsyncWorldSim, TEXT("ARTILLERY_ONLINE.")));
 		WorldSim_Ticklites_Thread.Reset(FRunnableThread::Create(&ArtilleryTicklitesWorker_LockstepToWorldSim ,TEXT("BARRAGE_ONLINE.")));
+		
 	}
 	
 

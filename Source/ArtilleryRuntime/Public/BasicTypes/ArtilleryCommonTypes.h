@@ -92,14 +92,8 @@ namespace Arty
 	{
 		TickliteCadence Cadence = TickliteCadence::Lite;
 		TicklitePhase RunGroup = TicklitePhase::Normal;
-		void* Core;
-		void* MemoryBlock;
-		uint64_t MadeStamp = 0;
+		ArtilleryTime MadeStamp = 0;
 	};
-
-	//You might notice Ticklite is the name used in implementation, but you might derive other ticklikes.
-	//In fact, this class exists as what is, effectively, a poor man's trait. This will be deprecated eventually
-	//if we don't find any uses for it, and the ticklite template will supersede it, but I think that won't happen.
 	struct TicklitePrototype : TicklikeMemoryBlock
 	{
 		virtual void CalculateTickable() = 0;
@@ -119,12 +113,15 @@ namespace Arty
 		};
 	};
 
+	//You might notice Ticklite is the name used in implementation, but you might derive other ticklikes.
+	//In fact, this class exists as what is, effectively, a poor man's trait. This will be deprecated eventually
+	//if we don't find any uses for it, and the ticklite template will supersede it, but I think that won't happen.
+
+
 
 	typedef TArray<TPair<BristleTime,FGunKey>> EventBuffer;
 	typedef TTripleBuffer<EventBuffer> BufferedEvents;
-	typedef TTuple<ArtilleryTime, TicklitePrototype, TicklitePhase> StampLiteRequest;
-	typedef TArray< TSharedPtr<TicklitePrototype>> TickliteGroup;
-	typedef TSharedPtr<TCircularQueue<StampLiteRequest>> TickliteBuffer;
+
 	//Ever see the motto of the old naval railgun project? I won't spoil it for you.
 	typedef FVector3d VelocityVec;
 	typedef TTuple<ArtilleryTime, ObjectKey, VelocityVec> VelocityEvent;

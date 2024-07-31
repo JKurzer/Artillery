@@ -29,8 +29,6 @@ class FArtilleryBusyWorker : public FRunnable {
 	TSharedPtr<BufferedMoveEvents>  RequestorQueue_Locomos_TripleBuffer;
 	TSharedPtr<BufferedEvents> RequestorQueue_Abilities_TripleBuffer;
 	ArtilleryTime TickliteNow = 0;
-	//this is owned by the dispatch and used by busy worker to add ticklites to the ticklite set.
-	TSharedPtr<BufferedTicklites> RequestorQueue_Add_Ticklites;
 	FSharedEventRef StartTicklitesSim;
 	FSharedEventRef StartTicklitesApply;
 	

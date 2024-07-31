@@ -1,16 +1,8 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
 #include "HAL/Runnable.h"
-#include "FControllerState.h"
-#include "SocketSubsystem.h"
-#include "CanonicalInputStreamECS.h"
-#include <thread>
 #include <Ticklite.h>
-
-
 #include "BristleconeCommonTypes.h"
-#include "Containers/TripleBuffer.h"
-#include "LocomotionParams.h"
 
 //this is a busy-style thread, which runs preset bodies of work in a specified order. Generally, the goal is that it never
 //actually sleeps. In fact, it yields rather than sleeps, in general operation.
@@ -67,10 +59,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	TickliteGroup Group2;
 	TickliteGroup Group3;
 
-	FTransform3d& GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now)
-	{
-		return DispatchOwner->GetTransformShadowByObjectKey(Target,  Now);
-	}
+
 
 	
 	
@@ -104,14 +93,17 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	public:
 	//Templating here is used to both make reparenting easier if needed later and to simplify our dependency tree
 	UDispatch* DispatchOwner;
-	
+	FTransform3d& GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now)
+	{
+		return DispatchOwner->GetTransformShadowByObjectKey(Target,  Now);
+	}
 	FArtilleryTicklitesWorker(): DispatchOwner(nullptr), running(false)
 	{
 	}
 
 	void RequestAddTicklite(TSharedPtr<TicklitePrototype> ToAdd, TicklitePhase Group)
 	{
-		QueuedAdds->Enqueue(StampLiteRequest(GetShadowNow(), ToAdd, Group));
+		QueuedAdds->Enqueue(StampLiteRequest(ToAdd, Group));
 	}
 	
 	inline ArtilleryTime GetShadowNow()
@@ -202,8 +194,8 @@ class FArtilleryTicklitesWorker : public FRunnable {
 			DispatchOwner->ApplyShadowTransforms();
 			while(!QueuedAdds->IsEmpty())
 			{
-				const auto& AddTup = QueuedAdds->Peek();
-				TickliteAdd(AddTup->Get<1>(), AddTup->Get<2>());
+				const StampLiteRequest* AddTup = QueuedAdds->Peek();
+				TickliteAdd(AddTup->Key, AddTup->Value);
 				QueuedAdds->Dequeue();
 			}
 				

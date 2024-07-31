@@ -58,6 +58,7 @@ namespace Arty
 		bool RunAtLeastOnce,
 		bool Smear);
 
+	typedef FArtilleryTicklitesWorker<UArtilleryDispatch> TickliteWorker;
 }
 
 class UCanonicalInputStreamECS;
@@ -67,6 +68,12 @@ class ARTILLERYRUNTIME_API UArtilleryDispatch : public UTickableWorldSubsystem
 	GENERATED_BODY()
 	friend class FArtilleryBusyWorker;
 	friend class UCanonicalInputStreamECS;
+public:
+	inline ArtilleryTime GetShadowNow()
+const
+	{
+		return ArtilleryAsyncWorldSim.TickliteNow;
+	};
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -143,11 +150,7 @@ protected:
 	void CheckFutures();
 	//The current start of the tick boundary that ticklites should run on. this allows the ticklites
 	//to run in frozen time.
-	inline ArtilleryTime GetShadowNow()
-	const
-	{
-		return ArtilleryAsyncWorldSim.TickliteNow;
-	};
+
 	void HACK_RunVelocityStack();
 	//********************************
 	//DUMMY. USED BY RECONCILE AND RERUN.
@@ -159,6 +162,28 @@ protected:
 	void RERunLocomotions();
 
 public:
+	typedef FArtilleryTicklitesWorker<UArtilleryDispatch> FTicklitesWorker;
+	struct TL_ThreadedImpl 
+	{
+		//Each class generated gets a unique static. Each kind of dispatcher will get a unique class.
+		//TODO: If you run more than one of the parent threads, this gets unsafe. We don't so...
+		//As is, it saves a huge amount of memory and indirection costs.
+		static inline FTicklitesWorker* ADispatch = nullptr;
+
+		TL_ThreadedImpl()
+		{
+			if(ADispatch == nullptr)
+			{
+				throw; // dawg, you tryin' allocate shit against a thread that ain' there.
+			}
+		}
+	
+		ArtilleryTime GetShadowNow()
+		{
+			return ADispatch->GetShadowNow();
+		}
+	};
+	
 	//DUMMY FOR NOW.
 	//TODO: IMPLEMENT THE GUNMAP FROM INSTANCE UNTO CLASS
 	//TODO: REMEMBER TO SAY AMMO A BUNCH
@@ -214,7 +239,7 @@ private:
 	//extremely powerful, and the reason why we don't use ticklites when we don't need to.
 	//it's dangerous as __________ _____________________ _ _________.
 	
-	FArtilleryTicklitesWorker<UArtilleryDispatch> ArtilleryTicklitesWorker_LockstepToWorldSim;
+	TickliteWorker ArtilleryTicklitesWorker_LockstepToWorldSim;
 	TUniquePtr<FRunnableThread> WorldSim_Thread;
 	TUniquePtr<FRunnableThread> WorldSim_Ticklites_Thread;
 	FSharedEventRef StartTicklitesSim;
