@@ -20,6 +20,7 @@
 #include <bitset>
 #include "ArtilleryCommonTypes.h"
 #include "FMockArtilleryGun.h"
+#include "FMockDashGun.h"
 #include "Components/ActorComponent.h"
 #include "UFireControlMachine.generated.h"
 
@@ -152,11 +153,19 @@ public:
 		{
 			FActionBitMask alef;
 			alef.buttons = Intents::A;
-			auto temp = new FMockArtilleryGun(FGunKey("Dummy", 1));
-			temp->Initialize(FGunKey("Dummy", 1), false);
-			auto key = MyDispatch->RegisterExistingGun(temp, ParentKey);
+			auto dummy = new FMockArtilleryGun(FGunKey("Dummy", 1));
+			dummy->Initialize(FGunKey("Dummy", 1), false);
+			auto key = MyDispatch->RegisterExistingGun(dummy, ParentKey);
 			
-			pushPatternToRunner(IPM::GPress, APlayer::CABLE, alef, key); 
+			pushPatternToRunner(IPM::GPress, APlayer::CABLE, alef, key);
+
+			alef.buttons.reset();
+			alef.buttons = Intents::B;
+			auto dash = new FMockDashGun(FGunKey("DummyDash", 1));
+			dummy->Initialize(FGunKey("DummyDash", 1), false);
+			auto dashkey = MyDispatch->RegisterExistingGun(dash, ParentKey);
+			pushPatternToRunner(IPM::GPress, APlayer::CABLE, alef, dashkey);
+			
 		}
 		AttrMapPtr MyAttributes = MakeShareable(new AttributeMap());
 
@@ -165,7 +174,7 @@ public:
 		//maybe we can fix it without going through a full cert using a data only update.
 		for(auto x : Attributes)
 		{
-			MyAttributes->Add(x.Key);
+			MyAttributes->Add(x.Key, MakeShareable(new FConservedAttributeData));
 			MyAttributes->FindChecked(x.Key)->SetBaseValue(x.Value);
 			MyAttributes->FindChecked(x.Key)->SetCurrentValue(x.Value);
 		}
