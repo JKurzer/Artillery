@@ -18,9 +18,6 @@
 #include "GameFramework/MovementComponent.h"
 #include "FMockDashGun.generated.h"
 
-
-
-
 /**
  * This test class encapsulates a dash.
  * Finally.
@@ -75,7 +72,7 @@ public:
 			FTLinearVelocity(
 				FTLinearVelocity(
 					MyProbableOwner,
-					ActorInfo->MovementComponent->Velocity.GetSafeNormal() * 200,
+					ActorInfo->MovementComponent->Velocity.GetSafeNormal() * 300,
 					20
 				)
 			);
@@ -118,6 +115,4 @@ public:
 	private:
 	//Our debug value remains M6D.
 	static const inline FGunKey Default = FGunKey("M6D", UINT64_MAX);
-
-
 };
