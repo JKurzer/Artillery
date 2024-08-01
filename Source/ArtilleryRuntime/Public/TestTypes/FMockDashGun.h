@@ -78,8 +78,7 @@ public:
 			);
 
 		MyDispatch->RequestAddTicklite(
-			MakeShareable(new TL_LinearVelocity(temp)),
-			TicklitePhase::Early);
+			MakeShareable(new TL_LinearVelocity(temp)), Early);
 		PostFireGun(FArtilleryStates::Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
 	}
 

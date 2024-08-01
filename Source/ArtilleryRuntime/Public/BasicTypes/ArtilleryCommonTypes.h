@@ -63,13 +63,13 @@ namespace Arty
 		// direct use of RECHARGE is strictly prohibited and will break everything.
 		// it is possible in modern C++ to create a 2nd enum that hides recharge.
 		// I would like to not do this. please don't use Recharge directly.
-		enum struct TicklitePhase
-		{
-			RECHARGE = 0,
-			Early =  1,
-			Normal = 1024,
-			Late = 2048
-		};
+	enum TicklitePhase
+	{
+		RECHARGE = 0,
+		Early =  1,
+		Normal = 1024,
+		Late = 2048
+	};
 	
 		
 	enum TickliteCadence
