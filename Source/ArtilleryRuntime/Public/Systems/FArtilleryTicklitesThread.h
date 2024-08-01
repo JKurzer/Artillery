@@ -55,10 +55,9 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	//This isn't super safe but like busy worker, ticklites only runs in one spot.
 	friend class UArtilleryDispatch;
 	ArtilleryTime LocalNow;
-	TickliteGroup Group1;
-	TickliteGroup Group2;
-	TickliteGroup Group3;
 
+	static const int GroupCount = 4;
+	TickliteGroup ExecutionGroups[GroupCount];
 
 
 	
@@ -70,19 +69,24 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	{
 		switch (Group)
 		{
+		case TicklitePhase::RECHARGE :
+			{
+				ExecutionGroups[0].Add(AllocatedTL);
+				return true;
+			}			
 		case TicklitePhase::Early :
 			{
-				Group1.Add(AllocatedTL);
+				ExecutionGroups[1].Add(AllocatedTL);
 				return true;
 			}
 		case TicklitePhase::Normal :
 			{
-				Group2.Add( AllocatedTL);
+				ExecutionGroups[2].Add( AllocatedTL);
 				return true;
 			}
 		case TicklitePhase::Late :
 			{
-				Group3.Add(AllocatedTL);
+				ExecutionGroups[3].Add(AllocatedTL);
 				return true;
 			}
 		}
@@ -97,7 +101,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	{
 		return DispatchOwner->GetTransformShadowByObjectKey(Target,  Now);
 	}
-	FArtilleryTicklitesWorker(): DispatchOwner(nullptr), running(false)
+	FArtilleryTicklitesWorker(): LocalNow(0), DispatchOwner(nullptr), running(false)
 	{
 		QueuedAdds = MakeShareable(new TickliteRequests(128));
 	}
@@ -135,85 +139,56 @@ class FArtilleryTicklitesWorker : public FRunnable {
 		return true;
 		
 	}
+	
+	void ApplyINE(TSharedPtr<TicklitePrototype>& x)
+	{
+		
+		if( x->ShouldExpireTickable())
+		{
+			//TODO: swap from arrays to slab or true pool?
+			//Can't implement until we're sure that they _tick_
+		}
+		else
+		{
+			x->ApplyTickable();
+		}
+	}
 
+	void CalcINE(TSharedPtr<TicklitePrototype>& x)
+	{
+		if( x->ShouldExpireTickable())
+		{
+			//TODO: swap from arrays to slab or true pool?
+			//Can't implement until we're sure that they _tick_
+		}
+		else
+		{
+			x->CalculateTickable();
+		}
+	}
+
+	//adding cadence is going to be quite annoying.
 	virtual uint32 Run() override
 	{
 		while(running) {
 			StartTicklitesSim->Wait();
 			StartTicklitesSim->Reset();
-			
-			for(auto x : Group1)
+
+			for(auto& Group : ExecutionGroups)
 			{
-				if( x->ShouldExpireTickable())
+				for(auto Tickable : Group)
 				{
-					
-				}
-				else
-				{
-					x->CalculateTickable();
-				}
-			}
-			for (auto x : Group2)
-			{
-				if( x->ShouldExpireTickable())
-				{
-					//TODO: swap from arrays to slab or true pool?
-					//Can't implement until we're sure that they _tick_
-				}
-				else
-				{
-					x->CalculateTickable();
-				}
-			}
-			for (auto x : Group3)
-			{
-				if( x->ShouldExpireTickable())
-				{
-					//TODO: swap from arrays to slab or true pool?
-					//Can't implement until we're sure that they _tick_
-				}
-				else
-				{
-					x->CalculateTickable();
+					CalcINE(Tickable);
 				}
 			}
 			StartTicklitesApply->Wait();
 			
 			StartTicklitesApply->Reset(); // we can run long on sim, not on apply.
-			for (auto x : Group1)
+			for (auto& Group : ExecutionGroups)
 			{
-				if( x->ShouldExpireTickable())
+				for(auto Tickable : Group)
 				{
-					//TODO: swap from arrays to slab or true pool?
-					//Can't implement until we're sure that they _tick_
-				}
-				else
-				{
-					x->ApplyTickable();
-				}
-			}
-			for (auto x : Group2)
-			{
-				if( x->ShouldExpireTickable())
-				{
-					//TODO: swap from arrays to slab or true pool?
-					//Can't implement until we're sure that they _tick_
-				}
-				else
-				{
-					x->ApplyTickable();
-				}
-			}
-			for (auto x : Group3)
-			{
-				if( x->ShouldExpireTickable())
-				{
-					//TODO: swap from arrays to slab or true pool?
-					//Can't implement until we're sure that they _tick_
-				}
-				else
-				{
-					x->ApplyTickable();
+					ApplyINE(Tickable);
 				}
 			}
 			DispatchOwner->ApplyShadowTransforms();

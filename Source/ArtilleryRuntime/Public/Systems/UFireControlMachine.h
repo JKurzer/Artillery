@@ -16,7 +16,6 @@
 #include "Abilities/GameplayAbility.h"
 #include "CanonicalInputStreamECS.h"
 #include "ArtilleryDispatch.h"
-#include "Containers/CircularQueue.h"
 #include <bitset>
 #include "ArtilleryCommonTypes.h"
 #include "FMockArtilleryGun.h"

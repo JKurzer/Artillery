@@ -35,11 +35,6 @@ namespace Arty
 
 }
 
-
-
-
-
-
 #include "CoreMinimal.h"
 #include "Templates/SubclassOf.h"
 #include "UObject/UnrealType.h"
@@ -48,6 +43,7 @@ namespace Arty
 #include <bitset>
 #include "Containers/CircularBuffer.h"
 #include "FGunKey.h"
+#include <EAttributes.h> //if you remove this, you will have a very bad time.
 
 namespace Arty
 {
@@ -56,30 +52,26 @@ namespace Arty
 	typedef uint64_t TickliteKey;
 	//this must use the same type as actor keys and artillery object keys like  projectile or mesh
 	typedef uint64_t ObjectKey;
-	enum AttribKey
-	{
-		Speed,
-		Health,
-		Shields,
-		DashCharges,
-		Ammo,
-		Charge,
-		JumpHeight,
-		Damage
-	};
 	DECLARE_DELEGATE(CalculateTicklite);
 	//performs the actual data transformations.
 	DECLARE_DELEGATE(ApplyTicklite);
 	//resets any data related to apply
 	DECLARE_DELEGATE(ResetTicklike)
 	DECLARE_DELEGATE_TwoParams(NormalTicklite, ActorKey, ADSKey);
+
+
+		// direct use of RECHARGE is strictly prohibited and will break everything.
+		// it is possible in modern C++ to create a 2nd enum that hides recharge.
+		// I would like to not do this. please don't use Recharge directly.
+		enum struct TicklitePhase
+		{
+			RECHARGE = 0,
+			Early =  1,
+			Normal = 1024,
+			Late = 2048
+		};
 	
-	enum TicklitePhase
-	{
-		Early = 0,
-		Normal = 1024,
-		Late = 2048
-	};
+		
 	enum TickliteCadence
 	{
 		Critical = 1,

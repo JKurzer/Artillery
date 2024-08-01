@@ -15,13 +15,11 @@
  * model for rollback at a SUPER granular level if needed. 
  */
 
-
+//TODO: do we need to break the GAS dependency? It's forcing a lot of unneeded stuff.
 USTRUCT(BlueprintType)
 struct ARTILLERYRUNTIME_API FConservedAttributeData : public FGameplayAttributeData
 {
 	GENERATED_BODY()
-	uint64_t counterBase = 0;
-	uint64_t counterCurrent = 0;
 	TCircularBuffer<double> CurrentHistory = TCircularBuffer<double>(128);
 	TCircularBuffer<double> RemoteHistory = TCircularBuffer<double>(128);
 	TCircularBuffer<double> BaseHistory = TCircularBuffer<double>(128);
@@ -31,9 +29,9 @@ struct ARTILLERYRUNTIME_API FConservedAttributeData : public FGameplayAttributeD
 	};
 
 	virtual void SetCurrentValue(double NewValue) {
-		CurrentHistory[CurrentHistory.GetNextIndex(counterBase)] = CurrentValue;
+		CurrentHistory[CurrentHistory.GetNextIndex(BaseHead)] = CurrentValue;
 		CurrentValue = NewValue;
-		++counterCurrent;
+		++CurrentHead;
 	};
 
 	virtual void SetRemoteValue(float NewValue) {
@@ -41,8 +39,8 @@ struct ARTILLERYRUNTIME_API FConservedAttributeData : public FGameplayAttributeD
 	};
 	
 	virtual void SetRemoteValue(double NewValue) {
-		RemoteHistory[RemoteHistory.GetNextIndex(counterBase)] = NewValue;
-		++counterBase;
+		RemoteHistory[RemoteHistory.GetNextIndex(RemoteHead)] = NewValue;
+		++RemoteHead;
 	};
 	
 	virtual void SetBaseValue(float NewValue) override {
@@ -50,9 +48,25 @@ struct ARTILLERYRUNTIME_API FConservedAttributeData : public FGameplayAttributeD
 	};
 
 	virtual void SetBaseValue(double NewValue) {
-		BaseHistory[BaseHistory.GetNextIndex(counterBase)] = BaseValue;
+		BaseHistory[BaseHistory.GetNextIndex(BaseHead)] = BaseValue;
 		BaseValue = NewValue;
-		++counterBase;
+		++BaseHead;
 	};
-	
+	double operator*(FConservedAttributeData const& rhs) 
+	{ 
+		return CurrentValue * rhs.CurrentValue; // this is a double op.
+	};
+	double operator*(int const& rhs) 
+	{ 
+		return CurrentValue * rhs; // this is a double op.
+	}
+	double operator*(uint64 const& rhs) 
+	{ 
+		return CurrentValue * rhs; // this is a double op.
+	}
+protected:
+	uint64_t BaseHead = 0;
+	uint64_t CurrentHead = 0;
+	uint64_t RemoteHead = 0;
 };
+

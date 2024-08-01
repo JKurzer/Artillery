@@ -50,7 +50,7 @@ public:
 		int DallyFramesToOmit = 0) 
 		override
 	{
-		auto bind =  MyDispatch->GetAttrib(MyProbableOwner, AttribKey::DashCharges);
+		auto bind =  MyDispatch->GetAttrib(MyProbableOwner,DASH_CURRENCY);
 		if(bind != nullptr && bind->GetCurrentValue() > 0)
 		{
 			FireGun(FArtilleryStates::Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData , Handle);
@@ -72,7 +72,7 @@ public:
 			FTLinearVelocity(
 				FTLinearVelocity(
 					MyProbableOwner,
-					ActorInfo->MovementComponent->Velocity.GetSafeNormal() * 300,
+					ActorInfo->MovementComponent->Velocity.GetSafeNormal() * 200,
 					20
 				)
 			);
@@ -93,7 +93,7 @@ public:
 		FGameplayAbilitySpecHandle Handle)
 		override
 	{
-		auto bind =  MyDispatch->GetAttrib(MyProbableOwner, AttribKey::DashCharges);
+		auto bind =  MyDispatch->GetAttrib(MyProbableOwner, DASH_CURRENCY);
 		double Currently = bind == nullptr ? 0 : bind->GetCurrentValue();
 		if(Currently && bind->GetCurrentValue() > 0)
 		{

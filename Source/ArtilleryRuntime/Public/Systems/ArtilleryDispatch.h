@@ -43,9 +43,6 @@
  */
 namespace Arty
 {
-	typedef TSharedPtr<FConservedAttributeData> AttrPtr;
-	typedef TMap<AttribKey, AttrPtr> AttributeMap;
-	typedef TSharedPtr<AttributeMap> AttrMapPtr;
 	typedef TPair<FTransform3d*, FTransform3d> RealAndShadowTransform;
 	DECLARE_DELEGATE_TwoParams(FArtilleryFireGunFromDispatch,
 		TSharedPtr<FArtilleryGun> Gun,
