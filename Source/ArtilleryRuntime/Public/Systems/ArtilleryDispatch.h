@@ -73,6 +73,8 @@ const
 		return ArtilleryAsyncWorldSim.TickliteNow;
 	};
 
+	void GENERATE_RECHARGE(ObjectKey Self);
+	
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;

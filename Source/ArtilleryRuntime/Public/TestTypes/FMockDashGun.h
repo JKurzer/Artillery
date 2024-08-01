@@ -51,8 +51,9 @@ public:
 		override
 	{
 		auto bind =  MyDispatch->GetAttrib(MyProbableOwner,DASH_CURRENCY);
-		if(bind != nullptr && bind->GetCurrentValue() > 0)
+		if(bind != nullptr && bind->GetCurrentValue() > 1200)
 		{
+			bind->SetCurrentValue(bind->GetCurrentValue() - 1200.0);
 			FireGun(FArtilleryStates::Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData , Handle);
 		}
 	};
@@ -90,12 +91,6 @@ public:
 		FGameplayAbilitySpecHandle Handle)
 		override
 	{
-		auto bind =  MyDispatch->GetAttrib(MyProbableOwner, DASH_CURRENCY);
-		double Currently = bind == nullptr ? 0 : bind->GetCurrentValue();
-		if(Currently && bind->GetCurrentValue() > 0)
-		{
-			bind->SetCurrentValue(Currently - 1.0);
-		}
 	};
 
 	virtual bool Initialize(const FGunKey& KeyFromDispatch, bool MyCodeWillHandleKeys)
