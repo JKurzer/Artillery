@@ -79,3 +79,13 @@
 //behold!
 // FTLinearVelocity<FArtilleryTicklitesWorker*>& would allow you to use a reference indirection here, I believe.
 typedef Ticklites::Ticklite<TLRecharger> Recharger;
+
+namespace Arty
+{
+		//Place at the end of the latest initialization-like phase.
+		inline void GENERATE_RECHARGE(ObjectKey Self, UArtilleryDispatch* Dispatch)
+		{
+			TLRecharger temp = TLRecharger(Self); //this semantic sucks. gotta fix it.
+			Dispatch->RequestAddTicklite(MakeShareable(new Recharger(temp)), RECHARGE);
+		}
+}

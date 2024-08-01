@@ -70,11 +70,9 @@ public:
 		//todo: fix parametrica. RequestAdd should probably set the Anchor. tbh, atm, anchor is always the thread but
 		FTLinearVelocity temp =
 			FTLinearVelocity(
-				FTLinearVelocity(
 					MyProbableOwner,
 					ActorInfo->MovementComponent->Velocity.GetSafeNormal() * 200,
 					20
-				)
 			);
 
 		MyDispatch->RequestAddTicklite(
