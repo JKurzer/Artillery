@@ -26,7 +26,7 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		UBristleconeWorldSubsystem* MySquire = GetWorld()->GetSubsystem<UBristleconeWorldSubsystem>();
 		ArtilleryTicklitesWorker_LockstepToWorldSim.DispatchOwner = this;
 		ArtilleryTicklitesWorker_LockstepToWorldSim.StartTicklitesApply = StartTicklitesApply;
-		ArtilleryTicklitesWorker_LockstepToWorldSim.StartTicklitesApply = StartTicklitesSim;
+		ArtilleryTicklitesWorker_LockstepToWorldSim.StartTicklitesSim = StartTicklitesSim;
 		ArtilleryAsyncWorldSim.StartTicklitesApply = StartTicklitesApply;
 		ArtilleryAsyncWorldSim.StartTicklitesSim = StartTicklitesSim;
 		ArtilleryAsyncWorldSim.InputRingBuffer = MakeShareable(new PacketQ(256));
@@ -77,7 +77,7 @@ void UArtilleryDispatch::Deinitialize()
 
 void UArtilleryDispatch::RegisterObjectToShadowTransform(ObjectKey Target, FTransform3d* Original)
 {
-	ObjectToTransformMapping->Add(Target, RealAndShadowTransform(Original, FTransform3d(*Original)));
+	ObjectToTransformMapping->Add(Target, RealAndShadowTransform(Original, FTransform3d()));
 }
 
 FTransform3d& UArtilleryDispatch::GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) 
@@ -97,7 +97,7 @@ void UArtilleryDispatch::ApplyShadowTransforms()
 		//it's not a problem atm. mostly.
 		
 		(destructure.Key)->Accumulate(bindConst);
-		destructure.Value = *(destructure.Key); //yike. just... yike.
+		destructure.Value = FTransform3d::Identity;
 	}
 }
 

@@ -54,7 +54,7 @@ public:
 		override
 	{
 		auto bind =  MyDispatch->GetAttrib(MyProbableOwner, AttribKey::DashCharges);
-		if(bind != nullptr && bind->counterCurrent > 0)
+		if(bind != nullptr && bind->GetCurrentValue() > 0)
 		{
 			FireGun(FArtilleryStates::Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData , Handle);
 		}
@@ -75,7 +75,7 @@ public:
 			FTLinearVelocity(
 				FTLinearVelocity(
 					MyProbableOwner,
-					ActorInfo->MovementComponent->Velocity.Projection() * 20,
+					ActorInfo->MovementComponent->Velocity.GetSafeNormal() * 200,
 					20
 				)
 			);
@@ -97,8 +97,8 @@ public:
 		override
 	{
 		auto bind =  MyDispatch->GetAttrib(MyProbableOwner, AttribKey::DashCharges);
-		double Currently = bind == nullptr ? bind->counterCurrent : 0;
-		if(Currently && bind->counterCurrent > 0)
+		double Currently = bind == nullptr ? 0 : bind->GetCurrentValue();
+		if(Currently && bind->GetCurrentValue() > 0)
 		{
 			bind->SetCurrentValue(Currently - 1.0);
 		}

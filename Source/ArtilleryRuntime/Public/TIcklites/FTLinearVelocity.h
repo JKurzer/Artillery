@@ -39,6 +39,8 @@ public:
 	void TICKLITE_Calculate()
 	{
 	}
+	//this isn't quite right. we should calculate the component in calculate
+	//but for now, this is good enough for testing.
 	void TICKLITE_Apply()
 	{
 		ArtilleryTime Now = this->GetShadowNow();

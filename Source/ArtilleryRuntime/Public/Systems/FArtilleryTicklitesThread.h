@@ -182,15 +182,39 @@ class FArtilleryTicklitesWorker : public FRunnable {
 			StartTicklitesApply->Reset(); // we can run long on sim, not on apply.
 			for (auto x : Group1)
 			{
-				x->ApplyTickable();
+				if( x->ShouldExpireTickable())
+				{
+					//TODO: swap from arrays to slab or true pool?
+					//Can't implement until we're sure that they _tick_
+				}
+				else
+				{
+					x->ApplyTickable();
+				}
 			}
 			for (auto x : Group2)
 			{
-				x->ApplyTickable();
+				if( x->ShouldExpireTickable())
+				{
+					//TODO: swap from arrays to slab or true pool?
+					//Can't implement until we're sure that they _tick_
+				}
+				else
+				{
+					x->ApplyTickable();
+				}
 			}
 			for (auto x : Group3)
 			{
-				x->ApplyTickable();
+				if( x->ShouldExpireTickable())
+				{
+					//TODO: swap from arrays to slab or true pool?
+					//Can't implement until we're sure that they _tick_
+				}
+				else
+				{
+					x->ApplyTickable();
+				}
 			}
 			DispatchOwner->ApplyShadowTransforms();
 			while(!QueuedAdds->IsEmpty())
