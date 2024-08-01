@@ -144,7 +144,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 		return true;
 		
 	}
-	
+	//TODO: ADD NULL GUARDS OR COPY. PREFER GUARD.
 	void ApplyINE(TSharedPtr<TicklitePrototype>& x)
 	{
 		
@@ -159,6 +159,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 		}
 	}
 
+	//TODO: ADD NULL GUARDS OR COPY. PREFER GUARD.
 	void CalcINE(TSharedPtr<TicklitePrototype>& x)
 	{
 		if( x->ShouldExpireTickable())
