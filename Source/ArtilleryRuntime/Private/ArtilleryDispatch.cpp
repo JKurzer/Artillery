@@ -2,6 +2,17 @@
 
 
 #include "ArtilleryDispatch.h"
+#include <FTRecharger.h>
+
+
+
+//Place at the end of the latest initialization-like phase.
+//should we move this lil guy over into ya boy Dispatch? It feels real dispatchy.
+void UArtilleryDispatch::GENERATE_RECHARGE(ObjectKey Self)
+{
+	TLRecharger temp = TLRecharger(Self); //this semantic sucks. gotta fix it.
+	this->RequestAddTicklite(MakeShareable(new Recharger(temp)), RECHARGE);
+};
 
 void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)
 {
