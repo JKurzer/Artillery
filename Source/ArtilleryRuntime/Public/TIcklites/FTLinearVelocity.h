@@ -8,7 +8,7 @@
 //A ticklite's impl component(s) must provide:
 //TICKLITE_StateReset on the memory block aspect
 //TICKLITE_Calculate on the impl aspect
-//TICKLITE_Apply(MemoryBlock*) on the impl aspect, consuming the memory block aspect's state
+//TICKLITE_Apply on the impl aspect, consuming the memory block aspect's state
 //TICKLITE_CoreReset on the impl aspect
 //TICKLITE_CheckForExpiration on the impl aspect
 //TICKLITE_OnExpiration

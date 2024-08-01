@@ -116,7 +116,12 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	{
 		return DispatchOwner->GetShadowNow();
 	}
-	
+
+	inline AttrPtr GetAttrib(ObjectKey Target, AttribKey Attr)
+	{
+		return DispatchOwner->GetAttrib(Target, Attr);
+	}
+
 	virtual ~FArtilleryTicklitesWorker() override
 	{
 		UE_LOG(LogTemp, Display, TEXT("Artillery: Destructing SimTicklites thread."));
