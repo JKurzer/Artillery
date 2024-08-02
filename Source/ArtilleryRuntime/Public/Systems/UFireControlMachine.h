@@ -131,6 +131,15 @@ public:
 	};
 
 
+	void AddTestGun(Intents::Intent BindIntent, FArtilleryGun* Gun, IPM::CanonPattern Pattern)
+	{
+		FActionBitMask IntentBitPattern;
+		IntentBitPattern.buttons = BindIntent;
+		Gun->Initialize(Gun->MyGunKey, false);
+		auto key = MyDispatch->RegisterExistingGun(Gun, ParentKey);
+		pushPatternToRunner(Pattern, APlayer::CABLE, IntentBitPattern, key);
+	}
+
 	//IF YOU DO NOT CALL THIS FROM THE GAMETHREAD, YOU WILL HAVE A BAD TIME.
 	ActorKey CompleteRegistrationByActorParent(bool IsLocalPlayerCharacter,
 		FArtilleryRunLocomotionFromDispatch LocomotionFromActor,
@@ -150,20 +159,10 @@ public:
 		Usable = true;
 		if(MyGuns.IsEmpty() && Usable)
 		{
-			FActionBitMask alef;
-			alef.buttons = Intents::A;
 			auto dummy = new FMockArtilleryGun(FGunKey("Dummy", 1));
-			dummy->Initialize(FGunKey("Dummy", 1), false);
-			auto key = MyDispatch->RegisterExistingGun(dummy, ParentKey);
-			
-			pushPatternToRunner(IPM::GPress, APlayer::CABLE, alef, key);
-
-			FActionBitMask bet;
-			bet.buttons = Intents::B;
-			auto dash = new FMockDashGun(FGunKey("DummyDash", 1));
-			dash->Initialize(FGunKey("DummyDash", 1), false);
-			auto dashkey = MyDispatch->RegisterExistingGun(dash, ParentKey);
-			pushPatternToRunner(IPM::GPress, APlayer::CABLE, bet, dashkey);
+			AddTestGun(Intents::A, dummy, IPM::GPress);
+			auto dash = new FMockDashGun(FGunKey("DummyDash", 2));
+			AddTestGun(Intents::B, dash, IPM::GPerPress);
 			
 		}
 		AttrMapPtr MyAttributes = MakeShareable(new AttributeMap());

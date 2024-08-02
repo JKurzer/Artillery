@@ -57,7 +57,7 @@ public:
 	{
 		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("Mock Gun Fired. Is reconcile? %hs"), RerunDueToReconcile ? "true" : "false"));
+			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, FString::Printf(TEXT("Mock Gun Fired. Is reconcile? %hs"), RerunDueToReconcile ? "true" : "false"));
 		}
 	};
 

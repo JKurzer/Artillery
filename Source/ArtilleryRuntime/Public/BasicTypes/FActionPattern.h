@@ -25,7 +25,8 @@ enum ActionPatternKey
 	ButtonHoldAllowOneMiss = 2,
 	ButtonHold = 3,
 	ButtonReleaseNoDelay = 4,
-	StickFlick = 5
+	StickFlick = 5,
+	OnPress = 6
 };
 typedef ActionPatternKey ArtIPMKey;//artillery intent pattern matcher key
 
@@ -102,6 +103,40 @@ public:
 	const ArtIPMKey getName() const override { return Name; };
 	static const inline ArtIPMKey Name = ArtIPMKey::ButtonHoldAllowOneMiss;
 };
+
+class FActionPattern_OnPress : public FActionPattern_InternallyStateless
+{
+public:
+	// returned pattern will tell us which inputs (button/events) were held
+	virtual uint32_t const runPattern(uint64_t frameToRunBackFrom,
+		FActionBitMask& ToSeekUnion,
+		FANG_PTR Buffer
+	)
+		const override
+	{
+
+		auto current = Buffer->peek(frameToRunBackFrom)->GetButtonsAndEventsFlat() & ToSeekUnion.getFlat();
+
+		uint64_t StartIndex =
+			(frameToRunBackFrom - ArtilleryHoldSweepBack < 0) ?
+				0 : frameToRunBackFrom - ArtilleryHoldSweepBack;
+		uint32_t toSeek = ToSeekUnion.getFlat();
+		uint32_t x = 0;
+
+		//do NOT check current frame (< instead of <=)
+		for (uint64_t i = StartIndex; i < frameToRunBackFrom; ++i)
+		{
+			x = Buffer->peek(i)->GetButtonsAndEventsFlat();
+			toSeek = (x ^ toSeek) & toSeek;
+		}
+		
+		// this implementation does not track where in the sequence the drops were
+		return toSeek & current;
+	};
+	const ArtIPMKey getName() const override { return Name; };
+	static const inline ArtIPMKey Name = ArtIPMKey::OnPress;
+};
+
 
 class FActionPattern_ButtonHold : public FActionPattern_InternallyStateless
 {
@@ -223,5 +258,7 @@ namespace Arty
 		constexpr const CanonPattern GHold = &Hold;
 		constexpr const FActionPattern_ButtonHoldAllowOneMiss HoldWMiss;
 		constexpr const CanonPattern GHoldWM = &HoldWMiss;
+		constexpr const FActionPattern_OnPress StartOfPress;
+		constexpr const CanonPattern GPerPress = &StartOfPress;
 	}
 }
