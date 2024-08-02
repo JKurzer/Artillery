@@ -33,8 +33,11 @@ class FArtilleryBusyWorker : public FRunnable {
 	FSharedEventRef StartTicklitesApply;
 	
 	virtual bool Init() override;
-	void RunStandardFrameSim(bool& missedPrior, uint64_t& currentIndexCabling, bool& burstDropDetected, TheCone::PacketElement& current,
-	            bool& RemoteInput) const;
+	void RunStandardFrameSim(bool& missedPrior,
+		uint64_t& currentIndexCabling,
+		bool& burstDropDetected,
+		TheCone::PacketElement& current,
+		bool& RemoteInput) const;
 	virtual uint32 Run() override;
 	virtual void Exit() override;
 	virtual void Stop() override;

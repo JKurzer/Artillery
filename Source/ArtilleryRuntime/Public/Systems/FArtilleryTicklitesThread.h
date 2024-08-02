@@ -92,7 +92,10 @@ class FArtilleryTicklitesWorker : public FRunnable {
 		}
 		return false;
 	}
+	//we may be able to remove sim or move it outside the run loop. I don't think there's anything wrong with simulating
+	//as fast as we can, and it buys us a lot of perf time by not sleeping the thread until it's apply time.
 	FSharedEventRef StartTicklitesSim;
+	//Apply is necessary.
 	FSharedEventRef StartTicklitesApply;
 	public:
 	//Templating here is used to both make reparenting easier if needed later and to simplify our dependency tree
@@ -176,9 +179,9 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	//adding cadence is going to be quite annoying.
 	virtual uint32 Run() override
 	{
+		StartTicklitesSim->Wait();
 		while(running) {
-			StartTicklitesSim->Wait();
-			StartTicklitesSim->Reset();
+
 
 			for(auto& Group : ExecutionGroups)
 			{
@@ -187,8 +190,8 @@ class FArtilleryTicklitesWorker : public FRunnable {
 					CalcINE(Tickable);
 				}
 			}
-			StartTicklitesApply->Wait();
 			
+			StartTicklitesApply->Wait();
 			StartTicklitesApply->Reset(); // we can run long on sim, not on apply.
 			for (auto& Group : ExecutionGroups)
 			{

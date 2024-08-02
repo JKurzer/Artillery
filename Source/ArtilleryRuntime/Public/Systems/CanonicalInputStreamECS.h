@@ -184,20 +184,15 @@ public:
 						Union.buttons |= Elem.ToSeek.buttons;
 						Union.events |= Elem.ToSeek.events;
 					}
-					if (currentPattern-> runPattern(InputCycleNumber, Union, Stream))
+					auto result = currentPattern-> runPattern(InputCycleNumber, Union, Stream);
+					if (result)
 					{
 						for (FActionPatternParams& Elem : *currentSet)
 						{
-							if (Elem.ToSeek.buttons.any() || Elem.ToSeek.events.any())
+							if (Elem.ToSeek.getFlat() != 0)
 							{
-								//separating the buttons and events was stupid, but here we are.
-								if (
-									((Elem.ToSeek.buttons & Union.buttons) == Elem.ToSeek.buttons)
-									&&
-									((Elem.ToSeek.events & Union.events) == Elem.ToSeek.events)
-								)
+								if ((Elem.ToSeek.getFlat() & result) == Elem.ToSeek.getFlat())
 								{
-									using std::optional;
 									auto time = Stream->peek(InputCycleNumber)->SentAt;
 									//THIS IS NOT SUPER SAFE. HAHAHAH. YAY.
 									IN_PARAM_REF_TRIPLEBUFFER_LIFECYLEMANAGED.Add(TPair<ArtilleryTime, FGunKey>(

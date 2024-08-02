@@ -187,6 +187,9 @@ uint32 FArtilleryBusyWorker::Run()
 	//you cannot reorder these. it is a magic ordering put in place for a hack. 
 	CablingControlStream = ContingentInputECSLinkage->getNewStreamConstruct(APlayer::CABLE);
 	BristleconeControlStream = ContingentInputECSLinkage->getNewStreamConstruct(APlayer::ECHO);
+
+	//we can now start the sim. we latch only on the apply step.
+	StartTicklitesSim->Trigger();
 	while (running)
 	{
 		if (!sent &&
@@ -196,9 +199,6 @@ uint32 FArtilleryBusyWorker::Run()
 			)
 		)
 		{
-			//just in case. TODO: make sure this doesn't CAUSE a bug.
-			StartTicklitesApply->Reset();
-			StartTicklitesSim->Trigger();
 			currentIndexCabling = CablingControlStream->highestInput - 1;
 			currentIndexBristlecone = BristleconeControlStream->highestInput - 1;
 			TheCone::PacketElement current = 0;
