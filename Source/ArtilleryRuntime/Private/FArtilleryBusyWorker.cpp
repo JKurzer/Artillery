@@ -190,6 +190,7 @@ uint32 FArtilleryBusyWorker::Run()
 
 	//we can now start the sim. we latch only on the apply step.
 	StartTicklitesSim->Trigger();
+	
 	while (running)
 	{
 		if (!sent &&
@@ -199,8 +200,9 @@ uint32 FArtilleryBusyWorker::Run()
 			)
 		)
 		{
-			currentIndexCabling = CablingControlStream->highestInput - 1;
-			currentIndexBristlecone = BristleconeControlStream->highestInput - 1;
+			//using k-1 here causes an off-by-one error that causes input to get echoed like mad.
+			currentIndexCabling = CablingControlStream->highestInput;
+			currentIndexBristlecone = BristleconeControlStream->highestInput;
 			TheCone::PacketElement current = 0;
 			bool RemoteInput = false;
 

@@ -114,24 +114,19 @@ public:
 	)
 		const override
 	{
-
-		auto current = Buffer->peek(frameToRunBackFrom)->GetButtonsAndEventsFlat() & ToSeekUnion.getFlat();
-
 		uint64_t StartIndex =
 			(frameToRunBackFrom - ArtilleryHoldSweepBack < 0) ?
 				0 : frameToRunBackFrom - ArtilleryHoldSweepBack;
 		uint32_t toSeek = ToSeekUnion.getFlat();
-		uint32_t x = 0;
 
 		//do NOT check current frame (< instead of <=)
 		for (uint64_t i = StartIndex; i < frameToRunBackFrom; ++i)
 		{
-			x = Buffer->peek(i)->GetButtonsAndEventsFlat();
-			toSeek = (x ^ toSeek) & toSeek;
+			toSeek = ((Buffer->peek(i)->GetButtonsAndEventsFlat()) ^ toSeek) & toSeek;
 		}
 		
 		// this implementation does not track where in the sequence the drops were
-		return toSeek & current;
+		return toSeek & (Buffer->peek(frameToRunBackFrom)->GetButtonsAndEventsFlat() & ToSeekUnion.getFlat());
 	};
 	const ArtIPMKey getName() const override { return Name; };
 	static const inline ArtIPMKey Name = ArtIPMKey::OnPress;
