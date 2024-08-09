@@ -80,13 +80,16 @@ public:
 
 	virtual ~FArtilleryGun()
 	{
-		Prefire->RemoveFromRoot();
-		Fire->RemoveFromRoot();
-		PostFire->RemoveFromRoot();
-		PrefireCosmetic->RemoveFromRoot();
-		FireCosmetic->RemoveFromRoot();
-		PostFireCosmetic->RemoveFromRoot();
-		FailedFireCosmetic->RemoveFromRoot();
+		if(Prefire != nullptr) //we always assign all or none, so we can just check prefire atm. this might change.
+		{
+			Prefire->RemoveFromRoot();
+			Fire->RemoveFromRoot();
+			PostFire->RemoveFromRoot();
+			PrefireCosmetic->RemoveFromRoot();
+			FireCosmetic->RemoveFromRoot();
+			PostFireCosmetic->RemoveFromRoot();
+			FailedFireCosmetic->RemoveFromRoot();
+		}
 	}
 
 	void UpdateProbableOwner(ActorKey ProbableOwner)
