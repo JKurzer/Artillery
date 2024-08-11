@@ -208,6 +208,7 @@ public:
 	//for a variety of reasons, a gunkey might not be null, but might not be usable or desirable.
 	//please ensure your child classes respect this as well. thank you!
 	//returns readytofire
+#define ARTGUN_MACROAUTOINIT(MyCodeWillHandleKeys) Super::Initialize(KeyFromDispatch, MyCodeWillHandleKeys, PF, PFC,F,FC,PtF,PtFc,FFC)
 	virtual bool Initialize(const FGunKey& KeyFromDispatch, bool MyCodeWillSetGunKey,
 		UArtilleryPerActorAbilityMinimum* PF = nullptr,
 		UArtilleryPerActorAbilityMinimum* PFC = nullptr,
