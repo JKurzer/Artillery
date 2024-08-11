@@ -42,6 +42,14 @@ public:
 	//As these are UProperties, they should NOT need to become strong pointers or get attached to root
 	//to _exist_ when created off main thread, but that doesn't solve the bulk of the issues and the guarantee
 	//hasn't held up as well as I would like.
+
+
+	//these need to be added to the rootset to prevent GC erasure. UProperty isn't enough alone, as this class
+	//is not GC reachable. This means that as soon as the reference expires and the sweep completes, as is, you'll
+	//get an error. There are two good solutions: one is keeping a bank of abilities in an ECS component or fire control
+	//machines. I don't love the idea of fire control machines owning abilities directly, but it is idiomatic within
+	//gas. For the time being, we simply add them to Root, but this is highly undesirable. On the other hand, it's easy to change
+	//and does not commit us to an architecture at the moment.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UArtilleryPerActorAbilityMinimum> Prefire;
 
@@ -71,7 +79,18 @@ public:
 	};
 
 	virtual ~FArtilleryGun()
-	{}
+	{
+		if(Prefire != nullptr) //we always assign all or none, so we can just check prefire atm. this might change.
+		{
+			Prefire->RemoveFromRoot();
+			Fire->RemoveFromRoot();
+			PostFire->RemoveFromRoot();
+			PrefireCosmetic->RemoveFromRoot();
+			FireCosmetic->RemoveFromRoot();
+			PostFireCosmetic->RemoveFromRoot();
+			FailedFireCosmetic->RemoveFromRoot();
+		}
+	}
 
 	void UpdateProbableOwner(ActorKey ProbableOwner)
 	{
@@ -189,21 +208,38 @@ public:
 	//for a variety of reasons, a gunkey might not be null, but might not be usable or desirable.
 	//please ensure your child classes respect this as well. thank you!
 	//returns readytofire
-	virtual bool Initialize(const FGunKey& KeyFromDispatch, bool MyCodeWillSetGunKey)
+#define ARTGUN_MACROAUTOINIT(MyCodeWillHandleKeys) Super::Initialize(KeyFromDispatch, MyCodeWillHandleKeys, PF, PFC,F,FC,PtF,PtFc,FFC)
+	virtual bool Initialize(const FGunKey& KeyFromDispatch, bool MyCodeWillSetGunKey,
+		UArtilleryPerActorAbilityMinimum* PF = nullptr,
+		UArtilleryPerActorAbilityMinimum* PFC = nullptr,
+		UArtilleryPerActorAbilityMinimum* F = nullptr,
+		UArtilleryPerActorAbilityMinimum* FC = nullptr,
+		UArtilleryPerActorAbilityMinimum* PtF = nullptr,
+		UArtilleryPerActorAbilityMinimum* PtFc = nullptr,
+		UArtilleryPerActorAbilityMinimum* FFC = nullptr
+		)
 	{
 		MyGunKey = KeyFromDispatch;
 		//assign gunkey
 		
 		//we'd like to do it earlier, but there's actually not a great moment to do this.
-		if(Prefire == nullptr || !Prefire)
+		if(Prefire == nullptr)
 		{
-			Prefire = NewObject<UArtilleryPerActorAbilityMinimum>();
-			PrefireCosmetic  = NewObject<UArtilleryPerActorAbilityMinimum>();
-			Fire = NewObject<UArtilleryPerActorAbilityMinimum>();
-			FireCosmetic = NewObject<UArtilleryPerActorAbilityMinimum>();
-			PostFire = NewObject<UArtilleryPerActorAbilityMinimum>();
-			PostFireCosmetic = NewObject<UArtilleryPerActorAbilityMinimum>();
-			FailedFireCosmetic = NewObject<UArtilleryPerActorAbilityMinimum>();
+			Prefire = PF ? PF : NewObject<UArtilleryPerActorAbilityMinimum>();
+			Prefire->AddToRoot();
+			Fire = F ? F :	NewObject<UArtilleryPerActorAbilityMinimum>();
+			Fire->AddToRoot();
+			PostFire = PtF ? PtF : NewObject<UArtilleryPerActorAbilityMinimum>();
+			PostFire->AddToRoot();
+			
+			PrefireCosmetic  = PFC? PFC : NewObject<UArtilleryPerActorAbilityMinimum>();
+			PrefireCosmetic->AddToRoot();
+			FireCosmetic = FC ? FC : NewObject<UArtilleryPerActorAbilityMinimum>();
+			FireCosmetic->AddToRoot();
+			PostFireCosmetic = PtFc ? PtFc : NewObject<UArtilleryPerActorAbilityMinimum>();
+			PostFireCosmetic->AddToRoot();
+			FailedFireCosmetic = FFC ? FFC : NewObject<UArtilleryPerActorAbilityMinimum>();
+			FailedFireCosmetic->AddToRoot();
 		}
 		if(!MyCodeWillSetGunKey)
 		{

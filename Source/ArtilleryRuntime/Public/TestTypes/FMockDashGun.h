@@ -93,11 +93,18 @@ public:
 	{
 	};
 
-	virtual bool Initialize(const FGunKey& KeyFromDispatch, bool MyCodeWillHandleKeys)
+	virtual bool Initialize(const FGunKey& KeyFromDispatch, bool MyCodeWillHandleKeys,
+	UArtilleryPerActorAbilityMinimum* PF = nullptr,
+	UArtilleryPerActorAbilityMinimum* PFC = nullptr,
+	UArtilleryPerActorAbilityMinimum* F = nullptr,
+	UArtilleryPerActorAbilityMinimum* FC = nullptr,
+	UArtilleryPerActorAbilityMinimum* PtF = nullptr,
+	UArtilleryPerActorAbilityMinimum* PtFc = nullptr,
+	UArtilleryPerActorAbilityMinimum* FFC = nullptr)
 		override
 	{
 		MyDispatch = GWorld->GetSubsystem<UArtilleryDispatch>();
-		return Super::Initialize(KeyFromDispatch, MyCodeWillHandleKeys);
+		return ARTGUN_MACROAUTOINIT(MyCodeWillHandleKeys);
 	}
 
 	FMockDashGun()
