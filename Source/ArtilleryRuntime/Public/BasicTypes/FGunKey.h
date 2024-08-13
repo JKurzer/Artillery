@@ -36,7 +36,7 @@ public:
 	{
 		return ObjectKey(FORGE_SKELETON_KEY(GetTypeHash(GunDefinitionID) + GetTypeHash(GunInstanceID), SKELLY::SFIX_ART_GUNS));
 	}
-	friend uint64 GetTypeHash(const FGunKey& Other)
+	friend uint32 GetTypeHash(const FGunKey& Other)
 	{
 		// it's probably fine!
 		return GetTypeHash(Other.GunDefinitionID) + GetTypeHash(Other.GunInstanceID);
