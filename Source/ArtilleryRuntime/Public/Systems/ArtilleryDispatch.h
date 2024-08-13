@@ -118,6 +118,7 @@ protected:
 	static inline long long TotalFirings = 0; //2024 was rough.
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
+	FGunKey GetGun(FString GunDefinitionID, ActorKey ProbableOwner);
 	//fully specifying the type is necessary to prevent spurious warnings in some cases.
 	TSharedPtr<TCircularQueue<std::pair<FGunKey, Arty::ArtilleryTime>>> ActionsToOrder;
 	//These two are the backbone of the Artillery gun lifecycle.

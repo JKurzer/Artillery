@@ -9,6 +9,8 @@
 #include "FActionBitMask.h"
 #include "BristleconeCommonTypes.h"
 #include "Containers/TripleBuffer.h"
+#include "Skeletonize.h"
+#include "CoreTypeKeys.h"
 
 namespace Arty
 {
@@ -27,7 +29,6 @@ namespace Arty
 	typedef TheCone::PacketElement INNNNCOMING;
 	typedef uint32_t InputStreamKey;
 	typedef APlayer PlayerKey;
-	typedef uint32_t ActorKey;
 	typedef uint32_t FireControlKey;
 	using BristleTime = long; //this will become uint32. don't bitbash this.
 	using ArtilleryTime = BristleTime;
@@ -51,7 +52,7 @@ namespace Arty
 	typedef ArtilleryDataSetKey ADSKey;
 	typedef uint64_t TickliteKey;
 	//this must use the same type as actor keys and artillery object keys like  projectile or mesh
-	typedef uint64_t ObjectKey;
+	
 	DECLARE_DELEGATE(CalculateTicklite);
 	//performs the actual data transformations.
 	DECLARE_DELEGATE(ApplyTicklite);

@@ -34,6 +34,10 @@
 		{
 			"Name": "Bristlecone",
 			"Enabled": true
-		} 
+		},
+		{
+			"Name": "SkeletonKey",
+			"Enabled": true
+		}
 	]
 }

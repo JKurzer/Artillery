@@ -84,6 +84,10 @@ void UArtilleryDispatch::Deinitialize()
 		//not proc.
 		WorldSim_Ticklites_Thread->Kill(false);
 	}
+	ActorToLocomotionMapping = nullptr;
+	ObjectToTransformMapping = nullptr;
+	AttributeSetToDataMapping = nullptr;
+	GunToFiringFunctionMapping = nullptr;
 }
 
 void UArtilleryDispatch::RegisterObjectToShadowTransform(ObjectKey Target, FTransform3d* Original)

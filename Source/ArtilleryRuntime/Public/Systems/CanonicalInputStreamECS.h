@@ -350,7 +350,7 @@ protected:
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
 	ActorKey ActorByStream(InputStreamKey Stream);
-	ActorKey StreamByActor(InputStreamKey Stream);
+	InputStreamKey StreamByActor(ActorKey Stream);
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 	TSharedPtr<FConservedInputStream> getNewStreamConstruct( PlayerKey ByPlayerConcept);

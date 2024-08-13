@@ -124,7 +124,8 @@ bool UCanonicalInputStreamECS::removePattern(IPM::CanonPattern ToBind, FActionPa
 TPair<ActorKey, InputStreamKey> UCanonicalInputStreamECS::RegisterKeysToParentActorMapping(AActor* parent, FireControlKey MachineKey, bool IsActorForLocalPlayer)
 {
 	//todo, registration goes here.
-	ActorKey ParentKey = PointerHash(parent, MachineKey);
+	auto val = PointerHash(parent);
+	ActorKey ParentKey(val);
 	LocalActorToFireControlMapping->Add(ParentKey, MachineKey);
 
 	//this is a hack. this is such a hack. oh god.
