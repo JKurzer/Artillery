@@ -15,7 +15,7 @@
 struct LocomotionParams
 {
 	uint64_t time;
-	uint64_t parent;
+	ObjectKey parent;
 	FArtilleryShell previousIndex; // may NOT be current -1. :/
 	FArtilleryShell currentIndex;
 

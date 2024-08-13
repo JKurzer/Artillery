@@ -18,7 +18,8 @@ public class ArtilleryRuntime : ModuleRules
 				Path.Combine(PluginDirectory,"Source/ArtilleryRuntime/Public/BasicTypes/"),
 				Path.Combine(PluginDirectory,"Source/ArtilleryRuntime/Public/Systems/"),
 				Path.Combine(PluginDirectory,"Source/ArtilleryRuntime/Public/TestTypes/"),
-				Path.Combine(PluginDirectory,"Source/ArtilleryRuntime/Public/Ticklites/")
+				Path.Combine(PluginDirectory,"Source/ArtilleryRuntime/Public/Ticklites/"),
+				"SkeletonKey"
 			}
 		);
 
@@ -51,7 +52,8 @@ public class ArtilleryRuntime : ModuleRules
 				"InputCore",
                 "SlateCore",
 				"GameplayAbilities",
-				"Bristlecone"
+				"Bristlecone",
+				"SkeletonKey"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -68,7 +70,8 @@ public class ArtilleryRuntime : ModuleRules
 				"GameplayAbilities",
 				"GameplayTasks",
 				"GameplayTags",
-				"Bristlecone"
+				"Bristlecone",
+				"SkeletonKey"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

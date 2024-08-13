@@ -28,8 +28,18 @@ void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)
 	TL_ThreadedImpl::ADispatch = &ArtilleryTicklitesWorker_LockstepToWorldSim;
 }
 
+void UArtilleryDispatch::PostInitialize()
+{
+	Super::PostInitialize();
+	
+	UCanonicalInputStreamECS* InputECS = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
+	ArtilleryAsyncWorldSim.CablingControlStream = InputECS->getNewStreamConstruct(APlayer::CABLE);
+	ArtilleryAsyncWorldSim.BristleconeControlStream = InputECS->getNewStreamConstruct(APlayer::ECHO);
+}
+
 void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 {
+	
 	if ([[maybe_unused]] const UWorld* World = InWorld.GetWorld()) {
 		UE_LOG(LogTemp, Warning, TEXT("ArtilleryDispatch:Subsystem: World beginning play"));
 		// getting input from Bristle
@@ -84,12 +94,18 @@ void UArtilleryDispatch::Deinitialize()
 		//not proc.
 		WorldSim_Ticklites_Thread->Kill(false);
 	}
+	ObjectToTransformMapping->Empty();
+	AttributeSetToDataMapping->Empty();
+	GunToFiringFunctionMapping->Empty();
+	ActorToLocomotionMapping->Empty();
 }
 
 void UArtilleryDispatch::RegisterObjectToShadowTransform(ObjectKey Target, FTransform3d* Original)
 {
 	ObjectToTransformMapping->Add(Target, RealAndShadowTransform(Original, FTransform3d()));
 }
+
+
 
 FTransform3d& UArtilleryDispatch::GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) 
 {
@@ -205,7 +221,7 @@ void UArtilleryDispatch::RunGuns()
 {
 
 	
-	if( RequestorQueue_Abilities_TripleBuffer->IsDirty())
+	if(RequestorQueue_Abilities_TripleBuffer && RequestorQueue_Abilities_TripleBuffer->IsDirty())
 	//Sort is not stable. Sortedness appears to be lost for operations I would not expect.
 	{
 		RequestorQueue_Abilities_TripleBuffer->SwapReadBuffers();

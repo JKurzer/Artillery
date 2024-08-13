@@ -36,7 +36,7 @@ public:
 	// this can be handed into abilities.
 	friend class UArtilleryPerActorAbilityMinimum;
 	FGunKey MyGunKey;
-	ActorKey MyProbableOwner = 0;
+	ActorKey MyProbableOwner;
 	bool ReadyToFire = false;
 
 	//As these are UProperties, they should NOT need to become strong pointers or get attached to root

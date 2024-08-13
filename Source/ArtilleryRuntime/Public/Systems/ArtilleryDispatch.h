@@ -79,6 +79,7 @@ protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
+	
 
 	//this is the underlying function mapping we use to queue up Gun Activations.
 	//These will eventually need a complete and consistent ordering to ensure determinism.
@@ -104,7 +105,10 @@ protected:
 	//todo, build FAttributeSet. :/
 	TSharedPtr<TMap<ObjectKey, AttrMapPtr>> AttributeSetToDataMapping;
 
+public:
+	virtual void PostInitialize() override;
 
+protected:
 	FTransform3d&  GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now);
 	//this is about as safe as eating live hornets right now.
 	
@@ -118,6 +122,7 @@ protected:
 	static inline long long TotalFirings = 0; //2024 was rough.
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
+	FGunKey GetGun(FString GunDefinitionID, ActorKey ProbableOwner);
 	//fully specifying the type is necessary to prevent spurious warnings in some cases.
 	TSharedPtr<TCircularQueue<std::pair<FGunKey, Arty::ArtilleryTime>>> ActionsToOrder;
 	//These two are the backbone of the Artillery gun lifecycle.
@@ -208,7 +213,11 @@ public:
 	}
 	void Deregister(FGunKey Key)
 	{
-		GunToFiringFunctionMapping->Remove(Key);
+		auto holdopen = GunToFiringFunctionMapping;
+		if(holdopen && holdopen.IsValid())
+		{
+			GunToFiringFunctionMapping->Remove(Key);
+		}
 		//TODO: add the rest of the wipe here?
 	}
 	void RegisterAttributes(ObjectKey in, AttrMapPtr Attributes)
