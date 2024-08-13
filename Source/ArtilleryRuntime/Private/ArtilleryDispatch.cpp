@@ -18,7 +18,6 @@ void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	UE_LOG(LogTemp, Warning, TEXT("ArtilleryDispatch:Subsystem: Online"));
-	RequestorQueue_Abilities_TripleBuffer = MakeShareable( new TTripleBuffer<TArray<TPair<BristleTime,FGunKey>>>());
 	RequestorQueue_Locomos_TripleBuffer = MakeShareable( new TTripleBuffer<TArray<LocomotionParams>>());
 	GunToFiringFunctionMapping = MakeShareable(new TMap<FGunKey, FArtilleryFireGunFromDispatch>());
 	ActorToLocomotionMapping = MakeShareable(new TMap<ActorKey, FArtilleryRunLocomotionFromDispatch>());
@@ -30,6 +29,7 @@ void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)
 
 void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 {
+	
 	if ([[maybe_unused]] const UWorld* World = InWorld.GetWorld()) {
 		UE_LOG(LogTemp, Warning, TEXT("ArtilleryDispatch:Subsystem: World beginning play"));
 		// getting input from Bristle
@@ -84,10 +84,10 @@ void UArtilleryDispatch::Deinitialize()
 		//not proc.
 		WorldSim_Ticklites_Thread->Kill(false);
 	}
-	ActorToLocomotionMapping = nullptr;
-	ObjectToTransformMapping = nullptr;
-	AttributeSetToDataMapping = nullptr;
-	GunToFiringFunctionMapping = nullptr;
+	ObjectToTransformMapping->Empty();
+	AttributeSetToDataMapping->Empty();
+	GunToFiringFunctionMapping->Empty();
+	ActorToLocomotionMapping->Empty();
 }
 
 void UArtilleryDispatch::RegisterObjectToShadowTransform(ObjectKey Target, FTransform3d* Original)
