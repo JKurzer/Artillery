@@ -125,6 +125,7 @@ TPair<ActorKey, InputStreamKey> UCanonicalInputStreamECS::RegisterKeysToParentAc
 {
 	//todo, registration goes here.
 	auto val = PointerHash(parent);
+	UE_LOG(LogTemp, Warning, TEXT("FCM Parented: %d"), val);
 	ActorKey ParentKey(val);
 	LocalActorToFireControlMapping->Add(ParentKey, MachineKey);
 
