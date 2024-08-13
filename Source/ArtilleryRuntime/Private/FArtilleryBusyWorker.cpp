@@ -14,8 +14,7 @@ FArtilleryBusyWorker::~FArtilleryBusyWorker()
 bool FArtilleryBusyWorker::Init()
 {
 	//you cannot reorder these. it is a magic ordering put in place for a hack. 
-	CablingControlStream = ContingentInputECSLinkage->getNewStreamConstruct(APlayer::CABLE);
-	BristleconeControlStream = ContingentInputECSLinkage->getNewStreamConstruct(APlayer::ECHO);
+
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Initializing Artillery thread"));
 	running = true;
 	return true;

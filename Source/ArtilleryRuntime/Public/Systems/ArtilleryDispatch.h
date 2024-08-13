@@ -105,7 +105,10 @@ protected:
 	//todo, build FAttributeSet. :/
 	TSharedPtr<TMap<ObjectKey, AttrMapPtr>> AttributeSetToDataMapping;
 
+public:
+	virtual void PostInitialize() override;
 
+protected:
 	FTransform3d&  GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now);
 	//this is about as safe as eating live hornets right now.
 	

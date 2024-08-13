@@ -18,6 +18,7 @@ void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	UE_LOG(LogTemp, Warning, TEXT("ArtilleryDispatch:Subsystem: Online"));
+	RequestorQueue_Abilities_TripleBuffer = MakeShareable( new TTripleBuffer<TArray<TPair<BristleTime,FGunKey>>>());
 	RequestorQueue_Locomos_TripleBuffer = MakeShareable( new TTripleBuffer<TArray<LocomotionParams>>());
 	GunToFiringFunctionMapping = MakeShareable(new TMap<FGunKey, FArtilleryFireGunFromDispatch>());
 	ActorToLocomotionMapping = MakeShareable(new TMap<ActorKey, FArtilleryRunLocomotionFromDispatch>());
@@ -25,6 +26,15 @@ void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)
 	ObjectToTransformMapping = MakeShareable(new TMap<ObjectKey, RealAndShadowTransform>);
 	GunByKey = MakeShareable(new TMap<FGunKey, TSharedPtr<FArtilleryGun>>());
 	TL_ThreadedImpl::ADispatch = &ArtilleryTicklitesWorker_LockstepToWorldSim;
+}
+
+void UArtilleryDispatch::PostInitialize()
+{
+	Super::PostInitialize();
+	
+	UCanonicalInputStreamECS* InputECS = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
+	ArtilleryAsyncWorldSim.CablingControlStream = InputECS->getNewStreamConstruct(APlayer::CABLE);
+	ArtilleryAsyncWorldSim.BristleconeControlStream = InputECS->getNewStreamConstruct(APlayer::ECHO);
 }
 
 void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
@@ -94,6 +104,8 @@ void UArtilleryDispatch::RegisterObjectToShadowTransform(ObjectKey Target, FTran
 {
 	ObjectToTransformMapping->Add(Target, RealAndShadowTransform(Original, FTransform3d()));
 }
+
+
 
 FTransform3d& UArtilleryDispatch::GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) 
 {
