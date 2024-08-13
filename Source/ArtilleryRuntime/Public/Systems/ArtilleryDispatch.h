@@ -209,7 +209,11 @@ public:
 	}
 	void Deregister(FGunKey Key)
 	{
-		GunToFiringFunctionMapping->Remove(Key);
+		auto holdopen = GunToFiringFunctionMapping;
+		if(holdopen && holdopen.IsValid())
+		{
+			GunToFiringFunctionMapping->Remove(Key);
+		}
 		//TODO: add the rest of the wipe here?
 	}
 	void RegisterAttributes(ObjectKey in, AttrMapPtr Attributes)
