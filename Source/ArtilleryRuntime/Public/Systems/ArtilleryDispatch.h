@@ -79,6 +79,7 @@ protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
+	
 
 	//this is the underlying function mapping we use to queue up Gun Activations.
 	//These will eventually need a complete and consistent ordering to ensure determinism.

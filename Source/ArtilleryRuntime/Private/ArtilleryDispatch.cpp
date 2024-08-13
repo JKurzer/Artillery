@@ -209,7 +209,7 @@ void UArtilleryDispatch::RunGuns()
 {
 
 	
-	if( RequestorQueue_Abilities_TripleBuffer->IsDirty())
+	if(RequestorQueue_Abilities_TripleBuffer && RequestorQueue_Abilities_TripleBuffer->IsDirty())
 	//Sort is not stable. Sortedness appears to be lost for operations I would not expect.
 	{
 		RequestorQueue_Abilities_TripleBuffer->SwapReadBuffers();

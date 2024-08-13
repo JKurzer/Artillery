@@ -13,6 +13,9 @@ FArtilleryBusyWorker::~FArtilleryBusyWorker()
 
 bool FArtilleryBusyWorker::Init()
 {
+	//you cannot reorder these. it is a magic ordering put in place for a hack. 
+	CablingControlStream = ContingentInputECSLinkage->getNewStreamConstruct(APlayer::CABLE);
+	BristleconeControlStream = ContingentInputECSLinkage->getNewStreamConstruct(APlayer::ECHO);
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Initializing Artillery thread"));
 	running = true;
 	return true;
@@ -120,28 +123,32 @@ void FArtilleryBusyWorker::RunStandardFrameSim(bool& missedPrior, uint64_t& curr
 		for (int i = currentIndexCabling; i < CablingControlStream->highestInput; ++i)
 		{
 			//TODO: does this leak memory?
-			refDangerous_LifeCycleManaged_Loco_TripleBuffered.Add(
-				LocomotionParams(
-					CablingControlStream->peek(i)->SentAt,
-					CablingControlStream->GetActorByInputStream(),
-					*CablingControlStream->peek(i - 1),
-					*CablingControlStream->peek(i)
-				)
-			);
+			auto actor = CablingControlStream->GetActorByInputStream();
+			if(actor)
+			{
+				refDangerous_LifeCycleManaged_Loco_TripleBuffered.Add(
+					LocomotionParams(
+						CablingControlStream->peek(i)->SentAt,
+						actor,
+						*CablingControlStream->peek(i - 1),
+						*CablingControlStream->peek(i)
+					)
+				);
 
-			CablingControlStream->MyPatternMatcher->runOneFrameWithSideEffects(
-				true,
-				0,
-				0,
-				i,
-				refDangerous_LifeCycleManaged_Abilities_TripleBuffered
-			); // this looks wrong but I'm pretty sure it ain' since we reserve highest.
+				CablingControlStream->MyPatternMatcher->runOneFrameWithSideEffects(
+					true,
+					0,
+					0,
+					i,
+					refDangerous_LifeCycleManaged_Abilities_TripleBuffered
+				); // this looks wrong but I'm pretty sure it ain' since we reserve highest.
 
-
-			//even if this doesn't get played for some reason, this is the last chance we've got to make a
-			//truly informed decision about the matter. By the time we reach the dispatch system, that chance is gone.
-			//Better to skip a cosmetic once in a while than crash the game.
-			CablingControlStream->get(CablingControlStream->highestInput - 1)->RunAtLeastOnce = true;
+			}
+				//even if this doesn't get played for some reason, this is the last chance we've got to make a
+				//truly informed decision about the matter. By the time we reach the dispatch system, that chance is gone.
+				//Better to skip a cosmetic once in a while than crash the game.
+				CablingControlStream->get(CablingControlStream->highestInput - 1)->RunAtLeastOnce = true;
+			
 		}
 
 		refDangerous_LifeCycleManaged_Loco_TripleBuffered.Sort();
@@ -184,9 +191,7 @@ uint32 FArtilleryBusyWorker::Run()
 	constexpr uint32_t sendHertz = LongboySendHertz;
 	constexpr uint32_t sendHertzFactor = sampleHertz / sendHertz;
 	constexpr uint32_t periodInNano = 1000000 / sampleHertz; //swap to microseconds. standardizing.
-	//you cannot reorder these. it is a magic ordering put in place for a hack. 
-	CablingControlStream = ContingentInputECSLinkage->getNewStreamConstruct(APlayer::CABLE);
-	BristleconeControlStream = ContingentInputECSLinkage->getNewStreamConstruct(APlayer::ECHO);
+
 
 	//we can now start the sim. we latch only on the apply step.
 	StartTicklitesSim->Trigger();

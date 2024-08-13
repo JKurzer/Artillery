@@ -152,7 +152,6 @@ public:
 		//fail fast
 		MyInput = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 		MyDispatch = GetWorld()->GetSubsystem<UArtilleryDispatch>();
-
 		TPair<ActorKey, InputStreamKey> Parent =  MyInput->RegisterKeysToParentActorMapping(GetOwner(), MyKey, true);
 		ParentKey = Parent.Key;
 		MyDispatch->RegisterLocomotion(ParentKey, LocomotionFromActor);

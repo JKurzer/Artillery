@@ -42,6 +42,10 @@ TStatId UCanonicalInputStreamECS::GetStatId() const
 	RETURN_QUICK_DECLARE_CYCLE_STAT(UCanonicalInputStreamECS, STATGROUP_Tickables);
 }
 
+
+//OH NO. HIDDEN ORDERING DEPENDENCY EMERGED! if this gets called AFTER getstreamforplayer, which can happen because we now handle
+//the CDO correctly, we can end up in a situation where things just sort of flywheel off to hell because there's not actually any stream
+//constructs extant yet.
 TSharedPtr<UCanonicalInputStreamECS::FConservedInputStream> UCanonicalInputStreamECS::getNewStreamConstruct( PlayerKey ByPlayerConcept)
 {
 	
@@ -49,14 +53,17 @@ TSharedPtr<UCanonicalInputStreamECS::FConservedInputStream> UCanonicalInputStrea
 	new FConservedInputStream(this, ByPlayerConcept) //using++ vs ++would be wrong here. inc then ret.
 	);
 	auto BifurcateOwnership = new TSharedPtr<ArtilleryControlStream>(ManagedStream);
-	SessionPlayerToStreamMapping->Add(ByPlayerConcept, ByPlayerConcept);//this will need, ultimately, to be revised. but for now, it's ordered, and consistent.
-	StreamKeyToStreamMapping->Add(ByPlayerConcept, *BifurcateOwnership);//this is a sin.
+	//fun fucking story, this was working by ACCIDENT because we were somehow ZEROING OUT the pointers, causing things to JUST BARELY map.
+	//here we go again.
+	SessionPlayerToStreamMapping->Add(ByPlayerConcept, ManagedStream->MyKey);//
+	StreamKeyToStreamMapping->Add(ManagedStream->MyKey, *BifurcateOwnership);//This is the key driver for the ordering problem
 	return ManagedStream; 
 }
 
 
 InputStreamKey UCanonicalInputStreamECS::GetStreamForPlayer(PlayerKey ThisPlayer)
 {
+	//TODO: this can actually fail if the start up sequence happens in a really unusual order.
 	return SessionPlayerToStreamMapping->FindChecked(ThisPlayer);
 }
 
@@ -137,7 +144,7 @@ TPair<ActorKey, InputStreamKey> UCanonicalInputStreamECS::RegisterKeysToParentAc
 #endif
 		//this relies on a really ugly hack using the ENUM. do not ship this without being sure you want to.
 		InputStreamKey LocalKey = GetStreamForPlayer(APlayer::CABLE);
-		StreamToActorMapping->Add(LocalKey, ParentKey);
+		StreamToActorMapping->Add(LocalKey, ParentKey); //ONE OF THE TWO THINGS IS WRONG NOW, CONGRATS, HERO.
 		ActorToStreamMapping->Add(ParentKey, LocalKey);
 		return TPair<ActorKey, InputStreamKey>(ParentKey, LocalKey);			
 	}
