@@ -18,8 +18,7 @@ public class ArtilleryRuntime : ModuleRules
 				Path.Combine(PluginDirectory,"Source/ArtilleryRuntime/Public/BasicTypes/"),
 				Path.Combine(PluginDirectory,"Source/ArtilleryRuntime/Public/Systems/"),
 				Path.Combine(PluginDirectory,"Source/ArtilleryRuntime/Public/TestTypes/"),
-				Path.Combine(PluginDirectory,"Source/ArtilleryRuntime/Public/Ticklites/"),
-				"SkeletonKey"
+				Path.Combine(PluginDirectory,"Source/ArtilleryRuntime/Public/Ticklites/")
 			}
 		);
 

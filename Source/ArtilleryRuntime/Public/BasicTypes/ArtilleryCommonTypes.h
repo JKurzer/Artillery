@@ -161,7 +161,7 @@ public:
 	InputStreamKey MyInputStream;
 	FireControlKey MyOrigin;
 	FActionPatternParams(const FActionBitMask ToSeek_In, FireControlKey MyOrigin_In, InputStreamKey MyInputStream_In, FGunKey Fireable) :
-		ToSeek(ToSeek_In), MyOrigin(MyOrigin_In), MyInputStream(MyInputStream_In)
+		ToSeek(ToSeek_In), MyInputStream(MyInputStream_In), MyOrigin(MyOrigin_In)
 	{
 		ToFire = Fireable;
 	};
