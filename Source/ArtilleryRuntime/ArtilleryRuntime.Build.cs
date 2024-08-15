@@ -53,7 +53,8 @@ public class ArtilleryRuntime : ModuleRules
                 "SlateCore",
 				"GameplayAbilities",
 				"Bristlecone",
-				"SkeletonKey"
+				"SkeletonKey",
+				"Barrage"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -71,7 +72,7 @@ public class ArtilleryRuntime : ModuleRules
 				"GameplayTasks",
 				"GameplayTags",
 				"Bristlecone",
-				"SkeletonKey"
+				"SkeletonKey", "Barrage"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

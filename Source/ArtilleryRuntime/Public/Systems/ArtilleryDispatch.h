@@ -72,7 +72,6 @@ const
 	{
 		return ArtilleryAsyncWorldSim.TickliteNow;
 	};
-
 	void GENERATE_RECHARGE(ObjectKey Self);
 	
 protected:

@@ -10,6 +10,8 @@
 #include "LocomotionParams.h"
 #include <Ticklite.h>
 
+#include "BarrageDispatch.h"
+
 
 //this is a busy-style thread, which runs preset bodies of work in a specified order. Generally, the goal is that it never
 //actually sleeps. In fact, it yields rather than sleeps, in general operation.
@@ -51,6 +53,7 @@ class FArtilleryBusyWorker : public FRunnable {
 	TheCone::RecvQueue InputRingBuffer;
 	TheCone::SendQueue InputSwapSlot;
 	UCanonicalInputStreamECS* ContingentInputECSLinkage;
+	UBarrageDispatch* ContingentPhysicsLinkage;
 	
 	
 private:
