@@ -38,6 +38,10 @@
 		{
 			"Name": "SkeletonKey",
 			"Enabled": true
+		},
+		{
+			"Name": "Barrage",
+			"Enabled": true
 		}
 	]
 }

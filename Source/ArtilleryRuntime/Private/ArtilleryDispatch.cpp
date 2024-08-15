@@ -44,19 +44,21 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		UE_LOG(LogTemp, Warning, TEXT("ArtilleryDispatch:Subsystem: World beginning play"));
 		// getting input from Bristle
 		UseNetworkInput.store(true);
-		UBristleconeWorldSubsystem* MySquire = GetWorld()->GetSubsystem<UBristleconeWorldSubsystem>();
+		UBristleconeWorldSubsystem* NetworkAndControls = GetWorld()->GetSubsystem<UBristleconeWorldSubsystem>();
+		UBarrageDispatch* GameSimPhysics = GetWorld()->GetSubsystem<UBarrageDispatch>();
 		ArtilleryTicklitesWorker_LockstepToWorldSim.DispatchOwner = this;
 		ArtilleryTicklitesWorker_LockstepToWorldSim.StartTicklitesApply = StartTicklitesApply;
 		ArtilleryTicklitesWorker_LockstepToWorldSim.StartTicklitesSim = StartTicklitesSim;
 		ArtilleryAsyncWorldSim.StartTicklitesApply = StartTicklitesApply;
 		ArtilleryAsyncWorldSim.StartTicklitesSim = StartTicklitesSim;
 		ArtilleryAsyncWorldSim.InputRingBuffer = MakeShareable(new PacketQ(256));
-		MySquire->QueueOfReceived = ArtilleryAsyncWorldSim.InputRingBuffer;
+		NetworkAndControls->QueueOfReceived = ArtilleryAsyncWorldSim.InputRingBuffer;
 		UCablingWorldSubsystem* DirectLocalInputSystem = GetWorld()->GetSubsystem<UCablingWorldSubsystem>();
 		ArtilleryAsyncWorldSim.InputSwapSlot = MakeShareable(new IncQ(256));
 		DirectLocalInputSystem->DestructiveChangeLocalOutboundQueue(ArtilleryAsyncWorldSim.InputSwapSlot);
-		UCanonicalInputStreamECS* MyBrother = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
-		ArtilleryAsyncWorldSim.ContingentInputECSLinkage = MyBrother;
+		UCanonicalInputStreamECS* InputStreamECS = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
+		ArtilleryAsyncWorldSim.ContingentInputECSLinkage = InputStreamECS;
+		ArtilleryAsyncWorldSim.ContingentPhysicsLinkage = GameSimPhysics;
 		//IF YOU REMOVE THIS. EVERYTHING EXPLODE. IN A BAD WAY.
 		//TARRAY IS A VALUE TYPE. SO IS TRIPLEBUFF I THINK.
 		ArtilleryAsyncWorldSim.RequestorQueue_Abilities_TripleBuffer = RequestorQueue_Abilities_TripleBuffer;//OH BOY. REFERENCE TIME. GWAHAHAHA.
