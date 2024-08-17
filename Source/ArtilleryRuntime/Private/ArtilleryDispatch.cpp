@@ -118,12 +118,15 @@ FTransform3d* UArtilleryDispatch::GetTransformShadowByObjectKey(ObjectKey Target
 	{
 		return &(ref->Value);
 	}
+	return nullptr;
 }
 
 void UArtilleryDispatch::ApplyShadowTransforms()
 {
 	//process updates from barrage.
 	auto HoldOpen = TransformUpdateQueue;
+
+	//MARKED SAFE by knock-out testing.
 	while(HoldOpen && !HoldOpen->IsEmpty())
 	{
 		if(auto Update = HoldOpen->Peek())
