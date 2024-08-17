@@ -119,7 +119,7 @@ FTransform3d& UArtilleryDispatch::GetTransformShadowByObjectKey(ObjectKey Target
 void UArtilleryDispatch::ApplyShadowTransforms()
 {
 	//process updates from barrage.
-	while(!TransformUpdateQueue->IsEmpty())
+	while(TransformUpdateQueue && !TransformUpdateQueue->IsEmpty())
 	{
 		auto Update = TransformUpdateQueue->Peek();
 		if(Update)
