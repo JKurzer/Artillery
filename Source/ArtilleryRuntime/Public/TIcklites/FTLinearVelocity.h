@@ -45,8 +45,11 @@ public:
 	{
 		ArtilleryTime Now = this->GetShadowNow();
 		--TicksRemaining;
-		FTransform3d& Transform = this->ADispatch->GetTransformShadowByObjectKey(VelocityTarget, Now);
-		Transform.AddToTranslation(PerTickVelocityToApply);
+		FTransform3d* Transform = this->ADispatch->GetTransformShadowByObjectKey(VelocityTarget, Now);
+		if(Transform)
+		{
+			Transform->AddToTranslation(PerTickVelocityToApply);
+		}
 	}
 	void TICKLITE_CoreReset()
 	{

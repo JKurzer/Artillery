@@ -111,26 +111,30 @@ void UArtilleryDispatch::RegisterObjectToShadowTransform(ObjectKey Target, FTran
 
 
 
-FTransform3d& UArtilleryDispatch::GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) 
+FTransform3d* UArtilleryDispatch::GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) 
 {
-	return ObjectToTransformMapping->FindChecked(Target).Value;
+	auto ref = ObjectToTransformMapping->Find(Target);
+	if(ref)
+	{
+		return &(ref->Value);
+	}
 }
 
 void UArtilleryDispatch::ApplyShadowTransforms()
 {
 	//process updates from barrage.
-	while(TransformUpdateQueue && !TransformUpdateQueue->IsEmpty())
+	auto HoldOpen = TransformUpdateQueue;
+	while(HoldOpen && !HoldOpen->IsEmpty())
 	{
-		auto Update = TransformUpdateQueue->Peek();
-		if(Update)
+		if(auto Update = HoldOpen->Peek())
 		{
 			
 			auto destructure = ObjectToTransformMapping->Find(Update->ObjectKey);
 			const auto& bindOriginal = destructure->Key;
 			bindOriginal->SetTranslation( UE::Math::TVector<double>(Update->Position));
 			bindOriginal->SetRotation(UE::Math::TQuat<double>(Update->Rotation));
+			HoldOpen->Dequeue();
 		}
-		
 	}
 	
 	for(auto& x : *ObjectToTransformMapping)

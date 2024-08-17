@@ -100,7 +100,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	public:
 	//Templating here is used to both make reparenting easier if needed later and to simplify our dependency tree
 	UDispatch* DispatchOwner;
-	FTransform3d& GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now)
+	FTransform3d* GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now)
 	{
 		return DispatchOwner->GetTransformShadowByObjectKey(Target,  Now);
 	}

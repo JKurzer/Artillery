@@ -108,7 +108,7 @@ public:
 	virtual void PostInitialize() override;
 
 protected:
-	FTransform3d&  GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now);
+	FTransform3d*  GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now);
 	//this is about as safe as eating live hornets right now.
 	
 	//todo: convert conserved attribute to use a timestamp for versioning to create a true temporal shadowstack.
