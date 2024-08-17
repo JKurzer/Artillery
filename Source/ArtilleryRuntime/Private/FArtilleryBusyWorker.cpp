@@ -243,6 +243,8 @@ uint32 FArtilleryBusyWorker::Run()
 		std::this_thread::yield();
 		lsbTime = ContingentInputECSLinkage->Now();
 	}
+	
+	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Run Ended."));
 	return 0;
 }
 

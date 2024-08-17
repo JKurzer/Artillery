@@ -31,6 +31,8 @@ void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)
 void UArtilleryDispatch::PostInitialize()
 {
 	Super::PostInitialize();
+	UBarrageDispatch* PhysicsECS = GetWorld()->GetSubsystem<UBarrageDispatch>();
+	TransformUpdateQueue = PhysicsECS->GameTransformPump;
 	
 	UCanonicalInputStreamECS* InputECS = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 	ArtilleryAsyncWorldSim.CablingControlStream = InputECS->getNewStreamConstruct(APlayer::CABLE);
@@ -109,13 +111,35 @@ void UArtilleryDispatch::RegisterObjectToShadowTransform(ObjectKey Target, FTran
 
 
 
-FTransform3d& UArtilleryDispatch::GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) 
+FTransform3d* UArtilleryDispatch::GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) 
 {
-	return ObjectToTransformMapping->FindChecked(Target).Value;
+	auto ref = ObjectToTransformMapping->Find(Target);
+	if(ref)
+	{
+		return &(ref->Value);
+	}
+	return nullptr;
 }
 
 void UArtilleryDispatch::ApplyShadowTransforms()
 {
+	//process updates from barrage.
+	auto HoldOpen = TransformUpdateQueue;
+
+	//MARKED SAFE by knock-out testing.
+	while(HoldOpen && !HoldOpen->IsEmpty())
+	{
+		if(auto Update = HoldOpen->Peek())
+		{
+			
+			auto destructure = ObjectToTransformMapping->Find(Update->ObjectKey);
+			const auto& bindOriginal = destructure->Key;
+			bindOriginal->SetTranslation( UE::Math::TVector<double>(Update->Position));
+			bindOriginal->SetRotation(UE::Math::TQuat<double>(Update->Rotation));
+			HoldOpen->Dequeue();
+		}
+	}
+	
 	for(auto& x : *ObjectToTransformMapping)
 	{
 		auto& destructure = x.Value;

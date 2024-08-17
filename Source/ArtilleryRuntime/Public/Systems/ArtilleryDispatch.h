@@ -103,12 +103,12 @@ protected:
 	TSharedPtr< TMap<ObjectKey, RealAndShadowTransform>> ObjectToTransformMapping;
 	//todo, build FAttributeSet. :/
 	TSharedPtr<TMap<ObjectKey, AttrMapPtr>> AttributeSetToDataMapping;
-
+	TSharedPtr<UBarrageDispatch::TransformUpdatesForGameThread> TransformUpdateQueue;
 public:
 	virtual void PostInitialize() override;
 
 protected:
-	FTransform3d&  GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now);
+	FTransform3d*  GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now);
 	//this is about as safe as eating live hornets right now.
 	
 	//todo: convert conserved attribute to use a timestamp for versioning to create a true temporal shadowstack.
@@ -200,6 +200,7 @@ public:
 	FGunKey RegisterExistingGun(FArtilleryGun* toBind, ActorKey ProbableOwner) const;
 	bool ReleaseGun(FGunKey Key, FireControlKey MachineKey);
 
+	//TODO: convert to object key to allow the grand dance of the mesh primitives.
 	AttrPtr GetAttrib(ActorKey Owner, AttribKey Attrib);
 	
 	void RegisterReady(FGunKey Key, FArtilleryFireGunFromDispatch Machine)
