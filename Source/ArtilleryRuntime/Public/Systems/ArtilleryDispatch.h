@@ -103,7 +103,7 @@ protected:
 	TSharedPtr< TMap<ObjectKey, RealAndShadowTransform>> ObjectToTransformMapping;
 	//todo, build FAttributeSet. :/
 	TSharedPtr<TMap<ObjectKey, AttrMapPtr>> AttributeSetToDataMapping;
-
+	TSharedPtr<UBarrageDispatch::TransformUpdatesForGameThread> TransformUpdateQueue;
 public:
 	virtual void PostInitialize() override;
 
@@ -200,6 +200,7 @@ public:
 	FGunKey RegisterExistingGun(FArtilleryGun* toBind, ActorKey ProbableOwner) const;
 	bool ReleaseGun(FGunKey Key, FireControlKey MachineKey);
 
+	//TODO: convert to object key to allow the grand dance of the mesh primitives.
 	AttrPtr GetAttrib(ActorKey Owner, AttribKey Attrib);
 	
 	void RegisterReady(FGunKey Key, FArtilleryFireGunFromDispatch Machine)
