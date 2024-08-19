@@ -10,7 +10,7 @@
 #include "BristleconeCommonTypes.h"
 #include "Containers/TripleBuffer.h"
 #include "Skeletonize.h"
-#include "CoreTypeKeys.h"
+#include "SkeletonTypes.h"
 
 namespace Arty
 {
@@ -30,8 +30,6 @@ namespace Arty
 	typedef uint32_t InputStreamKey;
 	typedef APlayer PlayerKey;
 	typedef uint32_t FireControlKey;
-	using BristleTime = long; //this will become uint32. don't bitbash this.
-	using ArtilleryTime = BristleTime;
 
 
 }

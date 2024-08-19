@@ -2,7 +2,7 @@
 
 #pragma once
 #include "skeletonize.h"
-#include "CoreTypeKeys.h"
+#include "SkeletonTypes.h"
 #include "CoreMinimal.h"
 #include "CoreTypes.h"
 #include "Templates/SubclassOf.h"

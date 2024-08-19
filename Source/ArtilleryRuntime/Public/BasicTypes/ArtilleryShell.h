@@ -43,7 +43,7 @@ public:
 	//Packed as:
 	//MSB[sticks][buttons][Events]LSB
 
-	Arty::BristleTime SentAt;
+	BristleTime SentAt;
 	ArtilleryTime ReachedArtilleryAt;
 	bool RunAtLeastOnce = false; // if this is set, all artillery abilities spawned by running this input will be treated as having run at least once, and will not spawn cosmetic cues. Some animations may still play.
 	

@@ -79,7 +79,7 @@ class ARTILLERYRUNTIME_API UCanonicalInputStreamECS : public UTickableWorldSubsy
 	//so everything, practically, is here.
 	//I think this can be cleaned up in a couple weeks, as of 6/11/24. Let's see if I ever get to it. <3 JMK
 public:
-	Arty::ArtilleryTime Now()
+	ArtilleryTime Now()
 	{
 		return MySquire->Now();
 	};

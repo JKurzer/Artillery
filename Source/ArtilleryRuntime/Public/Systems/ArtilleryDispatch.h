@@ -13,6 +13,7 @@
 #include "LocomotionParams.h"
 #include "ConservedAttribute.h"
 #include "FArtilleryTicklitesThread.h"
+#include "TransformDispatch.h"
 #include "ArtilleryDispatch.generated.h"
 
 
@@ -43,10 +44,12 @@
  */
 namespace Arty
 {
-	typedef TPair<FTransform3d*, FTransform3d> RealAndShadowTransform;
+	DECLARE_MULTICAST_DELEGATE(OnArtilleryActivated);
+	
 	DECLARE_DELEGATE_TwoParams(FArtilleryFireGunFromDispatch,
 		TSharedPtr<FArtilleryGun> Gun,
 		bool InputAlreadyUsedOnce);
+	
 	//returns true if-and-only-if the duration of the input intent was exhausted.
 	DECLARE_DELEGATE_RetVal_FourParams(bool,
 		FArtilleryRunLocomotionFromDispatch,
@@ -67,13 +70,45 @@ class ARTILLERYRUNTIME_API UArtilleryDispatch : public UTickableWorldSubsystem
 	friend class FArtilleryTicklitesWorker<UArtilleryDispatch>;
 	friend class UCanonicalInputStreamECS;
 public:
+	
+	OnArtilleryActivated BindToArtilleryActivated;
+	
 	inline ArtilleryTime GetShadowNow()
 const
 	{
 		return ArtilleryAsyncWorldSim.TickliteNow;
 	};
 	void GENERATE_RECHARGE(ObjectKey Self);
-	
+
+	//Forwarding for the TickliteThread.
+	FTransform3d* GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now)
+	{
+		if(GetWorld())
+		{
+			auto TransformECSPillar = GetWorld()->GetSubsystem<UTransformDispatch>();
+			if(TransformECSPillar)
+			{
+				return	TransformECSPillar->GetTransformShadowByObjectKey(Target,  Now);
+			}
+		}
+		return nullptr;
+	}
+	//forwarding for TickliteThread
+	//TODO: refactor forwarding, it's causing dependency bleed. in a way it makes sense, but it's not OBVIOUS that this should
+	//live here, and I'd like it to be both obvious and elegant.
+	void ApplyShadowTransforms()
+	{
+		if(GetWorld())
+		{
+			auto TransformECSPillar = GetWorld()->GetSubsystem<UTransformDispatch>();
+			if(TransformECSPillar)
+			{
+				return	TransformECSPillar->ApplyShadowTransforms<TSharedPtr<UBarrageDispatch::TransformUpdatesForGameThread>>(TransformUpdateQueue);
+			}
+		}
+		return;
+	}
+
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
@@ -90,17 +125,7 @@ protected:
 	//This is more straightforward than the guns problem.
 	//We can actually map this quite directly.
 	TSharedPtr< TMap<ActorKey, FArtilleryRunLocomotionFromDispatch>> ActorToLocomotionMapping;
-
-	//We can't touch the uobjects, but the ftransforms are simply PODs.
-	//by modifying a parent transform rather than the actual transform, we can avoid a data contention.
-	//by using a gamesimT parent over the gamedisplayT, we can actually do this. Jesus christ. for now,
-	//we hack it, but...... this works. this is threadsafe. monstrous, but threadsafe after a fashion.
-	//by god.
-	//this likely needs to be a write-safe conc data structure for true speed.
-	//I'm considering GrowOnlyLockFreeHash.h
-	//temporarily, I'm just locking and prayin', prayin and lockin'.
-	//todo: add proper shadowing either with a conserved transform (OUGH) or something clever. good luck.
-	TSharedPtr< TMap<ObjectKey, RealAndShadowTransform>> ObjectToTransformMapping;
+	
 	//todo, build FAttributeSet. :/
 	TSharedPtr<TMap<ObjectKey, AttrMapPtr>> AttributeSetToDataMapping;
 	TSharedPtr<UBarrageDispatch::TransformUpdatesForGameThread> TransformUpdateQueue;
@@ -108,8 +133,7 @@ public:
 	virtual void PostInitialize() override;
 
 protected:
-	FTransform3d*  GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now);
-	//this is about as safe as eating live hornets right now.
+
 	
 	//todo: convert conserved attribute to use a timestamp for versioning to create a true temporal shadowstack.
 	//todo: swap the fuck to FAttributeSet after building it. :/
@@ -123,7 +147,7 @@ protected:
 	virtual TStatId GetStatId() const override;
 	FGunKey GetGun(FString GunDefinitionID, ActorKey ProbableOwner);
 	//fully specifying the type is necessary to prevent spurious warnings in some cases.
-	TSharedPtr<TCircularQueue<std::pair<FGunKey, Arty::ArtilleryTime>>> ActionsToOrder;
+	TSharedPtr<TCircularQueue<std::pair<FGunKey, ArtilleryTime>>> ActionsToOrder;
 	//These two are the backbone of the Artillery gun lifecycle.
 	TSharedPtr< TMap<FGunKey, TSharedPtr<FArtilleryGun>>> GunByKey;
 	TMultiMap<FString, TSharedPtr<FArtilleryGun>> PooledGuns;
@@ -138,11 +162,11 @@ protected:
 	//Note: https://www.reddit.com/r/unrealengine/comments/160mjkx/how_reliable_and_scalable_are_the_data_tables/
 	void LoadGunData();
 	
-	TSharedPtr<TCircularQueue<std::pair<FGunKey, Arty::ArtilleryTime>>> ActionsToReconcile;
+	TSharedPtr<TCircularQueue<std::pair<FGunKey, ArtilleryTime>>> ActionsToReconcile;
 
-	void QueueFire(FGunKey Key, Arty::ArtilleryTime Time);
+	void QueueFire(FGunKey Key, ArtilleryTime Time);
 
-	void QueueResim(FGunKey Key, Arty::ArtilleryTime Time);
+	void QueueResim(FGunKey Key, ArtilleryTime Time);
 
 	//the separation of tick and frame is inspired by the Serious Engine and others.
 	//In fact, it's pretty common to this day, with Unity also using a similar model.
@@ -195,7 +219,6 @@ public:
 	{
 		ArtilleryTicklitesWorker_LockstepToWorldSim.RequestAddTicklite(ToAdd, Group);
 	}
-	void ApplyShadowTransforms();
 	FGunKey GetGun(FString GunDefinitionID, FireControlKey MachineKey);
 	FGunKey RegisterExistingGun(FArtilleryGun* toBind, ActorKey ProbableOwner) const;
 	bool ReleaseGun(FGunKey Key, FireControlKey MachineKey);
@@ -225,9 +248,7 @@ public:
 		AttributeSetToDataMapping->Add(in, Attributes);
 	}
 	
-	//THIS CREATES A COPY FOR THE SHADOW BUT UPDATES THE SHADOW EVERY TICK.
-	//THIS IS NOT CHEAP.
-	void RegisterObjectToShadowTransform(ObjectKey Target, FTransform3d* Original);
+
 	std::atomic_bool UseNetworkInput;
 	bool missedPrior = false;
 	bool burstDropDetected = false;

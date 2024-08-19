@@ -20,6 +20,7 @@
 #include "ArtilleryCommonTypes.h"
 #include "FMockArtilleryGun.h"
 #include "FMockDashGun.h"
+#include "TransformDispatch.h"
 #include "Components/ActorComponent.h"
 #include "UFireControlMachine.generated.h"
 
@@ -47,10 +48,11 @@ class ARTILLERYRUNTIME_API UFireControlMachine : public UAbilitySystemComponent
 public:
 	static inline int orderInInitialize = 0;
 	UCanonicalInputStreamECS* MyInput;
+	UArtilleryDispatch* MyDispatch;
+	UTransformDispatch* TransformDispatch;
 	ActorKey ParentKey;
 	//this needs to be replicated in iris, interestin'ly.
 	TSet<FGunKey> MyGuns;
-	UArtilleryDispatch* MyDispatch;
 
 	//The direct presence of attributes in this way is likely obsoleted by switching to inheriting rather than friending
 	//the UAS component, but I'm not totally sure.
@@ -152,6 +154,7 @@ public:
 		//fail fast
 		MyInput = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 		MyDispatch = GetWorld()->GetSubsystem<UArtilleryDispatch>();
+		TransformDispatch =  GetWorld()->GetSubsystem<UTransformDispatch>();
 		TPair<ActorKey, InputStreamKey> Parent =  MyInput->RegisterKeysToParentActorMapping(GetOwner(), MyKey, true);
 		ParentKey = Parent.Key;
 		MyDispatch->RegisterLocomotion(ParentKey, LocomotionFromActor);
@@ -177,7 +180,7 @@ public:
 		}
 		MyDispatch->RegisterAttributes(ParentKey, MyAttributes);
 		//DO NOT DO THIS. This is ONLY here until jolt is in place and WILL crash the game.
-		MyDispatch->RegisterObjectToShadowTransform(ParentKey,const_cast<FTransform3d*>(&GetOwner()->GetActorTransform()));
+		TransformDispatch->RegisterObjectToShadowTransform(ParentKey,const_cast<FTransform3d*>(&GetOwner()->GetActorTransform()));
 		return ParentKey;
 
 		//right now, we can push all our patterns here as well, and we can use a static set of patterns for

@@ -23,7 +23,6 @@ void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)
 	GunToFiringFunctionMapping = MakeShareable(new TMap<FGunKey, FArtilleryFireGunFromDispatch>());
 	ActorToLocomotionMapping = MakeShareable(new TMap<ActorKey, FArtilleryRunLocomotionFromDispatch>());
 	AttributeSetToDataMapping = MakeShareable( new TMap<ObjectKey, AttrMapPtr>());
-	ObjectToTransformMapping = MakeShareable(new TMap<ObjectKey, RealAndShadowTransform>);
 	GunByKey = MakeShareable(new TMap<FGunKey, TSharedPtr<FArtilleryGun>>());
 	TL_ThreadedImpl::ADispatch = &ArtilleryTicklitesWorker_LockstepToWorldSim;
 }
@@ -68,7 +67,6 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		
 		WorldSim_Thread.Reset(FRunnableThread::Create(&ArtilleryAsyncWorldSim, TEXT("ARTILLERY_ONLINE.")));
 		WorldSim_Ticklites_Thread.Reset(FRunnableThread::Create(&ArtilleryTicklitesWorker_LockstepToWorldSim ,TEXT("BARRAGE_ONLINE.")));
-		
 	}
 	
 
@@ -98,61 +96,14 @@ void UArtilleryDispatch::Deinitialize()
 		//not proc.
 		WorldSim_Ticklites_Thread->Kill(false);
 	}
-	ObjectToTransformMapping->Empty();
 	AttributeSetToDataMapping->Empty();
 	GunToFiringFunctionMapping->Empty();
 	ActorToLocomotionMapping->Empty();
 }
 
-void UArtilleryDispatch::RegisterObjectToShadowTransform(ObjectKey Target, FTransform3d* Original)
-{
-	ObjectToTransformMapping->Add(Target, RealAndShadowTransform(Original, FTransform3d()));
-}
 
 
 
-FTransform3d* UArtilleryDispatch::GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now) 
-{
-	auto ref = ObjectToTransformMapping->Find(Target);
-	if(ref)
-	{
-		return &(ref->Value);
-	}
-	return nullptr;
-}
-
-void UArtilleryDispatch::ApplyShadowTransforms()
-{
-	//process updates from barrage.
-	auto HoldOpen = TransformUpdateQueue;
-
-	//MARKED SAFE by knock-out testing.
-	while(HoldOpen && !HoldOpen->IsEmpty())
-	{
-		if(auto Update = HoldOpen->Peek())
-		{
-			
-			auto destructure = ObjectToTransformMapping->Find(Update->ObjectKey);
-			const auto& bindOriginal = destructure->Key;
-			bindOriginal->SetTranslation( UE::Math::TVector<double>(Update->Position));
-			bindOriginal->SetRotation(UE::Math::TQuat<double>(Update->Rotation));
-			HoldOpen->Dequeue();
-		}
-	}
-	
-	for(auto& x : *ObjectToTransformMapping)
-	{
-		auto& destructure = x.Value;
-		const auto& bindConst = destructure.Value;
-		//if the transform hasn't changed, this can explode. honestly, this can just explode. it's just oofa.
-		//we really want the transform delta to be _additive_ but that's gonna take quite a bit more work.
-		//good news, it'll be much faster, cause we'll zero the delta instead? I think? I think? rgh.
-		//it's not a problem atm. mostly.
-		
-		(destructure.Key)->Accumulate(bindConst);
-		destructure.Value = FTransform3d::Identity;
-	}
-}
 
 AttrMapPtr UArtilleryDispatch::GetAttribSetShadowByObjectKey(ObjectKey Target,
 	ArtilleryTime Now) const
@@ -222,11 +173,11 @@ bool UArtilleryDispatch::ReleaseGun(FGunKey Key, FireControlKey MachineKey)
 	return false;	
 }
 
-void UArtilleryDispatch::QueueResim(FGunKey Key, Arty::ArtilleryTime Time)
+void UArtilleryDispatch::QueueResim(FGunKey Key, ArtilleryTime Time)
 {
 	if (ActionsToReconcile && ActionsToReconcile.IsValid())
 	{
-		ActionsToReconcile->Enqueue(std::pair<FGunKey, Arty::ArtilleryTime>(Key, Time));
+		ActionsToReconcile->Enqueue(std::pair<FGunKey, ArtilleryTime>(Key, Time));
 	}
 }
 
@@ -340,10 +291,10 @@ void UArtilleryDispatch::LoadGunData()
 		
 }
 //unused atm, but will be the way to ask for an eventish or triggered gun to fire, probably.
-void UArtilleryDispatch::QueueFire(FGunKey Key, Arty::ArtilleryTime Time)
+void UArtilleryDispatch::QueueFire(FGunKey Key, ArtilleryTime Time)
 {
 	if (ActionsToOrder && ActionsToOrder.IsValid())
 	{
-		ActionsToOrder->Enqueue(std::pair<FGunKey, Arty::ArtilleryTime>(Key, Time));
+		ActionsToOrder->Enqueue(std::pair<FGunKey, ArtilleryTime>(Key, Time));
 	}
 }

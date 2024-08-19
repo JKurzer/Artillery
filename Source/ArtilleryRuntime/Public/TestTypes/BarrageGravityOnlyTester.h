@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BarrageDispatch.h"
-#include "CoreTypeKeys.h"
+#include "SkeletonTypes.h"
 #include "KeyCarry.h"
 #include "FBarragePrimitive.h"
 #include "Components/ActorComponent.h"
