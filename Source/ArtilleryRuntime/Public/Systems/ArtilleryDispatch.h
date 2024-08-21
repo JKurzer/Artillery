@@ -103,7 +103,7 @@ const
 			auto TransformECSPillar = GetWorld()->GetSubsystem<UTransformDispatch>();
 			if(TransformECSPillar)
 			{
-				return	TransformECSPillar->ApplyShadowTransforms<TSharedPtr<UBarrageDispatch::TransformUpdatesForGameThread>>(TransformUpdateQueue);
+				return	TransformECSPillar->ApplyShadowTransforms<TSharedPtr<TransformUpdatesForGameThread>>(TransformUpdateQueue);
 			}
 		}
 		return;
@@ -128,7 +128,7 @@ protected:
 	
 	//todo, build FAttributeSet. :/
 	TSharedPtr<TMap<ObjectKey, AttrMapPtr>> AttributeSetToDataMapping;
-	TSharedPtr<UBarrageDispatch::TransformUpdatesForGameThread> TransformUpdateQueue;
+	TSharedPtr<TransformUpdatesForGameThread> TransformUpdateQueue;
 public:
 	virtual void PostInitialize() override;
 
