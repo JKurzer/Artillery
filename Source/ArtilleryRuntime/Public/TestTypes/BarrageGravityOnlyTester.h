@@ -19,39 +19,108 @@ class UBarrageGravityOnlyTester : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UBarrageGravityOnlyTester();
+	UBarrageGravityOnlyTester(const FObjectInitializer& ObjectInitializer);
 	FBLet MyBarrageBody = nullptr;
-
-protected:
-	virtual void OnDestroyPhysicsState() override;
-
-public:
+	
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	ObjectKey MyObjectKey;
 	bool IsReady = false;
-	virtual void BeginDestroy() override;
 	virtual void BeforeBeginPlay(ObjectKey TransformOwner);
+	void Register();
 
-protected:
+	virtual void OnDestroyPhysicsState() override;
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 		
 };
 
+//CONSTRUCTORS
+//--------------------
+//do not invoke the default constructor unless you have a really good plan. in general, let UE initialize your components.
+inline UBarrageGravityOnlyTester::UBarrageGravityOnlyTester()
+{
+	PrimaryComponentTick.bCanEverTick = true;
+	MyObjectKey = 0;
+}
 // Sets default values for this component's properties
-inline UBarrageGravityOnlyTester::UBarrageGravityOnlyTester(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+inline UBarrageGravityOnlyTester::UBarrageGravityOnlyTester(const FObjectInitializer& ObjectInitializer) : Super(
+	ObjectInitializer)
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-
+	
+	PrimaryComponentTick.bCanEverTick = true;
 	MyObjectKey = 0;
 	
 }
+//---------------------------------
+
+//SETTER: Unused example of how you might set up a registration for an arbitrary key.
+inline void UBarrageGravityOnlyTester::BeforeBeginPlay(ObjectKey TransformOwner)
+{
+	MyObjectKey = TransformOwner;
+}
+
+//KEY REGISTER, initializer, and failover.
+//----------------------------------
+
+inline void UBarrageGravityOnlyTester::Register()
+{
+	if(MyObjectKey ==0 )
+	{
+		if(GetOwner())
+		{
+			if(GetOwner()->GetComponentByClass<UKeyCarry>())
+			{
+				MyObjectKey = GetOwner()->GetComponentByClass<UKeyCarry>()->GetObjectKey();
+			}
+
+			if(MyObjectKey == 0)
+			{
+				auto val = PointerHash(GetOwner());
+				ActorKey TopLevelActorKey = ActorKey(val);
+				MyObjectKey = TopLevelActorKey;
+			}
+		}
+	}
+	if(!IsReady && MyObjectKey != 0) // this could easily be just the !=, but it's better to have the whole idiom in the example
+	{
+		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
+		auto TransformECS =  GetWorld()->GetSubsystem<UTransformDispatch>();
+		auto params = FBarrageBounder::GenerateBoxBounds(GetOwner()->GetActorLocation(), 2, 2 ,2);
+		MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, LayersMap::MOVING);
+		//TransformECS->RegisterObjectToShadowTransform(MyObjectKey, const_cast<UE::Math::TTransform<double>*>(&GetOwner()->GetTransform()));
+		if(MyBarrageBody)
+		{
+			IsReady = true;
+		}
+	}
+	if(IsReady)
+	{
+		PrimaryComponentTick.SetTickFunctionEnable(false);
+	}
+}
+
+
+inline void UBarrageGravityOnlyTester::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	Register();// ...
+}
+
+// Called when the game starts
+inline void UBarrageGravityOnlyTester::BeginPlay()
+{
+	Super::BeginPlay();
+	Register();
+}
+
+//TOMBSTONERS
 
 inline void UBarrageGravityOnlyTester::OnDestroyPhysicsState()
 {
@@ -79,59 +148,4 @@ inline void UBarrageGravityOnlyTester::EndPlay(const EEndPlayReason::Type EndPla
 			MyBarrageBody.Reset();
 		}
 	}
-}
-
-inline void UBarrageGravityOnlyTester::BeginDestroy()
-{
-	Super::BeginDestroy();
-
-}
-
-inline void UBarrageGravityOnlyTester::BeforeBeginPlay(ObjectKey TransformOwner)
-{
-	MyObjectKey = TransformOwner;
-	IsReady = true;
-}
-
-
-inline void UBarrageGravityOnlyTester::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	if(!IsReady)
-	{
-		if(GetOwner())
-		{
-			if(GetOwner()->GetComponentByClass<UKeyCarry>())
-			{
-				MyObjectKey = GetOwner()->GetComponentByClass<UKeyCarry>()->GetObjectKey();
-			}
-
-			if(MyObjectKey == 0)
-			{
-				auto val = PointerHash(GetOwner());
-				ActorKey TopLevelActorKey = ActorKey(val);
-				MyObjectKey = TopLevelActorKey;
-			}
-			IsReady = true;
-		}
-	}
-	if(MyObjectKey != 0)
-	{
-		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
-		auto TransformECS =  GetWorld()->GetSubsystem<UTransformDispatch>();
-		auto params = FBarrageBounder::GenerateBoxBounds(GetOwner()->GetActorLocation(), 2, 2 ,2);
-		MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, LayersMap::MOVING);
-		//TransformECS->RegisterObjectToShadowTransform(MyObjectKey, const_cast<UE::Math::TTransform<double>*>(&GetOwner()->GetTransform()));
-	}
-	if(IsReady)
-	{
-		PrimaryComponentTick.SetTickFunctionEnable(false);
-	}// ...
-}
-
-// Called when the game starts
-inline void UBarrageGravityOnlyTester::BeginPlay()
-{
-	Super::BeginPlay();
-
 }
