@@ -19,7 +19,7 @@ class UBarrageGravityOnlyTester : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UBarrageGravityOnlyTester();
-	FBLet MyBarrageBody;
+	FBLet MyBarrageBody = nullptr;
 
 protected:
 	virtual void OnDestroyPhysicsState() override;
