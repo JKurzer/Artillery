@@ -199,7 +199,11 @@ class FArtilleryTicklitesWorker : public FRunnable {
 					ApplyINE(Tickable);
 				}
 			}
+			//==================================
+			//Transform mods happen here
+			//==================================
 			DispatchOwner->ApplyShadowTransforms();
+			
 			while(!QueuedAdds->IsEmpty())
 			{
 				const StampLiteRequest AddTup = *QueuedAdds->Peek();
