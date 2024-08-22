@@ -2,10 +2,9 @@
 #include "CoreMinimal.h"
 #include "HAL/Runnable.h"
 #include <Ticklite.h>
-#include "BristleconeCommonTypes.h"
 
 //this is a busy-style thread, which runs preset bodies of work in a specified order. Generally, the goal is that it never
-//actually sleeps. In fact, it yields rather than sleeps, in general operation.
+//actually sleeps. In fact, it only ever waits on the Artillery busy thread.
 // 
 // This is similar to but functionally very different from a work-stealing or task model like what we see in rust.
 // This thread runs ticklites, which are simple functions that satisfy the following properties:
