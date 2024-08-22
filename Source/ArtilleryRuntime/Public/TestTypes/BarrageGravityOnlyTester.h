@@ -44,7 +44,7 @@ public:
 };
 
 // Sets default values for this component's properties
-inline UBarrageGravityOnlyTester::UBarrageGravityOnlyTester()
+inline UBarrageGravityOnlyTester::UBarrageGravityOnlyTester(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
@@ -97,27 +97,41 @@ inline void UBarrageGravityOnlyTester::BeforeBeginPlay(ObjectKey TransformOwner)
 inline void UBarrageGravityOnlyTester::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	if(MyBarrageBody && FBarragePrimitive::IsNotNull(MyBarrageBody))
+	if(!IsReady)
 	{
-		//nothing is required here. weird. real weird.
+		if(GetOwner())
+		{
+			if(GetOwner()->GetComponentByClass<UKeyCarry>())
+			{
+				MyObjectKey = GetOwner()->GetComponentByClass<UKeyCarry>()->GetObjectKey();
+			}
+
+			if(MyObjectKey == 0)
+			{
+				auto val = PointerHash(GetOwner());
+				ActorKey TopLevelActorKey = ActorKey(val);
+				MyObjectKey = TopLevelActorKey;
+			}
+			IsReady = true;
+		}
 	}
-	// ...
+	if(MyObjectKey != 0)
+	{
+		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
+		auto TransformECS =  GetWorld()->GetSubsystem<UTransformDispatch>();
+		auto params = FBarrageBounder::GenerateBoxBounds(GetOwner()->GetActorLocation(), 2, 2 ,2);
+		MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, LayersMap::MOVING);
+		//TransformECS->RegisterObjectToShadowTransform(MyObjectKey, const_cast<UE::Math::TTransform<double>*>(&GetOwner()->GetTransform()));
+	}
+	if(IsReady)
+	{
+		PrimaryComponentTick.SetTickFunctionEnable(false);
+	}// ...
 }
 
 // Called when the game starts
 inline void UBarrageGravityOnlyTester::BeginPlay()
 {
 	Super::BeginPlay();
-	if(!IsReady)
-	{
-		MyObjectKey = SKELETON::KeyOf(	this);
-		IsReady = true;
-	}
-	if(MyObjectKey != 0)
-	{
-		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
-		auto params = FBarrageBounder::GenerateBoxBounds(GetOwner()->GetActorLocation(), 2, 2 ,2);
-		MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, LayersMap::MOVING);
-	}
-	PrimaryComponentTick.SetTickFunctionEnable(false);
+
 }
