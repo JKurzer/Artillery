@@ -180,7 +180,7 @@ public:
 		}
 		MyDispatch->RegisterAttributes(ParentKey, MyAttributes);
 		//DO NOT DO THIS. This is ONLY here until jolt is in place and WILL crash the game.
-		TransformDispatch->RegisterObjectToShadowTransform(ParentKey,const_cast<FTransform3d*>(&GetOwner()->GetActorTransform()));
+		TransformDispatch->RegisterObjectToShadowTransform(ParentKey, GetOwner());
 		return ParentKey;
 
 		//right now, we can push all our patterns here as well, and we can use a static set of patterns for

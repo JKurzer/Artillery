@@ -81,17 +81,17 @@ const
 	void GENERATE_RECHARGE(ObjectKey Self);
 
 	//Forwarding for the TickliteThread.
-	FTransform3d* GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now)
+	TOptional<FTransform> GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now)
 	{
 		if(GetWorld())
 		{
 			auto TransformECSPillar = GetWorld()->GetSubsystem<UTransformDispatch>();
 			if(TransformECSPillar)
 			{
-				return	TransformECSPillar->GetTransformShadowByObjectKey(Target,  Now);
+				return	TransformECSPillar->CopyOfTransformByObjectKey(Target);
 			}
 		}
-		return nullptr;
+		return TOptional<FTransform>();
 	}
 	//forwarding for TickliteThread
 	//TODO: refactor forwarding, it's causing dependency bleed. in a way it makes sense, but it's not OBVIOUS that this should
@@ -103,7 +103,7 @@ const
 			auto TransformECSPillar = GetWorld()->GetSubsystem<UTransformDispatch>();
 			if(TransformECSPillar)
 			{
-				return	TransformECSPillar->ApplyShadowTransforms<TSharedPtr<TransformUpdatesForGameThread>>(TransformUpdateQueue);
+				return	TransformECSPillar->ApplyTransformUpdates<TSharedPtr<TransformUpdatesForGameThread>>(TransformUpdateQueue);
 			}
 		}
 		return;

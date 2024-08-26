@@ -45,8 +45,8 @@ public:
 	{
 		ArtilleryTime Now = this->GetShadowNow();
 		--TicksRemaining;
-		FTransform3d* Transform = this->ADispatch->GetTransformShadowByObjectKey(VelocityTarget, Now);
-		if(Transform)
+		TOptional<FTransform> Transform = this->ADispatch->GetTransformShadowByObjectKey(VelocityTarget, Now);
+		if(Transform.IsSet())
 		{
 			Transform->AddToTranslation(PerTickVelocityToApply);
 		}
