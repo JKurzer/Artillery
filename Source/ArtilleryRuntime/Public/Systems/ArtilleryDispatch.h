@@ -108,20 +108,16 @@ const
 	}
 	
 	
-	//forwarding for TickliteThread
-	//TODO: refactor forwarding, it's causing dependency bleed. in a way it makes sense, but it's not OBVIOUS that this should
-	//live here, and I'd like it to be both obvious and elegant.
-	void ApplyShadowTransforms()
+	//Executes necessary preconfiguration for threads owned by this dispatch. Likely going to be factored into the
+	//dispatch API so that we can use stronger type guarantees throughout our codebase.
+	//Called FROM the thread being set up.
+	void ThreadSetup()
 	{
-		if(GetWorld())
+		auto PhysicsECSPillar = GetWorld()->GetSubsystem<UBarrageDispatch>();
+		if(PhysicsECSPillar)
 		{
-			auto TransformECSPillar = GetWorld()->GetSubsystem<UTransformDispatch>();
-			if(TransformECSPillar)
-			{
-				return	TransformECSPillar->ApplyTransformUpdates<TSharedPtr<TransformUpdatesForGameThread>>(TransformUpdateQueue);
-			}
+			PhysicsECSPillar->GrantFeed();
 		}
-		return;
 	}
 
 protected:

@@ -184,6 +184,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	virtual uint32 Run() override
 	{
 		StartTicklitesSim->Wait();
+		DispatchOwner->ThreadSetup();
 		while(running) {
 
 
@@ -204,10 +205,6 @@ class FArtilleryTicklitesWorker : public FRunnable {
 					ApplyINE(Tickable);
 				}
 			}
-			//==================================
-			//Transform mods happen here
-			//==================================
-			DispatchOwner->ApplyShadowTransforms();
 			
 			while(!QueuedAdds->IsEmpty())
 			{

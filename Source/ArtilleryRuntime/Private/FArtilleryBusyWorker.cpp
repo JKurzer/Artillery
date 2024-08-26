@@ -1,4 +1,5 @@
 ﻿#include "FArtilleryBusyWorker.h"
+#include "ArtilleryDispatch.h"
 
 #include "BarrageDispatch.h"
 #include "Containers/TripleBuffer.h"
@@ -196,7 +197,12 @@ uint32 FArtilleryBusyWorker::Run()
 
 	//we can now start the sim. we latch only on the apply step.
 	StartTicklitesSim->Trigger();
-	
+	//we are started by Artillery Dispatch, but we can't use it in the .h file to avoid dependencies.
+	//so we know it's live, but we don't take a ref to it until this point.
+	//we only use it for GrantFeed, but it's important that we start abiding by separation of concerns
+	//where we can, so we're trying to hide the barrage dependency here in a sense. We can't fully, but.
+	auto ArtilleryDispatch = ContingentInputECSLinkage->GetWorld()->GetSubsystem<UArtilleryDispatch>();
+	ArtilleryDispatch->ThreadSetup();
 	while (running)
 	{
 		if (!sent &&

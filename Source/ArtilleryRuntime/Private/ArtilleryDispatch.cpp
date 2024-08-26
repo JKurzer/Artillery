@@ -116,6 +116,20 @@ void UArtilleryDispatch::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	RunLocomotions();
 	RunGuns(); // ALL THIS WORK. FOR THIS?! (Okay, that's really cool)
+	auto PhysicsECSPillar = GetWorld()->GetSubsystem<UBarrageDispatch>();
+	if(PhysicsECSPillar)
+	{
+		auto TransformECSPillar = GetWorld()->GetSubsystem<UTransformDispatch>();
+		if(TransformECSPillar)
+		{
+			//because we are on the game thread, we can get away without full hold opens for now.
+			//I still want to refactor this into the threads somehow, but I just don't see a way right now
+			//since this calls gt-locked functions on actors in a lot of places.
+			TransformECSPillar->ApplyTransformUpdates
+			<TSharedPtr<TransformUpdatesForGameThread>>
+			(PhysicsECSPillar->GameTransformPump);
+		}
+	}
 }
 
 TStatId UArtilleryDispatch::GetStatId() const
