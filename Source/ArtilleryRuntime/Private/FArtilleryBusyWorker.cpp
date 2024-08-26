@@ -194,7 +194,7 @@ uint32 FArtilleryBusyWorker::Run()
 	constexpr uint32_t sendHertzFactor = sampleHertz / sendHertz;
 	constexpr uint32_t Period = 1000000 / sampleHertz; //swap to microseconds. standardizing.
 	
-	constexpr auto Step = std::chrono::milliseconds(Period/1000);
+	constexpr auto Step = std::chrono::milliseconds(Period/2000);
 
 	//we can now start the sim. we latch only on the apply step.
 	StartTicklitesSim->Trigger();
