@@ -45,10 +45,10 @@ public:
 	{
 		ArtilleryTime Now = this->GetShadowNow();
 		--TicksRemaining;
-		TOptional<FTransform> Transform = this->ADispatch->GetTransformShadowByObjectKey(VelocityTarget, Now);
-		if(Transform.IsSet())
+		FBLet GameSimPhysicsObject = this->ADispatch->GetFBLetByObjectKey(VelocityTarget, Now);
+		if(GameSimPhysicsObject)
 		{
-			Transform->AddToTranslation(PerTickVelocityToApply);
+			FBarragePrimitive::ApplyForce(PerTickVelocityToApply, GameSimPhysicsObject);
 		}
 	}
 	void TICKLITE_CoreReset()

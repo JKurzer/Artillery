@@ -93,6 +93,21 @@ const
 		}
 		return TOptional<FTransform>();
 	}
+
+	FBLet GetFBLetByObjectKey(ObjectKey Target, ArtilleryTime Now)
+	{
+		if(GetWorld())
+		{
+			auto PhysicsECSPillar = GetWorld()->GetSubsystem<UBarrageDispatch>();
+			if(PhysicsECSPillar)
+			{
+				return	PhysicsECSPillar->GetShapeRef(Target);
+			}
+		}
+		return FBLet();
+	}
+	
+	
 	//forwarding for TickliteThread
 	//TODO: refactor forwarding, it's causing dependency bleed. in a way it makes sense, but it's not OBVIOUS that this should
 	//live here, and I'd like it to be both obvious and elegant.
