@@ -192,8 +192,9 @@ uint32 FArtilleryBusyWorker::Run()
 	constexpr uint32_t sampleHertz = TheCone::CablingSampleHertz;
 	constexpr uint32_t sendHertz = LongboySendHertz;
 	constexpr uint32_t sendHertzFactor = sampleHertz / sendHertz;
-	constexpr uint32_t periodInNano = 1000000 / sampleHertz; //swap to microseconds. standardizing.
-
+	constexpr uint32_t Period = 1000000 / sampleHertz; //swap to microseconds. standardizing.
+	
+	constexpr auto Step = std::chrono::milliseconds(Period/1000);
 
 	//we can now start the sim. we latch only on the apply step.
 	StartTicklitesSim->Trigger();
@@ -237,7 +238,7 @@ uint32 FArtilleryBusyWorker::Run()
 		//unlike cabling, we do our time keeping HERE. It may be worth switching cabling to also follow this.
 		//though if we end up using frameworks where the poll isn't free, we'll get dorked for doing it this way.
 		//Increment window is still used to ensure we have at least two milliseconds to run, though.
-		if ((LastIncrementWindow + periodInNano) <= lsbTime)
+		if ((LastIncrementWindow + Period) <= lsbTime)
 		{
 			LastIncrementWindow = lsbTime;
 			if ((seqNumber % sendHertzFactor) == 0)
@@ -246,7 +247,7 @@ uint32 FArtilleryBusyWorker::Run()
 			}
 			++seqNumber;
 		}
-		std::this_thread::yield();
+		std::this_thread::sleep_for(Step);
 		lsbTime = ContingentInputECSLinkage->Now();
 	}
 	
