@@ -106,7 +106,21 @@ const
 		}
 		return FBLet();
 	}
-	
+
+	//forwarding for TickliteThread
+	//TEMPORARILY REVIVED! HAHAHAHAHA! Speed over elegaerngz
+	bool ApplyShadowTransforms()
+	{
+		if(GetWorld())
+		{
+			auto TransformECSPillar = GetWorld()->GetSubsystem<UTransformDispatch>();
+			if(TransformECSPillar)
+			{
+				return	TransformECSPillar->ApplyTransformUpdates<TSharedPtr<TransformUpdatesForGameThread>>(TransformUpdateQueue);
+			}
+		}
+		return false;
+	}
 	
 	//Executes necessary preconfiguration for threads owned by this dispatch. Likely going to be factored into the
 	//dispatch API so that we can use stronger type guarantees throughout our codebase.
