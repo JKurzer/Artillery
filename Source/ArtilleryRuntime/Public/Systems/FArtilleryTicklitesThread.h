@@ -185,13 +185,8 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	{
 		StartTicklitesSim->Wait();
 		DispatchOwner->ThreadSetup();
-		bool SuccessfullyApplyTransform = false;
 		while(running) {
-			SuccessfullyApplyTransform = false;
-			if(!SuccessfullyApplyTransform)
-			{
-				SuccessfullyApplyTransform = DispatchOwner->ApplyShadowTransforms();
-			}
+
 			for(auto& Group : ExecutionGroups)
 			{
 				for(auto Tickable : Group)
@@ -199,16 +194,10 @@ class FArtilleryTicklitesWorker : public FRunnable {
 					CalcINE(Tickable);
 				}
 			}
-			if(!SuccessfullyApplyTransform)
-			{
-				SuccessfullyApplyTransform = DispatchOwner->ApplyShadowTransforms();
-			}
+
 			StartTicklitesApply->Wait();
 			StartTicklitesApply->Reset(); // we can run long on sim, not on apply.
-			if(!SuccessfullyApplyTransform)
-			{
-				SuccessfullyApplyTransform = DispatchOwner->ApplyShadowTransforms();
-			}
+
 			for (auto& Group : ExecutionGroups)
 			{
 				for(auto Tickable : Group)
@@ -216,10 +205,7 @@ class FArtilleryTicklitesWorker : public FRunnable {
 					ApplyINE(Tickable);
 				}
 			}
-			if(!SuccessfullyApplyTransform)
-			{
-				SuccessfullyApplyTransform = DispatchOwner->ApplyShadowTransforms();
-			}
+
 			while(!QueuedAdds->IsEmpty())
 			{
 				const StampLiteRequest AddTup = *QueuedAdds->Peek();

@@ -116,8 +116,8 @@ void UArtilleryDispatch::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	RunLocomotions();
 	RunGuns(); // ALL THIS WORK. FOR THIS?! (Okay, that's really cool)
-	/*Atypically, I'm leaving this block here as a comment. This is what you need to reactivate to switch to threadless mode.
-	 *auto PhysicsECSPillar = GetWorld()->GetSubsystem<UBarrageDispatch>();
+
+	auto PhysicsECSPillar = GetWorld()->GetSubsystem<UBarrageDispatch>();
 	if(PhysicsECSPillar)
 	{
 		auto TransformECSPillar = GetWorld()->GetSubsystem<UTransformDispatch>();
@@ -130,7 +130,7 @@ void UArtilleryDispatch::Tick(float DeltaTime)
 			<TSharedPtr<TransformUpdatesForGameThread>>
 			(PhysicsECSPillar->GameTransformPump);
 		}
-	}*/
+	}
 }
 
 TStatId UArtilleryDispatch::GetStatId() const
