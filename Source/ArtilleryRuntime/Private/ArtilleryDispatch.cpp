@@ -253,10 +253,7 @@ void UArtilleryDispatch::RunLocomotions()
 	}
 }
 
-void UArtilleryDispatch::RunRecharges()
-{
 
-}
 
 void UArtilleryDispatch::RunGunFireTimers()
 {

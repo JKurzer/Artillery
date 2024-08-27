@@ -184,7 +184,6 @@ protected:
 	//However, our particular design is running fast relative to most games except quake.
 	void RunGuns();
 	void RunLocomotions();
-	void RunRecharges();
 	void RunGunFireTimers();
 	void CheckFutures();
 	//The current start of the tick boundary that ticklites should run on. this allows the ticklites
