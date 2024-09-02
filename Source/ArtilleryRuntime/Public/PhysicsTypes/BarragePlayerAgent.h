@@ -8,18 +8,18 @@
 #include "KeyCarry.h"
 #include "FBarragePrimitive.h"
 #include "Components/ActorComponent.h"
-#include "BarrageBoxComponent.generated.h"
+#include "BarragePlayerAgent.generated.h"
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class UBarrageBoxComponent : public UActorComponent
+class UBarragePlayerAgent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:	
 	// Sets default values for this component's properties
-	UBarrageBoxComponent();
-	UBarrageBoxComponent(const FObjectInitializer& ObjectInitializer);
+	UBarragePlayerAgent();
+	UBarragePlayerAgent(const FObjectInitializer& ObjectInitializer);
 	FBLet MyBarrageBody = nullptr;
 	
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -44,14 +44,13 @@ public:
 //CONSTRUCTORS
 //--------------------
 //do not invoke the default constructor unless you have a really good plan. in general, let UE initialize your components.
-inline UBarrageBoxComponent::UBarrageBoxComponent()
+inline UBarragePlayerAgent::UBarragePlayerAgent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	MyObjectKey = 0;
 }
 // Sets default values for this component's properties
-inline UBarrageBoxComponent::UBarrageBoxComponent(const FObjectInitializer& ObjectInitializer) : Super(
-	ObjectInitializer)
+inline UBarragePlayerAgent::UBarragePlayerAgent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
@@ -63,7 +62,7 @@ inline UBarrageBoxComponent::UBarrageBoxComponent(const FObjectInitializer& Obje
 //---------------------------------
 
 //SETTER: Unused example of how you might set up a registration for an arbitrary key.
-inline void UBarrageBoxComponent::BeforeBeginPlay(ObjectKey TransformOwner)
+inline void UBarragePlayerAgent::BeforeBeginPlay(ObjectKey TransformOwner)
 {
 	MyObjectKey = TransformOwner;
 }
@@ -71,7 +70,7 @@ inline void UBarrageBoxComponent::BeforeBeginPlay(ObjectKey TransformOwner)
 //KEY REGISTER, initializer, and failover.
 //----------------------------------
 
-inline void UBarrageBoxComponent::Register()
+inline void UBarragePlayerAgent::Register()
 {
 	if(MyObjectKey ==0 )
 	{
@@ -109,14 +108,14 @@ inline void UBarrageBoxComponent::Register()
 }
 
 
-inline void UBarrageBoxComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+inline void UBarragePlayerAgent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	Register();// ...
 }
 
 // Called when the game starts
-inline void UBarrageBoxComponent::BeginPlay()
+inline void UBarragePlayerAgent::BeginPlay()
 {
 	Super::BeginPlay();
 	Register();
@@ -124,7 +123,7 @@ inline void UBarrageBoxComponent::BeginPlay()
 
 //TOMBSTONERS
 
-inline void UBarrageBoxComponent::OnDestroyPhysicsState()
+inline void UBarragePlayerAgent::OnDestroyPhysicsState()
 {
 	Super::OnDestroyPhysicsState();
 	if(GetWorld())
@@ -138,7 +137,7 @@ inline void UBarrageBoxComponent::OnDestroyPhysicsState()
 	}
 }
 
-inline void UBarrageBoxComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+inline void UBarragePlayerAgent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 	if(GetWorld())

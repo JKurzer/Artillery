@@ -4,7 +4,7 @@
 #include "BarrageDispatch.h"
 #include "Containers/TripleBuffer.h"
 
-FArtilleryBusyWorker::FArtilleryBusyWorker() : running(false), RequestorQueue_Abilities_TripleBuffer(nullptr)
+FArtilleryBusyWorker::FArtilleryBusyWorker() : RequestorQueue_Abilities_TripleBuffer(nullptr), running(false)
 {
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Constructing Artillery"));
 }
@@ -27,66 +27,63 @@ void FArtilleryBusyWorker::RunStandardFrameSim(bool& missedPrior, uint64_t& curr
                                                bool& burstDropDetected, TheCone::PacketElement& current,
                                                bool& RemoteInput) const
 {
-	while (InputRingBuffer != nullptr && !InputRingBuffer.Get()->IsEmpty())
+	//this is an odd thing to do, I know, but we have some book-keeping we want to reserve for each code path.
+	//once this settles a little, I'll refactor, but I'm going to end up reworking this next weekend.
+	if (InputRingBuffer != nullptr  && !InputRingBuffer.Get()->IsEmpty())
 	{
-		const TheCone::Packet_tpl* packedInput = InputRingBuffer.Get()->Peek();
-		auto indexInput = packedInput->GetCycleMeta() + 3; //faster than 3xabs or a branch.
+		while (InputRingBuffer != nullptr && !InputRingBuffer.Get()->IsEmpty())
 		{
-			//unlike the old design, we use an array of inputs from first -> current
-			//so we want to add oldest first, then next, then next.
-			//we'll need to amend this to handle correct defaulting of missing input,
-			//which we can detect by both cycle skips and arrival window misses.
-			//we then need a way, during rollbacks, to perform the rewrite.
-			//right now, we just wait until we get the remote input.
-			//honestly, bristle is fast enough and reliable enough that this might be fine?
-			//flats don't have a recovery window, anyway, but we do get two tries.
-			// tho otoh, I'm still wondering if no recovery window was a good idea.
-			// maybe just a window of two? I'll need to check the bandwidth.
-			//right now, we don't batch into flats. we'll want to wrap this in ifdefs
-			//instead of removing it, though, because I don't think fighting games will use batched flats
-			//and I'm wondering how much use they are, personally
-			if (missedPrior)
+			const TheCone::Packet_tpl* packedInput = InputRingBuffer.Get()->Peek();
+			auto indexInput = packedInput->GetCycleMeta() + 3; //faster than 3xabs or a branch.
 			{
-				if (burstDropDetected)
+				//unlike the old design, we use an array of inputs from first -> current
+				//so we want to add oldest first, then next, then next.
+				//we'll need to amend this to handle correct defaulting of missing input,
+				//which we can detect by both cycle skips and arrival window misses.
+				//we then need a way, during rollbacks, to perform the rewrite.
+				//right now, we just wait until we get the remote input.
+				if (missedPrior)
 				{
-					//
+					if (burstDropDetected)
+					{
+						//
+						BristleconeControlStream->Add(
+							*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 2) % 3),
+							((TheCone::Packet_tpl*)(packedInput))->GetTransferTime());
+					}
 					BristleconeControlStream->Add(
-						*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 2) % 3),
-						((TheCone::Packet_tpl*)(packedInput))->GetTransferTime());
+						*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 1) % 3),
+						((TheCone::Packet_tpl*)(packedInput))->GetTransferTime()
+					);
 				}
 				BristleconeControlStream->Add(
-					*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement((indexInput - 1) % 3),
-					((TheCone::Packet_tpl*)(packedInput))->GetTransferTime()
-				);
+					*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement(indexInput % 3),
+					((TheCone::Packet_tpl*)(packedInput))->GetTransferTime());
+
+				RemoteInput = true; //we check for empty at the start of the while. no need to check again.
+				InputRingBuffer.Get()->Dequeue();
 			}
-			BristleconeControlStream->Add(
-				*((TheCone::Packet_tpl*)(packedInput))->GetPointerToElement(indexInput % 3),
-				((TheCone::Packet_tpl*)(packedInput))->GetTransferTime());
-
-			RemoteInput = true; //we check for empty at the start of the while. no need to check again.
-			InputRingBuffer.Get()->Dequeue();
 		}
-	}
 
-	if (RemoteInput == true)
-	{
-		missedPrior = false;
-		burstDropDetected = false;
-	}
-	else
-	{
-		if (burstDropDetected)
+		if (RemoteInput == true)
 		{
-			//add rolling average switch-over here
+			missedPrior = false;
+			burstDropDetected = false;
 		}
-		if (missedPrior)
+		else
 		{
-			burstDropDetected = true;
+			if (burstDropDetected)
+			{
+				//add rolling average switch-over here
+			}
+			if (missedPrior)
+			{
+				burstDropDetected = true;
+			}
+			missedPrior = true;
 		}
-		missedPrior = true;
 	}
-
-	if (InputSwapSlot != nullptr && !InputSwapSlot.Get()->IsEmpty())
+	else if (InputSwapSlot != nullptr && !InputSwapSlot.Get()->IsEmpty())
 	{
 		//though it's probably more elegant and faster to index over the control streams
 		while (InputSwapSlot != nullptr && !InputSwapSlot.Get()->IsEmpty())
@@ -96,37 +93,34 @@ void FArtilleryBusyWorker::RunStandardFrameSim(bool& missedPrior, uint64_t& curr
 
 			InputSwapSlot.Get()->Dequeue();
 		}
-
-
+	}
+	else
+	{
+		//if we got nothing, repeat prior.
+		CablingControlStream->Add(CablingControlStream->get(CablingControlStream->highestInput-1)->MyInputActions, TickliteNow);
+	}
 #define ARTILLERY_FIRE_CONTROL_MACHINE_HANDLING (false)
-		//First, locomotions are pushed.
-		//Patterns run here. The thread queues the locomotions and fires.
-		//the dispatch performs the locomotion operations. THEN
-		//movement abilities (MAYBE)
-		//THEN
-		//the dispatch fires guns via the machines on the gamethread.
-		//in order. that matters a tad.
+	//First, locomotions are pushed. Patterns run here. The thread queues the locomotions and fires.
+	//the dispatch fires guns via the machines on the gamethread.
 
-		//Pattern matchers match, set events, and then those events are handed to the dispatch for now.
-		//gradually, we'll be able to run more and more of them on this thread, freeing us from the tyranny.
-		//do not refactor to auto. it will break.
-		MovementBuffer& refDangerous_LifeCycleManaged_Loco_TripleBuffered
-			= RequestorQueue_Locomos_TripleBuffer->GetWriteBuffer();
+	//Pattern matchers match, set events, and then those events are handed to the dispatch for now.
+	//gradually, we'll be able to run more and more of them on this thread, freeing us from the tyranny.
+	//do not refactor to auto. it will break.
+	MovementBuffer& refDangerous_LifeCycleManaged_Loco_TripleBuffered
+		= RequestorQueue_Locomos_TripleBuffer->GetWriteBuffer();
 
-		//Per input stream, run their patterns here. god in heaven.
-		//START HERE AND WORK YOUR WAY OUT TO UNDERSTAND PATTERNS, MATCHING, AND INPUT FLOW.
-		//BristleconeControlStream.MyPatternMatcher->runOneFrameWithSideEffects(true, 0, 0); // those zeroes will stay here until we have resim.
-		//This performs a copy of the map, I think. I HOPE it does a move, but I doubt it.
-		EventBuffer& refDangerous_LifeCycleManaged_Abilities_TripleBuffered
-			= RequestorQueue_Abilities_TripleBuffer->GetWriteBuffer();
+	//Per input stream, run their patterns here. god in heaven.
+	EventBuffer& refDangerous_LifeCycleManaged_Abilities_TripleBuffered
+		= RequestorQueue_Abilities_TripleBuffer->GetWriteBuffer();
 
-		
+	if(currentIndexCabling < CablingControlStream->highestInput)
+	{
 		//today's sin is PRIDE, bigbird!
 		for (int i = currentIndexCabling; i < CablingControlStream->highestInput; ++i)
 		{
 			//TODO: does this leak memory?
 			auto actor = CablingControlStream->GetActorByInputStream();
-			if(actor)
+			if (actor)
 			{
 				refDangerous_LifeCycleManaged_Loco_TripleBuffered.Add(
 					LocomotionParams(
@@ -144,25 +138,22 @@ void FArtilleryBusyWorker::RunStandardFrameSim(bool& missedPrior, uint64_t& curr
 					i,
 					refDangerous_LifeCycleManaged_Abilities_TripleBuffered
 				); // this looks wrong but I'm pretty sure it ain' since we reserve highest.
-
 			}
-				//even if this doesn't get played for some reason, this is the last chance we've got to make a
-				//truly informed decision about the matter. By the time we reach the dispatch system, that chance is gone.
-				//Better to skip a cosmetic once in a while than crash the game.
-				CablingControlStream->get(CablingControlStream->highestInput - 1)->RunAtLeastOnce = true;
-			
+			//even if this doesn't get played for some reason, this is the last chance we've got to make a
+			//truly informed decision about the matter. By the time we reach the dispatch system, that chance is gone.
+			//Better to skip a cosmetic once in a while than crash the game.
+			CablingControlStream->get(CablingControlStream->highestInput - 1)->RunAtLeastOnce = true;
 		}
-
-		refDangerous_LifeCycleManaged_Loco_TripleBuffered.Sort();
-		refDangerous_LifeCycleManaged_Abilities_TripleBuffered.Sort();
-		if (RequestorQueue_Abilities_TripleBuffer->IsDirty() == false)
-		{
-			RequestorQueue_Abilities_TripleBuffer->SwapWriteBuffers();
-		}
-		if (RequestorQueue_Locomos_TripleBuffer->IsDirty() == false)
-		{
-			RequestorQueue_Locomos_TripleBuffer->SwapWriteBuffers();
-		}
+	}
+	refDangerous_LifeCycleManaged_Loco_TripleBuffered.Sort();
+	refDangerous_LifeCycleManaged_Abilities_TripleBuffered.Sort();
+	if (RequestorQueue_Abilities_TripleBuffer->IsDirty() == false)
+	{
+		RequestorQueue_Abilities_TripleBuffer->SwapWriteBuffers();
+	}
+	if (RequestorQueue_Locomos_TripleBuffer->IsDirty() == false)
+	{
+		RequestorQueue_Locomos_TripleBuffer->SwapWriteBuffers();
 	}
 }
 
@@ -193,8 +184,8 @@ uint32 FArtilleryBusyWorker::Run()
 	constexpr uint32_t sendHertz = LongboySendHertz;
 	constexpr uint32_t sendHertzFactor = sampleHertz / sendHertz;
 	constexpr uint32_t Period = 1000000 / sampleHertz; //swap to microseconds. standardizing.
-	
-	constexpr auto Step = std::chrono::milliseconds(Period/2000);
+
+	constexpr auto Step = std::chrono::milliseconds(Period / 2000);
 
 	//we can now start the sim. we latch only on the apply step.
 	StartTicklitesSim->Trigger();
@@ -230,7 +221,7 @@ uint32 FArtilleryBusyWorker::Run()
 			TickliteNow = ContingentInputECSLinkage->Now(); // this updates ONCE PER CYCLE. ONCE. THIS IS INTENDED.
 			//such a simple thing, after all this work.  
 			ContingentPhysicsLinkage->StackUp();
-			
+
 			StartTicklitesApply->Trigger();
 			ContingentPhysicsLinkage->StepWorld(TickliteNow);
 		}
@@ -250,7 +241,7 @@ uint32 FArtilleryBusyWorker::Run()
 		std::this_thread::sleep_for(Step);
 		lsbTime = ContingentInputECSLinkage->Now();
 	}
-	
+
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Run Ended."));
 	return 0;
 }
