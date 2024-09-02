@@ -96,7 +96,10 @@ void FArtilleryBusyWorker::RunStandardFrameSim(bool& missedPrior, uint64_t& curr
 	}
 	else
 	{
+		//----------------------------------
 		//if we got nothing, repeat prior.
+		//0000000000000000000000000000000000
+		
 		CablingControlStream->Add(CablingControlStream->get(CablingControlStream->highestInput-1)->MyInputActions, TickliteNow);
 	}
 #define ARTILLERY_FIRE_CONTROL_MACHINE_HANDLING (false)
@@ -204,7 +207,6 @@ uint32 FArtilleryBusyWorker::Run()
 			)
 		)
 		{
-			//using k-1 here causes an off-by-one error that causes input to get echoed like mad.
 			currentIndexCabling = CablingControlStream->highestInput;
 			currentIndexBristlecone = BristleconeControlStream->highestInput;
 			TheCone::PacketElement current = 0;
