@@ -36,6 +36,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "Cabling",
+			"Enabled": true
+		},
+		{
 			"Name": "SkeletonKey",
 			"Enabled": true
 		},
