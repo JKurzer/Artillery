@@ -19,9 +19,10 @@ Atypically, Artillery is designed to operate in a mixed model between input stre
    
 By collating all input streams and using an underlying game simulation, we allow deterministic gameplay without requiring deterministic presentation. This is incredibly powerful, as it separates the concerns in a new way. 
 
-## How does this fit together?
-Glad you asked! You can find a living map here:
-https://miro.com/app/board/uXjVKg1J6qo=/?share_link_id=795066474192
+## How does this fit together with the other plugins?
+Artillery depends on a number of other plugins maintained by Breach Dogs. You can find a living map of dependencies here:
+### [Dependency Map](https://miro.com/app/board/uXjVKg1J6qo=/?share_link_id=795066474192)
+
 
 ## Upcoming Features
 The main two upcoming features are:  
