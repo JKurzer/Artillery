@@ -8,6 +8,7 @@
 #include "KeyCarry.h"
 #include "FBarragePrimitive.h"
 #include "Components/ActorComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "BarragePlayerAgent.generated.h"
 
 
@@ -16,8 +17,16 @@ class UBarragePlayerAgent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
+	using Caps = 
+	UE::Geometry::FCapsule3d;
 	// Sets default values for this component's properties
+	UPROPERTY()
+	double radius;
+	UPROPERTY()
+	double extent;
+	UPROPERTY()
+	double taper;
 	UBarragePlayerAgent();
 	UBarragePlayerAgent(const FObjectInitializer& ObjectInitializer);
 	FBLet MyBarrageBody = nullptr;
@@ -93,12 +102,15 @@ inline void UBarragePlayerAgent::Register()
 	{
 		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
 		auto TransformECS =  GetWorld()->GetSubsystem<UTransformDispatch>();
-		auto params = FBarrageBounder::GenerateBoxBounds(GetOwner()->GetActorLocation(), 30, 30 ,20);
-		MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, LayersMap::MOVING);
-		//TransformECS->RegisterObjectToShadowTransform(MyObjectKey, const_cast<UE::Math::TTransform<double>*>(&GetOwner()->GetTransform()));
-		if(MyBarrageBody)
+		if(Cap)
 		{
-			IsReady = true;
+			auto params = FBarrageBounder::GenerateCharacterBounds(TransformECS->GetKineByObjectKey(MyObjectKey)->CopyOfTransformLike()->GetLocation(), radius, extent, taper);
+			MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, LayersMap::MOVING);
+			//TransformECS->RegisterObjectToShadowTransform(MyObjectKey, const_cast<UE::Math::TTransform<double>*>(&GetOwner()->GetTransform()));
+			if(MyBarrageBody)
+			{
+				IsReady = true;
+			}
 		}
 	}
 	if(IsReady)
