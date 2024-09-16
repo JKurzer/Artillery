@@ -102,8 +102,7 @@ inline void UBarragePlayerAgent::Register()
 	{
 		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
 		auto TransformECS =  GetWorld()->GetSubsystem<UTransformDispatch>();
-		if(Cap)
-		{
+
 			auto params = FBarrageBounder::GenerateCharacterBounds(TransformECS->GetKineByObjectKey(MyObjectKey)->CopyOfTransformLike()->GetLocation(), radius, extent, taper);
 			MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, LayersMap::MOVING);
 			//TransformECS->RegisterObjectToShadowTransform(MyObjectKey, const_cast<UE::Math::TTransform<double>*>(&GetOwner()->GetTransform()));
@@ -111,7 +110,6 @@ inline void UBarragePlayerAgent::Register()
 			{
 				IsReady = true;
 			}
-		}
 	}
 	if(IsReady)
 	{
