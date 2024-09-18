@@ -202,8 +202,6 @@ protected:
 	void CheckFutures();
 	//The current start of the tick boundary that ticklites should run on. this allows the ticklites
 	//to run in frozen time.
-
-	void HACK_RunVelocityStack();
 	//********************************
 	//DUMMY. USED BY RECONCILE AND RERUN.
 	//Here to demonstrate that we actually queue normal and rerun separately.
