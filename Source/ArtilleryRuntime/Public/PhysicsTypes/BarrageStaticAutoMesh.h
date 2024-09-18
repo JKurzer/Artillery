@@ -8,27 +8,18 @@
 #include "KeyCarry.h"
 #include "FBarragePrimitive.h"
 #include "Components/ActorComponent.h"
-#include "Components/CapsuleComponent.h"
-#include "BarragePlayerAgent.generated.h"
+#include "UBarrageStaticAutoMesh.generated.h"
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class UBarragePlayerAgent : public UActorComponent
+class UBarrageStaticAutoMesh : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:
-	using Caps = 
-	UE::Geometry::FCapsule3d;
+public:	
 	// Sets default values for this component's properties
-	UPROPERTY()
-	double radius;
-	UPROPERTY()
-	double extent;
-	UPROPERTY()
-	double taper;
-	UBarragePlayerAgent();
-	UBarragePlayerAgent(const FObjectInitializer& ObjectInitializer);
+	UBarrageStaticAutoMesh();
+	UBarrageStaticAutoMesh(const FObjectInitializer& ObjectInitializer);
 	FBLet MyBarrageBody = nullptr;
 	
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -37,11 +28,8 @@ public:
 	bool IsReady = false;
 	virtual void BeforeBeginPlay(ObjectKey TransformOwner);
 	void Register();
-	void AddForce(float Duration);
-	void ApplyRotation(float Duration, FQuat4f Rotation);
 
 	virtual void OnDestroyPhysicsState() override;
-	void AddOneTickOfForce(FVector3d Force);
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
@@ -56,13 +44,14 @@ public:
 //CONSTRUCTORS
 //--------------------
 //do not invoke the default constructor unless you have a really good plan. in general, let UE initialize your components.
-inline UBarragePlayerAgent::UBarragePlayerAgent()
+inline UBarrageStaticAutoMesh::UBarrageStaticAutoMesh()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	MyObjectKey = 0;
 }
 // Sets default values for this component's properties
-inline UBarragePlayerAgent::UBarragePlayerAgent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+inline UBarrageStaticAutoMesh::UBarrageStaticAutoMesh(const FObjectInitializer& ObjectInitializer) : Super(
+	ObjectInitializer)
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
@@ -74,7 +63,7 @@ inline UBarragePlayerAgent::UBarragePlayerAgent(const FObjectInitializer& Object
 //---------------------------------
 
 //SETTER: Unused example of how you might set up a registration for an arbitrary key.
-inline void UBarragePlayerAgent::BeforeBeginPlay(ObjectKey TransformOwner)
+inline void UBarrageStaticAutoMesh::BeforeBeginPlay(ObjectKey TransformOwner)
 {
 	MyObjectKey = TransformOwner;
 }
@@ -82,7 +71,7 @@ inline void UBarragePlayerAgent::BeforeBeginPlay(ObjectKey TransformOwner)
 //KEY REGISTER, initializer, and failover.
 //----------------------------------
 
-inline void UBarragePlayerAgent::Register()
+inline void UBarrageStaticAutoMesh::Register()
 {
 	if(MyObjectKey ==0 )
 	{
@@ -92,7 +81,7 @@ inline void UBarragePlayerAgent::Register()
 			{
 				MyObjectKey = GetOwner()->GetComponentByClass<UKeyCarry>()->GetObjectKey();
 			}
-
+			
 			if(MyObjectKey == 0)
 			{
 				auto val = PointerHash(GetOwner());
@@ -101,18 +90,21 @@ inline void UBarragePlayerAgent::Register()
 			}
 		}
 	}
-	if(!IsReady && MyObjectKey != 0) // this could easily be just the !=, but it's better to have the whole idiom in the example
+	if(!IsReady && MyObjectKey != 0 && GetOwner()) // this could easily be just the !=, but it's better to have the whole idiom in the example
 	{
 		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
 		auto TransformECS =  GetWorld()->GetSubsystem<UTransformDispatch>();
-
-			auto params = FBarrageBounder::GenerateCharacterBounds(TransformECS->GetKineByObjectKey(MyObjectKey)->CopyOfTransformLike()->GetLocation(), radius, extent, taper);
-			MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, LayersMap::MOVING);
-			//TransformECS->RegisterObjectToShadowTransform(MyObjectKey, const_cast<UE::Math::TTransform<double>*>(&GetOwner()->GetTransform()));
-			if(MyBarrageBody)
-			{
-				IsReady = true;
-			}
+		auto Actor = GetOwner();
+		auto MeshPtr = Actor->GetComponentByClass<UStaticMeshComponent>();
+		if(MeshPtr)
+		{
+			FBMeshParams params = FBMeshParams(Actor->GetActorLocation(), 1);
+			MyBarrageBody = Physics->LoadComplexStaticMesh(params, MeshPtr, MyObjectKey);
+		}
+		if(MyBarrageBody)
+		{
+			IsReady = true;
+		}
 	}
 	if(IsReady)
 	{
@@ -120,38 +112,15 @@ inline void UBarragePlayerAgent::Register()
 	}
 }
 
-inline void UBarragePlayerAgent::AddForce(float Duration)
-{
-	//I'll be back for youuuu.
-	throw;
-}
 
-inline void UBarragePlayerAgent::ApplyRotation(float Duration, FQuat4f Rotation)
-{
-	//I'll be back for youuuu.
-	throw;
-}
-
-inline void UBarragePlayerAgent::AddOneTickOfForce(FVector3d Force)
-{
-	FBarragePrimitive::ApplyForce(Force, MyBarrageBody);
-}
-
-// Called when the game starts
-inline void UBarragePlayerAgent::BeginPlay()
-{
-	Super::BeginPlay();
-	Register();
-}
-
-inline void UBarragePlayerAgent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+inline void UBarrageStaticAutoMesh::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	Register();// ...
 }
 
 // Called when the game starts
-inline void UBarragePlayerAgent::BeginPlay()
+inline void UBarrageStaticAutoMesh::BeginPlay()
 {
 	Super::BeginPlay();
 	Register();
@@ -159,7 +128,7 @@ inline void UBarragePlayerAgent::BeginPlay()
 
 //TOMBSTONERS
 
-inline void UBarragePlayerAgent::OnDestroyPhysicsState()
+inline void UBarrageStaticAutoMesh::OnDestroyPhysicsState()
 {
 	Super::OnDestroyPhysicsState();
 	if(GetWorld())
@@ -173,7 +142,7 @@ inline void UBarragePlayerAgent::OnDestroyPhysicsState()
 	}
 }
 
-inline void UBarragePlayerAgent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+inline void UBarrageStaticAutoMesh::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 	if(GetWorld())
