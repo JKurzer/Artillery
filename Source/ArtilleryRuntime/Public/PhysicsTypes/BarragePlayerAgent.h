@@ -13,7 +13,7 @@
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class UBarragePlayerAgent : public UActorComponent
+class ARTILLERYRUNTIME_API UBarragePlayerAgent : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -150,12 +150,6 @@ inline void UBarragePlayerAgent::TickComponent(float DeltaTime, ELevelTick TickT
 	Register();// ...
 }
 
-// Called when the game starts
-inline void UBarragePlayerAgent::BeginPlay()
-{
-	Super::BeginPlay();
-	Register();
-}
 
 //TOMBSTONERS
 
