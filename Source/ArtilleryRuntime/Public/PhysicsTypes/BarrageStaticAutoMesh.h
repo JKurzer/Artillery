@@ -8,7 +8,7 @@
 #include "KeyCarry.h"
 #include "FBarragePrimitive.h"
 #include "Components/ActorComponent.h"
-#include "UBarrageStaticAutoMesh.generated.h"
+#include "BarrageStaticAutoMesh.generated.h"
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
