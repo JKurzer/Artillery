@@ -73,7 +73,9 @@ inline void UBarrageStaticAutoMesh::Register()
 		auto MeshPtr = Actor->GetComponentByClass<UStaticMeshComponent>();
 		if(MeshPtr)
 		{
-			FBMeshParams params = FBMeshParams(Actor->GetActorLocation(), 1);
+			auto origin = Actor->GetActorLocation();
+			origin = origin.GridSnap(1);
+			FBMeshParams params = FBMeshParams(origin, 1);
 			MyBarrageBody = Physics->LoadComplexStaticMesh(params, MeshPtr, MyObjectKey);
 		}
 		if(MyBarrageBody)
