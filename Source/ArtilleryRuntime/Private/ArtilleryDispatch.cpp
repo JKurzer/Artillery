@@ -67,6 +67,9 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		
 		WorldSim_Thread.Reset(FRunnableThread::Create(&ArtilleryAsyncWorldSim, TEXT("ARTILLERY_ONLINE.")));
 		WorldSim_Ticklites_Thread.Reset(FRunnableThread::Create(&ArtilleryTicklitesWorker_LockstepToWorldSim ,TEXT("BARRAGE_ONLINE.")));
+
+		UBarrageDispatch* PhysicsECS = GetWorld()->GetSubsystem<UBarrageDispatch>();
+		PhysicsECS->GrantFeed();
 	}
 	
 
