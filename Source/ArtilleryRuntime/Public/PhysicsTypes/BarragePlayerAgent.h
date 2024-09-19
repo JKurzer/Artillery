@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BarrageColliderBase.h"
 #include "BarrageDispatch.h"
 #include "SkeletonTypes.h"
 #include "KeyCarry.h"
@@ -13,10 +14,11 @@
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class ARTILLERYRUNTIME_API UBarragePlayerAgent : public UActorComponent
+class ARTILLERYRUNTIME_API UBarragePlayerAgent : public UBarrageColliderBase
 {
 	GENERATED_BODY()
 
+	//This leans HARD on the collider base but retains more uniqueness than the others.
 public:
 	using Caps = 
 	UE::Geometry::FCapsule3d;
@@ -29,18 +31,9 @@ public:
 	double taper;
 	UBarragePlayerAgent();
 	UBarragePlayerAgent(const FObjectInitializer& ObjectInitializer);
-	FBLet MyBarrageBody = nullptr;
-	
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-	ObjectKey MyObjectKey;
-	bool IsReady = false;
-	virtual void BeforeBeginPlay(ObjectKey TransformOwner);
-	void Register();
+	virtual void Register() override;
 	void AddForce(float Duration);
 	void ApplyRotation(float Duration, FQuat4f Rotation);
-
-	virtual void OnDestroyPhysicsState() override;
 	void AddOneTickOfForce(FVector3d Force);
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -70,13 +63,6 @@ inline UBarragePlayerAgent::UBarragePlayerAgent(const FObjectInitializer& Object
 	PrimaryComponentTick.bCanEverTick = true;
 	MyObjectKey = 0;
 	
-}
-//---------------------------------
-
-//SETTER: Unused example of how you might set up a registration for an arbitrary key.
-inline void UBarragePlayerAgent::BeforeBeginPlay(ObjectKey TransformOwner)
-{
-	MyObjectKey = TransformOwner;
 }
 
 //KEY REGISTER, initializer, and failover.
@@ -148,35 +134,4 @@ inline void UBarragePlayerAgent::TickComponent(float DeltaTime, ELevelTick TickT
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	Register();// ...
-}
-
-
-//TOMBSTONERS
-
-inline void UBarragePlayerAgent::OnDestroyPhysicsState()
-{
-	Super::OnDestroyPhysicsState();
-	if(GetWorld())
-	{
-		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
-		if(Physics && MyBarrageBody)
-		{
-			Physics->SuggestTombstone(MyBarrageBody);
-			MyBarrageBody.Reset();
-		}
-	}
-}
-
-inline void UBarragePlayerAgent::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-	if(GetWorld())
-	{
-		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
-		if(Physics && MyBarrageBody)
-		{
-			Physics->SuggestTombstone(MyBarrageBody);
-			MyBarrageBody.Reset();
-		}
-	}
 }

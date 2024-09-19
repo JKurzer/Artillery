@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BarrageColliderBase.h"
 #include "BarrageDispatch.h"
 #include "SkeletonTypes.h"
 #include "KeyCarry.h"
@@ -12,7 +13,7 @@
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class UBarrageAutoBox : public UActorComponent
+class UBarrageAutoBox : public UBarrageColliderBase
 {
 	GENERATED_BODY()
 
@@ -20,25 +21,7 @@ public:
 	// Sets default values for this component's properties
 	UBarrageAutoBox();
 	UBarrageAutoBox(const FObjectInitializer& ObjectInitializer);
-	FBLet MyBarrageBody = nullptr;
-	
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-	ObjectKey MyObjectKey;
-	bool IsReady = false;
-	virtual void BeforeBeginPlay(ObjectKey TransformOwner);
-	void Register();
-
-	virtual void OnDestroyPhysicsState() override;
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
-	
-
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-		
+	virtual void Register() override;
 };
 
 //CONSTRUCTORS
@@ -60,13 +43,7 @@ inline UBarrageAutoBox::UBarrageAutoBox(const FObjectInitializer& ObjectInitiali
 	MyObjectKey = 0;
 	
 }
-//---------------------------------
 
-//SETTER: Unused example of how you might set up a registration for an arbitrary key.
-inline void UBarrageAutoBox::BeforeBeginPlay(ObjectKey TransformOwner)
-{
-	MyObjectKey = TransformOwner;
-}
 
 //KEY REGISTER, initializer, and failover.
 //----------------------------------
@@ -108,49 +85,5 @@ inline void UBarrageAutoBox::Register()
 	if(IsReady)
 	{
 		PrimaryComponentTick.SetTickFunctionEnable(false);
-	}
-}
-
-
-inline void UBarrageAutoBox::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	Register();// ...
-}
-
-// Called when the game starts
-inline void UBarrageAutoBox::BeginPlay()
-{
-	Super::BeginPlay();
-	Register();
-}
-
-//TOMBSTONERS
-
-inline void UBarrageAutoBox::OnDestroyPhysicsState()
-{
-	Super::OnDestroyPhysicsState();
-	if(GetWorld())
-	{
-		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
-		if(Physics && MyBarrageBody)
-		{
-			Physics->SuggestTombstone(MyBarrageBody);
-			MyBarrageBody.Reset();
-		}
-	}
-}
-
-inline void UBarrageAutoBox::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-	if(GetWorld())
-	{
-		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
-		if(Physics && MyBarrageBody)
-		{
-			Physics->SuggestTombstone(MyBarrageBody);
-			MyBarrageBody.Reset();
-		}
 	}
 }

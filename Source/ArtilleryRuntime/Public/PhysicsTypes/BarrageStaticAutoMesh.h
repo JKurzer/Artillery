@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BarrageColliderBase.h"
 #include "BarrageDispatch.h"
 #include "SkeletonTypes.h"
 #include "KeyCarry.h"
@@ -12,7 +13,7 @@
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class UBarrageStaticAutoMesh : public UActorComponent
+class UBarrageStaticAutoMesh : public UBarrageColliderBase
 {
 	GENERATED_BODY()
 
@@ -20,27 +21,11 @@ public:
 	// Sets default values for this component's properties
 	UBarrageStaticAutoMesh();
 	UBarrageStaticAutoMesh(const FObjectInitializer& ObjectInitializer);
-	FBLet MyBarrageBody = nullptr;
-	
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void Register() override;
 
-	ObjectKey MyObjectKey;
-	bool IsReady = false;
-	virtual void BeforeBeginPlay(ObjectKey TransformOwner);
-	void Register();
-
-	virtual void OnDestroyPhysicsState() override;
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
-	
-
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 		
 };
-
 //CONSTRUCTORS
 //--------------------
 //do not invoke the default constructor unless you have a really good plan. in general, let UE initialize your components.
@@ -60,16 +45,6 @@ inline UBarrageStaticAutoMesh::UBarrageStaticAutoMesh(const FObjectInitializer& 
 	MyObjectKey = 0;
 	
 }
-//---------------------------------
-
-//SETTER: Unused example of how you might set up a registration for an arbitrary key.
-inline void UBarrageStaticAutoMesh::BeforeBeginPlay(ObjectKey TransformOwner)
-{
-	MyObjectKey = TransformOwner;
-}
-
-//KEY REGISTER, initializer, and failover.
-//----------------------------------
 
 inline void UBarrageStaticAutoMesh::Register()
 {
@@ -109,49 +84,5 @@ inline void UBarrageStaticAutoMesh::Register()
 	if(IsReady)
 	{
 		PrimaryComponentTick.SetTickFunctionEnable(false);
-	}
-}
-
-
-inline void UBarrageStaticAutoMesh::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	Register();// ...
-}
-
-// Called when the game starts
-inline void UBarrageStaticAutoMesh::BeginPlay()
-{
-	Super::BeginPlay();
-	Register();
-}
-
-//TOMBSTONERS
-
-inline void UBarrageStaticAutoMesh::OnDestroyPhysicsState()
-{
-	Super::OnDestroyPhysicsState();
-	if(GetWorld())
-	{
-		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
-		if(Physics && MyBarrageBody)
-		{
-			Physics->SuggestTombstone(MyBarrageBody);
-			MyBarrageBody.Reset();
-		}
-	}
-}
-
-inline void UBarrageStaticAutoMesh::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-	if(GetWorld())
-	{
-		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
-		if(Physics && MyBarrageBody)
-		{
-			Physics->SuggestTombstone(MyBarrageBody);
-			MyBarrageBody.Reset();
-		}
 	}
 }
