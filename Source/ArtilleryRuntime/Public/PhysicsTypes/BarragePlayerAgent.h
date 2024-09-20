@@ -29,12 +29,19 @@ public:
 	double extent;
 	UPROPERTY()
 	double taper;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement, meta=(ClampMin="0", UIMin="0"))
+	float TurningBoost = 1.1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement)
+	float Deceleration;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement)
+	float Acceleration;
 	UBarragePlayerAgent();
 	UBarragePlayerAgent(const FObjectInitializer& ObjectInitializer);
 	virtual void Register() override;
 	void AddForce(float Duration);
 	void ApplyRotation(float Duration, FQuat4f Rotation);
 	void AddOneTickOfForce(FVector3d Force);
+	FVector3f GetVelocityDirection();
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
@@ -65,6 +72,10 @@ inline UBarragePlayerAgent::UBarragePlayerAgent(const FObjectInitializer& Object
 	
 }
 
+inline FVector3f UBarragePlayerAgent::GetVelocityDirection()
+{
+	return FBarragePrimitive::GetVelocityDirection(MyBarrageBody);
+}
 //KEY REGISTER, initializer, and failover.
 //----------------------------------
 
@@ -94,7 +105,7 @@ inline void UBarragePlayerAgent::Register()
 
 			auto params = FBarrageBounder::GenerateCharacterBounds(TransformECS->GetKineByObjectKey(MyObjectKey)->CopyOfTransformLike()->GetLocation(), radius, extent, taper);
 			MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, LayersMap::MOVING);
-			//TransformECS->RegisterObjectToShadowTransform(MyObjectKey, const_cast<UE::Math::TTransform<double>*>(&GetOwner()->GetTransform()));
+
 			if(MyBarrageBody)
 			{
 				IsReady = true;
