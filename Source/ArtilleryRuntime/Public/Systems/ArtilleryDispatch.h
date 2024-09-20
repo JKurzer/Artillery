@@ -151,7 +151,7 @@ protected:
 	//We can actually map this quite directly.
 	TSharedPtr< TMap<ActorKey, FArtilleryRunLocomotionFromDispatch>> ActorToLocomotionMapping;
 	
-	//todo, build FAttributeSet. :/
+	// NOTTODO: It's built!
 	TSharedPtr<TMap<ObjectKey, AttrMapPtr>> AttributeSetToDataMapping;
 	TSharedPtr<TransformUpdatesForGameThread> TransformUpdateQueue;
 public:
@@ -161,7 +161,6 @@ protected:
 
 	
 	//todo: convert conserved attribute to use a timestamp for versioning to create a true temporal shadowstack.
-	//todo: swap the fuck to FAttributeSet after building it. :/
 	AttrMapPtr GetAttribSetShadowByObjectKey(
 		ObjectKey Target, ArtilleryTime Now) const;
 
@@ -268,6 +267,10 @@ public:
 	void RegisterAttributes(ObjectKey in, AttrMapPtr Attributes)
 	{
 		AttributeSetToDataMapping->Add(in, Attributes);
+	}
+	void DeregisterAttributes(ObjectKey in)
+	{
+		AttributeSetToDataMapping->Remove(in);
 	}
 	
 
