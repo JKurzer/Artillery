@@ -16,15 +16,21 @@ struct ARTILLERYRUNTIME_API FAttributeMap
 	
 	AttrMapPtr MyAttributes;
 	ActorKey ParentKey;
-	UArtilleryDispatch* MyDispatch;
+	UArtilleryDispatch* MyDispatch = nullptr;
+	bool ReadyToUse = false;
 
 	// Don't use this default constructor, this is a bad
 	FAttributeMap()
 	{
-		MyDispatch = nullptr;
+		
 	};
 
 	FAttributeMap(ActorKey ParentKey, UArtilleryDispatch* MyDispatch, TMap<AttribKey, double> DefaultAttributes)
+	{
+		Initialize(ParentKey, MyDispatch, DefaultAttributes);
+	};
+
+	void Initialize(ActorKey ParentKey, UArtilleryDispatch* MyDispatch, TMap<AttribKey, double> DefaultAttributes)
 	{
 		this->ParentKey = ParentKey;
 		this->MyDispatch = MyDispatch;
@@ -42,6 +48,8 @@ struct ARTILLERYRUNTIME_API FAttributeMap
 		}
 
 		MyDispatch->RegisterAttributes(ParentKey, MyAttributes);
+
+		ReadyToUse = true;
 	};
 	
 	~FAttributeMap()
