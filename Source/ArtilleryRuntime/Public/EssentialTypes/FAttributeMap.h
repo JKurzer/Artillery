@@ -25,12 +25,12 @@ struct ARTILLERYRUNTIME_API FAttributeMap
 		
 	};
 
-	FAttributeMap(ActorKey ParentKey, UArtilleryDispatch* MyDispatch, TMap<AttribKey, double> DefaultAttributes)
+	FAttributeMap(ActorKey ParentKeyIn, UArtilleryDispatch* MyDispatchIn, TMap<AttribKey, double> DefaultAttributesIn)
 	{
-		Initialize(ParentKey, MyDispatch, DefaultAttributes);
+		Initialize(ParentKeyIn, MyDispatchIn, DefaultAttributesIn);
 	};
 
-	void Initialize(ActorKey ParentKey, UArtilleryDispatch* MyDispatch, TMap<AttribKey, double> DefaultAttributes)
+	void Initialize(ActorKey ParentKeyIn, UArtilleryDispatch* MyDispatchIn, TMap<AttribKey, double> DefaultAttributesIn)
 	{
 		this->ParentKey = ParentKey;
 		this->MyDispatch = MyDispatch;
@@ -40,7 +40,7 @@ struct ARTILLERYRUNTIME_API FAttributeMap
 		//TODO: swap this to loading values from a data table, and REMOVE this fallback.
 		//If we want defaults, those defaults should ALSO live in a data table, that way when a defaulting bug screws us
 		//maybe we can fix it without going through a full cert using a data only update.
-		for(auto x : DefaultAttributes)
+		for(auto x : DefaultAttributesIn)
 		{
 			MyAttributes->Add(x.Key, MakeShareable(new FConservedAttributeData));
 			MyAttributes->FindChecked(x.Key)->SetBaseValue(x.Value);
