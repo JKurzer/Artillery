@@ -18,6 +18,7 @@
 #include "ArtilleryDispatch.h"
 #include <bitset>
 #include "ArtilleryCommonTypes.h"
+#include "FAttributeMap.h"
 #include "FMockArtilleryGun.h"
 #include "FMockDashGun.h"
 #include "TransformDispatch.h"
@@ -56,7 +57,8 @@ public:
 
 	//The direct presence of attributes in this way is likely obsoleted by switching to inheriting rather than friending
 	//the UAS component, but I'm not totally sure.
-	//TObjectPtr<UAttributeSet> MyAttributes; 
+	TSharedPtr<FAttributeMap> MyAttributes;
+
 	FireControlKey MyKey;
 	bool Usable = false;
 
@@ -167,18 +169,10 @@ public:
 			AddTestGun(Intents::B, dash, IPM::GPerPress);
 			
 		}
-		AttrMapPtr MyAttributes = MakeShareable(new AttributeMap());
+		MyAttributes = MakeShareable(new FAttributeMap(ParentKey, MyDispatch, Attributes));
 
-		//TODO: swap this to loading values from a data table, and REMOVE this fallback.
-		//If we want defaults, those defaults should ALSO live in a data table, that way when a defaulting bug screws us
-		//maybe we can fix it without going through a full cert using a data only update.
-		for(auto x : Attributes)
-		{
-			MyAttributes->Add(x.Key, MakeShareable(new FConservedAttributeData));
-			MyAttributes->FindChecked(x.Key)->SetBaseValue(x.Value);
-			MyAttributes->FindChecked(x.Key)->SetCurrentValue(x.Value);
-		}
-		MyDispatch->RegisterAttributes(ParentKey, MyAttributes);
+		UE_LOG(LogTemp, Warning, TEXT("Health: %f"), MyDispatch->GetAttrib(ParentKey, AttributesList::Mana)->GetCurrentValue());
+
 		//DO NOT DO THIS. This is ONLY here until jolt is in place and WILL crash the game.
 		TransformDispatch->RegisterObjectToShadowTransform(ParentKey, GetOwner());
 		return ParentKey;
