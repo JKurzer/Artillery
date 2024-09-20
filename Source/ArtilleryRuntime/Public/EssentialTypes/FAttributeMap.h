@@ -32,8 +32,8 @@ struct ARTILLERYRUNTIME_API FAttributeMap
 
 	void Initialize(ActorKey ParentKeyIn, UArtilleryDispatch* MyDispatchIn, TMap<AttribKey, double> DefaultAttributesIn)
 	{
-		this->ParentKey = ParentKey;
-		this->MyDispatch = MyDispatch;
+		this->ParentKey = ParentKeyIn;
+		this->MyDispatch = MyDispatchIn;
 
 		this->MyAttributes = MakeShareable(new AttributeMap());
 		
