@@ -54,6 +54,9 @@ struct ARTILLERYRUNTIME_API FAttributeMap
 	
 	~FAttributeMap()
 	{
-		MyDispatch->DeregisterAttributes(ParentKey);
+		if (MyAttributes != nullptr)
+		{
+			MyDispatch->DeregisterAttributes(ParentKey);
+		}
 	}
 };
