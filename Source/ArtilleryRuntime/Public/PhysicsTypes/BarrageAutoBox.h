@@ -8,6 +8,7 @@
 #include "SkeletonTypes.h"
 #include "KeyCarry.h"
 #include "FBarragePrimitive.h"
+#include "FWorldSimOwner.h"
 #include "Components/ActorComponent.h"
 #include "BarrageAutoBox.generated.h"
 
@@ -19,6 +20,8 @@ class UBarrageAutoBox : public UBarrageColliderBase
 
 public:	
 	// Sets default values for this component's properties
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool isMovable = true;
 	UBarrageAutoBox();
 	UBarrageAutoBox(const FObjectInitializer& ObjectInitializer);
 	virtual void Register() override;
@@ -75,7 +78,7 @@ inline void UBarrageAutoBox::Register()
 		
 		auto extents = Box.GetSize();
 		auto params = FBarrageBounder::GenerateBoxBounds(GetOwner()->GetActorLocation(),extents.X , extents.Y ,extents.Z);
-		MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, LayersMap::MOVING);
+		MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey,  isMovable ? Layers::MOVING : Layers::NON_MOVING);
 		//TransformECS->RegisterObjectToShadowTransform(MyObjectKey, const_cast<UE::Math::TTransform<double>*>(&GetOwner()->GetTransform()));
 		if(MyBarrageBody)
 		{

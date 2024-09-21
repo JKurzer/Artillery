@@ -32,16 +32,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement, meta=(ClampMin="0", UIMin="0"))
 	float TurningBoost = 1.1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement)
-	float Deceleration;
+	float Deceleration = 200;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement)
-	float Acceleration;
+	float Acceleration = 200;
 	UBarragePlayerAgent();
 	UBarragePlayerAgent(const FObjectInitializer& ObjectInitializer);
 	virtual void Register() override;
 	void AddForce(float Duration);
 	void ApplyRotation(float Duration, FQuat4f Rotation);
 	void AddOneTickOfForce(FVector3d Force);
-	FVector3f GetVelocityDirection();
+	FVector3f GetVelocity();
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
@@ -72,9 +72,9 @@ inline UBarragePlayerAgent::UBarragePlayerAgent(const FObjectInitializer& Object
 	
 }
 
-inline FVector3f UBarragePlayerAgent::GetVelocityDirection()
+inline FVector3f UBarragePlayerAgent::GetVelocity()
 {
-	return FBarragePrimitive::GetVelocityDirection(MyBarrageBody);
+	return FBarragePrimitive::GetVelocity(MyBarrageBody);
 }
 //KEY REGISTER, initializer, and failover.
 //----------------------------------
