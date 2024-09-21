@@ -171,7 +171,7 @@ public:
 		}
 		MyAttributes = MakeShareable(new FAttributeMap(ParentKey, MyDispatch, Attributes));
 
-		UE_LOG(LogTemp, Warning, TEXT("Health: %f"), MyDispatch->GetAttrib(ParentKey, AttributesList::Mana)->GetCurrentValue());
+		UE_LOG(LogTemp, Warning, TEXT("FCM Mana: %f"), MyDispatch->GetAttrib(ParentKey, AttributesList::Mana)->GetCurrentValue());
 
 		//DO NOT DO THIS. This is ONLY here until jolt is in place and WILL crash the game.
 		TransformDispatch->RegisterObjectToShadowTransform(ParentKey, GetOwner());
@@ -237,7 +237,6 @@ public:
 		Super::BeginPlay(); 
 		MyInput = GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 		MyDispatch = GetWorld()->GetSubsystem<UArtilleryDispatch>();
-
 	};
 	
 	virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override

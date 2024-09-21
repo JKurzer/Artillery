@@ -30,6 +30,8 @@ namespace AttributesList{
 	//MANA should always be granted in multiples of 10 since 10m/t is our standard recharge.
 	typedef AttributesList::EAttribKey AttribKey;
 	typedef AttributesList::EAttribKey Attr;
+	constexpr AttribKey HEALTH = Arty::AttribKey::Health;
+	constexpr AttribKey MAX_HEALTH = Arty::AttribKey::MaxHealth;
 	constexpr AttribKey MANA = Arty::AttribKey::Mana;
 	constexpr AttribKey DASH_CURRENCY = MANA;
 	constexpr AttribKey MAX_MANA = Arty::AttribKey::MaxMana;
