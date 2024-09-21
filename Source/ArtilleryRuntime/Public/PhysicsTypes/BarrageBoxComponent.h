@@ -13,7 +13,7 @@
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class UBarrageBoxComponent : public UBarrageColliderBase
+class ARTILLERYRUNTIME_API UBarrageBoxComponent : public UBarrageColliderBase
 {
 	GENERATED_BODY()
 
