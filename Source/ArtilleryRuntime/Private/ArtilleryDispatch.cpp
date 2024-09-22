@@ -3,6 +3,7 @@
 
 #include "ArtilleryDispatch.h"
 #include <FTRecharger.h>
+#include <FTJumpTimer.h>
 
 
 
@@ -12,6 +13,12 @@ void UArtilleryDispatch::GENERATE_RECHARGE(ObjectKey Self)
 {
 	TLRecharger temp = TLRecharger(Self); //this semantic sucks. gotta fix it.
 	this->RequestAddTicklite(MakeShareable(new Recharger(temp)), RECHARGE);
+};
+
+void UArtilleryDispatch::INITIATE_JUMP_TIMER(ObjectKey Self)
+{
+	FTJumpTimer JumpTimer = FTJumpTimer(Self);
+	this->RequestAddTicklite(MakeShareable(new TL_JumpTimer(JumpTimer)), Normal);
 };
 
 void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)

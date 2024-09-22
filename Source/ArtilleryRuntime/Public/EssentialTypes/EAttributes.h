@@ -22,6 +22,7 @@ namespace AttributesList{
 		Mana,
 		MaxMana,
 		ManaRechargePerTick,
+		TicksTilJumpAvailable,
 		JumpHeight,
 		Damage,
 		CooldownTicker
