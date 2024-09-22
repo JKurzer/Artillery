@@ -82,7 +82,7 @@ const
 	void INITIATE_JUMP_TIMER(ObjectKey Self);
 
 	//Forwarding for the TickliteThread.
-	TOptional<FTransform> GetTransformShadowByObjectKey(ObjectKey Target, ArtilleryTime Now)
+	TOptional<FTransform> GetTransformShadowByObjectKey(FSkeletonKey Target, ArtilleryTime Now)
 	{
 		if(GetWorld())
 		{
@@ -95,7 +95,7 @@ const
 		return TOptional<FTransform>();
 	}
 
-	FBLet GetFBLetByObjectKey(ObjectKey Target, ArtilleryTime Now)
+	FBLet GetFBLetByObjectKey(FSkeletonKey Target, ArtilleryTime Now)
 	{
 		if(GetWorld())
 		{
@@ -153,7 +153,7 @@ protected:
 	TSharedPtr< TMap<ActorKey, FArtilleryRunLocomotionFromDispatch>> ActorToLocomotionMapping;
 	
 	// NOTTODO: It's built!
-	TSharedPtr<TMap<ObjectKey, AttrMapPtr>> AttributeSetToDataMapping;
+	TSharedPtr<TMap<FSkeletonKey, AttrMapPtr>> AttributeSetToDataMapping;
 	TSharedPtr<TransformUpdatesForGameThread> TransformUpdateQueue;
 public:
 	virtual void PostInitialize() override;
@@ -163,7 +163,7 @@ protected:
 	
 	//todo: convert conserved attribute to use a timestamp for versioning to create a true temporal shadowstack.
 	AttrMapPtr GetAttribSetShadowByObjectKey(
-		ObjectKey Target, ArtilleryTime Now) const;
+		FSkeletonKey Target, ArtilleryTime Now) const;
 
 	TSharedPtr<BufferedMoveEvents> RequestorQueue_Locomos_TripleBuffer;
 
@@ -244,9 +244,13 @@ public:
 	FGunKey GetGun(FString GunDefinitionID, FireControlKey MachineKey);
 	FGunKey RegisterExistingGun(FArtilleryGun* toBind, ActorKey ProbableOwner) const;
 	bool ReleaseGun(FGunKey Key, FireControlKey MachineKey);
-
+	
 	//TODO: convert to object key to allow the grand dance of the mesh primitives.
-	AttrPtr GetAttrib(ActorKey Owner, AttribKey Attrib);
+	AttrPtr GetAttrib(FSkeletonKey Owner, E_AttribKey Attrib);
+
+
+	UFUNCTION(BlueprintCallable, meta = (ScriptName = "GetAttrib"))
+	float K2_GetAttrib(FSkeletonKey Owner, E_AttribKey Attrib);
 	
 	void RegisterReady(FGunKey Key, FArtilleryFireGunFromDispatch Machine)
 	{
@@ -265,11 +269,11 @@ public:
 		}
 		//TODO: add the rest of the wipe here?
 	}
-	void RegisterAttributes(ObjectKey in, AttrMapPtr Attributes)
+	void RegisterAttributes(FSkeletonKey in, AttrMapPtr Attributes)
 	{
 		AttributeSetToDataMapping->Add(in, Attributes);
 	}
-	void DeregisterAttributes(ObjectKey in)
+	void DeregisterAttributes(FSkeletonKey in)
 	{
 		AttributeSetToDataMapping->Remove(in);
 	}

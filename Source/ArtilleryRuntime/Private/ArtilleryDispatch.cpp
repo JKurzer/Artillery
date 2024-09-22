@@ -9,7 +9,7 @@
 
 //Place at the end of the latest initialization-like phase.
 //should we move this lil guy over into ya boy Dispatch? It feels real dispatchy.
-void UArtilleryDispatch::GENERATE_RECHARGE(ObjectKey Self)
+void UArtilleryDispatch::GENERATE_RECHARGE(FSkeletonKey Self)
 {
 	TLRecharger temp = TLRecharger(Self); //this semantic sucks. gotta fix it.
 	this->RequestAddTicklite(MakeShareable(new Recharger(temp)), RECHARGE);
@@ -29,7 +29,7 @@ void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)
 	RequestorQueue_Locomos_TripleBuffer = MakeShareable( new TTripleBuffer<TArray<LocomotionParams>>());
 	GunToFiringFunctionMapping = MakeShareable(new TMap<FGunKey, FArtilleryFireGunFromDispatch>());
 	ActorToLocomotionMapping = MakeShareable(new TMap<ActorKey, FArtilleryRunLocomotionFromDispatch>());
-	AttributeSetToDataMapping = MakeShareable( new TMap<ObjectKey, AttrMapPtr>());
+	AttributeSetToDataMapping = MakeShareable( new TMap<FSkeletonKey, AttrMapPtr>());
 	GunByKey = MakeShareable(new TMap<FGunKey, TSharedPtr<FArtilleryGun>>());
 	TL_ThreadedImpl::ADispatch = &ArtilleryTicklitesWorker_LockstepToWorldSim;
 }
@@ -115,7 +115,7 @@ void UArtilleryDispatch::Deinitialize()
 
 
 
-AttrMapPtr UArtilleryDispatch::GetAttribSetShadowByObjectKey(ObjectKey Target,
+AttrMapPtr UArtilleryDispatch::GetAttribSetShadowByObjectKey(FSkeletonKey Target,
 	ArtilleryTime Now) const
 {
 	return AttributeSetToDataMapping->FindChecked(Target);
@@ -206,7 +206,7 @@ void UArtilleryDispatch::QueueResim(FGunKey Key, ArtilleryTime Time)
 	}
 }
 
-AttrPtr UArtilleryDispatch::GetAttrib(ActorKey Owner, AttribKey Attrib)
+AttrPtr UArtilleryDispatch::GetAttrib(FSkeletonKey Owner, AttribKey Attrib)
 {
 		if(AttributeSetToDataMapping->Contains(Owner))
 		{
@@ -217,6 +217,11 @@ AttrPtr UArtilleryDispatch::GetAttrib(ActorKey Owner, AttribKey Attrib)
 			}
 		}
 		return nullptr;
+}
+
+float UArtilleryDispatch::K2_GetAttrib(FSkeletonKey Owner, E_AttribKey Attrib)
+{
+	return  GetAttrib( Owner, Attrib)->GetCurrentValue();
 }
 
 void UArtilleryDispatch::RunGuns()
