@@ -24,9 +24,9 @@ public:
 	
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	ObjectKey MyObjectKey;
+	FSkeletonKey MyObjectKey;
 	bool IsReady = false;
-	virtual void BeforeBeginPlay(ObjectKey TransformOwner);
+	virtual void BeforeBeginPlay(FSkeletonKey TransformOwner);
 
 	//Colliders must override this.
 	virtual void Register();
@@ -65,7 +65,7 @@ inline UBarrageColliderBase::UBarrageColliderBase(const FObjectInitializer& Obje
 //---------------------------------
 
 //SETTER: Unused example of how you might set up a registration for an arbitrary key.
-inline void UBarrageColliderBase::BeforeBeginPlay(ObjectKey TransformOwner)
+inline void UBarrageColliderBase::BeforeBeginPlay(FSkeletonKey TransformOwner)
 {
 	MyObjectKey = TransformOwner;
 }

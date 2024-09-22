@@ -58,7 +58,7 @@ public:
 		// Allocate the sphere we'll use for firing the beam so we don't have to make a new one every tick it's being fired
 		UBarrageDispatch* Physics = MyDispatch->GetWorld()->GetSubsystem<UBarrageDispatch>();
 		auto params = FBarrageBounder::GenerateSphereBounds(FVector(0.0f, 0.0f, 0.0f), 20.0f);
-		ObjectKey CastSphereKey;
+		FSkeletonKey CastSphereKey;
 		SphereFiblet = Physics->CreatePrimitive(params, CastSphereKey, LayersMap::MOVING);
 		
 		return ARTGUN_MACROAUTOINIT(MyCodeWillHandleKeys);

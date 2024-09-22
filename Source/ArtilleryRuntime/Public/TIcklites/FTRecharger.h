@@ -14,13 +14,13 @@
 	class TLRecharger : public UArtilleryDispatch::TL_ThreadedImpl /*Facaded*/
 	{
 	public:
-		ObjectKey RechargeTarget;
+		FSkeletonKey RechargeTarget;
 		TLRecharger(): TL_ThreadedImpl()
 		{
 		}
 
 		TLRecharger(
-			ObjectKey Target
+			FSkeletonKey Target
 			) : TL_ThreadedImpl(), RechargeTarget(Target)
 		{
 		}

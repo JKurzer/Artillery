@@ -8,7 +8,7 @@
 class FTSphereCast : public UArtilleryDispatch::TL_ThreadedImpl {
 private:
 	uint32 TicksRemaining;
-	ObjectKey ShapeCastSourceObject;
+	FSkeletonKey ShapeCastSourceObject;
 	float Radius;
 	float Distance;
 	FVector RayStart;
@@ -20,7 +20,7 @@ public:
 	}
 	
 	FTSphereCast(
-		ObjectKey ShapeCastSource,
+		FSkeletonKey ShapeCastSource,
 		float SphereRadius,
 		float CastDistance,
 		const FVector& StartLocation,
