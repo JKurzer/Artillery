@@ -7,14 +7,14 @@
 class FTJumpTimer : public UArtilleryDispatch::TL_ThreadedImpl
 {
 private:
-	ObjectKey JumpTarget;
+	FSkeletonKey JumpTarget;
 
 public:
 	FTJumpTimer() : TL_ThreadedImpl()
 	{
 	}
 
-	FTJumpTimer(ObjectKey Jumper) : TL_ThreadedImpl(), JumpTarget(Jumper)
+	FTJumpTimer(FSkeletonKey Jumper) : TL_ThreadedImpl(), JumpTarget(Jumper)
 	{
 	}
 
@@ -34,8 +34,6 @@ public:
 		}
 
 		ticksLeftPtr->SetCurrentValue(ticksLeftPtr->GetCurrentValue() - 1);
-
-		UE_LOG(LogTemp, Display, TEXT("Reducing Jump Ticks"));
 	}
 
 	void TICKLITE_CoreReset() {

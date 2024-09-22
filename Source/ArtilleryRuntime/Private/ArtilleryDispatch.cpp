@@ -15,7 +15,7 @@ void UArtilleryDispatch::GENERATE_RECHARGE(FSkeletonKey Self)
 	this->RequestAddTicklite(MakeShareable(new Recharger(temp)), RECHARGE);
 };
 
-void UArtilleryDispatch::INITIATE_JUMP_TIMER(ObjectKey Self)
+void UArtilleryDispatch::INITIATE_JUMP_TIMER(FSkeletonKey Self)
 {
 	FTJumpTimer JumpTimer = FTJumpTimer(Self);
 	this->RequestAddTicklite(MakeShareable(new TL_JumpTimer(JumpTimer)), Normal);
