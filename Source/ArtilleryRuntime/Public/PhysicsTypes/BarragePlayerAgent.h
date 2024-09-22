@@ -42,15 +42,12 @@ public:
 	void ApplyRotation(float Duration, FQuat4f Rotation);
 	void AddOneTickOfForce(FVector3d Force);
 	FVector3f GetVelocity();
+	bool IsOnGround();
 	// Called when the game starts
 	virtual void BeginPlay() override;
-
 	
-
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-		
 };
 
 //CONSTRUCTORS
@@ -75,6 +72,11 @@ inline UBarragePlayerAgent::UBarragePlayerAgent(const FObjectInitializer& Object
 inline FVector3f UBarragePlayerAgent::GetVelocity()
 {
 	return FBarragePrimitive::GetVelocity(MyBarrageBody);
+}
+
+inline bool UBarragePlayerAgent::IsOnGround()
+{
+	return FBarragePrimitive::IsCharacterOnGround(MyBarrageBody);
 }
 //KEY REGISTER, initializer, and failover.
 //----------------------------------

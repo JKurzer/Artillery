@@ -18,6 +18,7 @@ enum class E_AttribKey : uint8
 	Mana,
 	MaxMana,
 	ManaRechargePerTick,
+	TicksTilJumpAvailable,
 	JumpHeight,
 	Damage,
 	CooldownTicker

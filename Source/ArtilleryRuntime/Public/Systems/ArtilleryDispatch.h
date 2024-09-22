@@ -79,6 +79,7 @@ const
 		return ArtilleryAsyncWorldSim.TickliteNow;
 	};
 	void GENERATE_RECHARGE(FSkeletonKey Self);
+	void INITIATE_JUMP_TIMER(FSkeletonKey Self);
 
 	//Forwarding for the TickliteThread.
 	TOptional<FTransform> GetTransformShadowByObjectKey(FSkeletonKey Target, ArtilleryTime Now)
