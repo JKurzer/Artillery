@@ -249,7 +249,7 @@ public:
 
 
 	UFUNCTION(BlueprintCallable, meta = (ScriptName = "GetAttrib"))
-	static float K2_GetAttrib(FSkeletonKey Owner, E_AttribKey Attrib);
+	float K2_GetAttrib(FSkeletonKey Owner, E_AttribKey Attrib);
 	
 	void RegisterReady(FGunKey Key, FArtilleryFireGunFromDispatch Machine)
 	{
