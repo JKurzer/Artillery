@@ -32,9 +32,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement, meta=(ClampMin="0", UIMin="0"))
 	float TurningBoost = 1.1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement)
+	float MaxVelocity = 600;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement)
 	float Deceleration = 200;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement)
 	float Acceleration = 200;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement)
+	float AirAcceleration = 7;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement)
+	float JumpImpulse = 1000;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement)
+	float WallJumpImpulse = 500;
 	UBarragePlayerAgent();
 	UBarragePlayerAgent(const FObjectInitializer& ObjectInitializer);
 	virtual void Register() override;
@@ -42,6 +50,7 @@ public:
 	void ApplyRotation(float Duration, FQuat4f Rotation);
 	void AddOneTickOfForce(FVector3d Force);
 	FVector3f GetVelocity();
+	FVector3f GetGroundNormal();
 	bool IsOnGround();
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -72,6 +81,11 @@ inline UBarragePlayerAgent::UBarragePlayerAgent(const FObjectInitializer& Object
 inline FVector3f UBarragePlayerAgent::GetVelocity()
 {
 	return FBarragePrimitive::GetVelocity(MyBarrageBody);
+}
+
+inline FVector3f UBarragePlayerAgent::GetGroundNormal()
+{
+	return FBarragePrimitive::GetCharacterGroundNormal(MyBarrageBody);
 }
 
 inline bool UBarragePlayerAgent::IsOnGround()
