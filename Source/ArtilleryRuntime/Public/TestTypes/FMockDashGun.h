@@ -50,6 +50,7 @@ public:
 		int DallyFramesToOmit = 0) 
 		override
 	{
+		UE_LOG(LogTemp, Warning, TEXT("FMockDashGun prefire"));
 		auto bind =  MyDispatch->GetAttrib(MyProbableOwner,DASH_CURRENCY);
 		if(bind != nullptr && bind->GetCurrentValue() > 1200)
 		{
@@ -68,12 +69,13 @@ public:
 		FGameplayAbilitySpecHandle Handle) 
 		override
 	{
+		UE_LOG(LogTemp, Warning, TEXT("FMockDashGun fire"));
 		//todo: fix parametrica. RequestAdd should probably set the Anchor. tbh, atm, anchor is always the thread but
 		FTLinearVelocity temp =
 			FTLinearVelocity(
-					MyProbableOwner,
-					ActorInfo->MovementComponent->Velocity.GetSafeNormal() * 200,
-					20
+				MyProbableOwner,
+				ActorInfo->MovementComponent->Velocity.GetSafeNormal() * 200,
+				20
 			);
 
 		MyDispatch->RequestAddTicklite(
@@ -91,6 +93,7 @@ public:
 		FGameplayAbilitySpecHandle Handle)
 		override
 	{
+		UE_LOG(LogTemp, Warning, TEXT("FMockDashGun post"));
 	};
 
 	virtual bool Initialize(const FGunKey& KeyFromDispatch, bool MyCodeWillHandleKeys,
