@@ -8,30 +8,27 @@
 class FTSphereCast : public UArtilleryDispatch::TL_ThreadedImpl {
 private:
 	uint32 TicksRemaining;
-	FSkeletonKey ShapeCastSourceObject;
+	FBarrageKey ShapeCastSourceObject;
 	float Radius;
 	float Distance;
 	FVector RayStart;
 	FVector RayDirection;
-	FBarrageKey SphereIntoBarrageKey;
 	
 public:
-	FTSphereCast() : TicksRemaining(20), ShapeCastSourceObject(0), Radius(20), Distance(20), SphereIntoBarrageKey(0) {
+	FTSphereCast() : TicksRemaining(20), ShapeCastSourceObject(0), Radius(20), Distance(20) {
 	}
 	
 	FTSphereCast(
-		FSkeletonKey ShapeCastSource,
+		FBarrageKey ShapeCastSource,
 		float SphereRadius,
 		float CastDistance,
 		const FVector& StartLocation,
-		const FVector& Direction,
-		FBarrageKey IntoBarrageKey)
+		const FVector& Direction)
 	: TicksRemaining(20),
 	ShapeCastSourceObject(ShapeCastSource),
 	Radius(SphereRadius), Distance(CastDistance),
 	RayStart(StartLocation),
-	RayDirection(Direction),
-	SphereIntoBarrageKey(IntoBarrageKey) {
+	RayDirection(Direction) {
 	}
 	
 	void TICKLITE_StateReset() {
@@ -40,7 +37,7 @@ public:
 	void TICKLITE_Calculate() {
 		UBarrageDispatch* Physics = this->ADispatch->DispatchOwner->GetWorld()->GetSubsystem<UBarrageDispatch>();
 		if (Physics) {
-			FBLet* HitObject = Physics->SphereCast(SphereIntoBarrageKey, Radius, Distance, RayStart, RayDirection);
+			FBLet* HitObject = Physics->SphereCast(ShapeCastSourceObject, Radius, Distance, RayStart, RayDirection);
 			if (HitObject) {
 				FSkeletonKey ObjectKey = HitObject->Get()->KeyOutOfBarrage;
 				AttrPtr HitObjectHealthPtr = this->ADispatch->GetAttrib(ObjectKey, HEALTH);

@@ -24,22 +24,21 @@ struct ARTILLERYRUNTIME_API FMockBeamCannon : public FArtilleryGun {
 public:
 	friend class UArtilleryPerActorAbilityMinimum;
 	UArtilleryDispatch* MyDispatch;
-	//ObjectKey CastSphereKey;
-	FBLet SphereFiblet;
 
-	FMockBeamCannon(const FGunKey& KeyFromDispatch) {
+	// Gun parameters
+	float Range;
+
+	FMockBeamCannon(const FGunKey& KeyFromDispatch, float BeamGunRange) {
 		UE_LOG(LogTemp, Warning, TEXT("FMockBeamCannon constructor"));
 		MyDispatch = nullptr;
-		//CastSphereKey = 0;
-		SphereFiblet = nullptr;
 		MyGunKey = KeyFromDispatch;
+		Range = BeamGunRange;
 	};
 	
 	FMockBeamCannon() {
 		MyDispatch = nullptr;
-		//CastSphereKey = 0;
-		SphereFiblet = nullptr;
 		MyGunKey = Default;
+		Range = 5000.0f;
 	};
 
 	virtual bool Initialize(
@@ -53,13 +52,6 @@ public:
 			UArtilleryPerActorAbilityMinimum* PtFc = nullptr,
 			UArtilleryPerActorAbilityMinimum* FFC = nullptr) override {
 		UE_LOG(LogTemp, Warning, TEXT("FMockBeamCannon initialize"));
-		MyDispatch = GWorld->GetSubsystem<UArtilleryDispatch>();
-
-		// Allocate the sphere we'll use for firing the beam so we don't have to make a new one every tick it's being fired
-		UBarrageDispatch* Physics = MyDispatch->GetWorld()->GetSubsystem<UBarrageDispatch>();
-		auto params = FBarrageBounder::GenerateSphereBounds(FVector(0.0f, 0.0f, 0.0f), 20.0f);
-		FSkeletonKey CastSphereKey;
-		SphereFiblet = Physics->CreatePrimitive(params, CastSphereKey, LayersMap::MOVING);
 		
 		return ARTGUN_MACROAUTOINIT(MyCodeWillHandleKeys);
 	}
@@ -91,11 +83,15 @@ public:
 			FCollisionQueryParams QueryParams;
 			QueryParams.AddIgnoredActor(ActorInfo->OwnerActor.Get());
 
+			UWorld* World = MyDispatch->GetWorld();
+			
 			FHitResult Hit;
-			MyDispatch->GetWorld()->LineTraceSingleByChannel(Hit, StartLocation, TraceEnd, ECC_Camera, QueryParams);
-			DrawDebugLine(MyDispatch->GetWorld(), StartLocation, TraceEnd, FColor::Blue, false, 5.0f, 0, 10.0f);
+			World->LineTraceSingleByChannel(Hit, StartLocation, TraceEnd, ECC_Camera, QueryParams);
+			DrawDebugLine(World, StartLocation, TraceEnd, FColor::Blue, false, 5.0f, 0, 10.0f);
 
-			FTSphereCast temp = FTSphereCast(MyProbableOwner, 0.05f, 50000.0f, StartLocation,Rotation.Vector(), SphereFiblet->KeyIntoBarrage);
+			UBarrageDispatch* Physics = World->GetSubsystem<UBarrageDispatch>();
+			FBLet OwnerFiblet = Physics->GetShapeRef(MyProbableOwner);
+			FTSphereCast temp = FTSphereCast(OwnerFiblet->KeyIntoBarrage, 0.05f, Range, StartLocation,Rotation.Vector());
 			MyDispatch->RequestAddTicklite(
 				MakeShareable(new TL_SphereCast(temp)), Early);
 	
