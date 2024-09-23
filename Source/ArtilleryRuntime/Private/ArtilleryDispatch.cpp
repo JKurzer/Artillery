@@ -123,7 +123,6 @@ AttrMapPtr UArtilleryDispatch::GetAttribSetShadowByObjectKey(FSkeletonKey Target
 void UArtilleryDispatch::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	RunLocomotions();
 	RunGuns(); // ALL THIS WORK. FOR THIS?! (Okay, that's really cool)
 
 	auto PhysicsECSPillar = GetWorld()->GetSubsystem<UBarrageDispatch>();

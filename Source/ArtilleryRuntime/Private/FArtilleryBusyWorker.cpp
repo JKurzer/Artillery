@@ -211,7 +211,7 @@ uint32 FArtilleryBusyWorker::Run()
 			currentIndexBristlecone = BristleconeControlStream->highestInput;
 			TheCone::PacketElement current = 0;
 			bool RemoteInput = false;
-
+			ArtilleryDispatch->RunLocomotions();
 			RunStandardFrameSim(missedPrior, currentIndexCabling, burstDropDetected, current, RemoteInput);
 			/*
 			*
