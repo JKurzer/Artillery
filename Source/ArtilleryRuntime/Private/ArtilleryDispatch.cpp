@@ -6,7 +6,6 @@
 #include <FTJumpTimer.h>
 
 
-
 //Place at the end of the latest initialization-like phase.
 //should we move this lil guy over into ya boy Dispatch? It feels real dispatchy.
 void UArtilleryDispatch::GENERATE_RECHARGE(FSkeletonKey Self)

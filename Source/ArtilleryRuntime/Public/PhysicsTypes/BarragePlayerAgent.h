@@ -49,6 +49,8 @@ public:
 	void AddForce(float Duration);
 	void ApplyRotation(float Duration, FQuat4f Rotation);
 	void AddOneTickOfForce(FVector3d Force);
+	// Kludge for now until we double-ify everything
+	void AddOneTickOfForce(FVector3f Force);
 	FVector3f GetVelocity();
 	FVector3f GetGroundNormal();
 	bool IsOnGround();
@@ -148,6 +150,11 @@ inline void UBarragePlayerAgent::ApplyRotation(float Duration, FQuat4f Rotation)
 inline void UBarragePlayerAgent::AddOneTickOfForce(FVector3d Force)
 {
 	FBarragePrimitive::ApplyForce(Force, MyBarrageBody);
+}
+
+inline void UBarragePlayerAgent::AddOneTickOfForce(FVector3f Force)
+{
+	FBarragePrimitive::ApplyForce(FVector3d(Force.X, Force.Y, Force.Z), MyBarrageBody);
 }
 
 // Called when the game starts

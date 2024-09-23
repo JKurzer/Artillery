@@ -29,7 +29,7 @@ struct ARTILLERYRUNTIME_API FConservedAttributeData : public FGameplayAttributeD
 	};
 
 	virtual void SetCurrentValue(double NewValue) {
-		CurrentHistory[CurrentHistory.GetNextIndex(BaseHead)] = CurrentValue;
+		CurrentHistory[CurrentHistory.GetNextIndex(CurrentHead)] = CurrentValue;
 		CurrentValue = NewValue;
 		++CurrentHead;
 	};
