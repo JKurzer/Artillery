@@ -40,7 +40,17 @@ public:
 	void TICKLITE_Calculate() {
 		UBarrageDispatch* Physics = this->ADispatch->DispatchOwner->GetWorld()->GetSubsystem<UBarrageDispatch>();
 		if (Physics) {
-			Physics->SphereCast(SphereIntoBarrageKey, Radius, Distance, RayStart, RayDirection);
+			FBLet* HitObject = Physics->SphereCast(SphereIntoBarrageKey, Radius, Distance, RayStart, RayDirection);
+			if (HitObject) {
+				FSkeletonKey ObjectKey = HitObject->Get()->KeyOutOfBarrage;
+				AttrPtr HitObjectHealthPtr = this->ADispatch->GetAttrib(ObjectKey, HEALTH);
+				if (HitObjectHealthPtr.IsValid()) {
+					float HitObjectHealthVal = HitObjectHealthPtr->GetCurrentValue();
+					UE_LOG(LogTemp, Warning, TEXT("Hit Object Health = '%f'"), HitObjectHealthVal);
+				} else {
+					UE_LOG(LogTemp, Warning, TEXT("Could not get object health"));
+				}
+			}
 		}
 	}
 	

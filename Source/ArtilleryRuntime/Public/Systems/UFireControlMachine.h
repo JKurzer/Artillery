@@ -20,6 +20,7 @@
 #include "ArtilleryCommonTypes.h"
 #include "FAttributeMap.h"
 #include "FMockArtilleryGun.h"
+#include "FMockBeamCannon.h"
 #include "FMockDashGun.h"
 #include "TransformDispatch.h"
 #include "Components/ActorComponent.h"
@@ -167,7 +168,8 @@ public:
 			AddTestGun(Intents::A, dummy, IPM::GPress);
 			auto dash = new FMockDashGun(FGunKey("DummyDash", 2));
 			AddTestGun(Intents::B, dash, IPM::GPerPress);
-			
+			auto beam = new FMockBeamCannon(FGunKey("DummyBeam", 3));
+			AddTestGun(Intents::RShoulder, beam, IPM::GPress);
 		}
 		MyAttributes = MakeShareable(new FAttributeMap(ParentKey, MyDispatch, Attributes));
 
