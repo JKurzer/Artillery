@@ -82,25 +82,24 @@ public:
 		bool RerunDueToReconcile,
 		const FGameplayEventData* TriggerEventData,
 		FGameplayAbilitySpecHandle Handle) override {
-		// For now we're just going to cast this from the camera position
 		if (ActorInfo->OwnerActor.IsValid()) {
-			if (UCameraComponent* CameraComponent = ActorInfo->OwnerActor->GetComponentByClass<UCameraComponent>()) {
-				const FVector CameraLocation = ActorInfo->OwnerActor->GetActorLocation();
-				const FVector TraceEnd = CameraLocation + CameraComponent->GetForwardVector() * 20000.0f;
-				
-				FCollisionQueryParams QueryParams;
-				QueryParams.AddIgnoredActor(ActorInfo->OwnerActor.Get());
-	
-				FHitResult Hit;
-				MyDispatch->GetWorld()->LineTraceSingleByChannel(Hit, CameraLocation, TraceEnd, ECC_Camera, QueryParams);
-				DrawDebugLine(MyDispatch->GetWorld(), CameraLocation, TraceEnd, FColor::Blue, false, 5.0f, 0, 10.0f);
+			FVector StartLocation;
+			FRotator Rotation;
+			ActorInfo->OwnerActor->GetActorEyesViewPoint(StartLocation, Rotation);
+			
+			const FVector TraceEnd = StartLocation + Rotation.Vector() * 20000.0f;
+			FCollisionQueryParams QueryParams;
+			QueryParams.AddIgnoredActor(ActorInfo->OwnerActor.Get());
 
-				FTSphereCast temp = FTSphereCast(MyProbableOwner, 20.0f, 50000.0f, CameraLocation,CameraComponent->GetForwardVector(), SphereFiblet->KeyIntoBarrage);
-				MyDispatch->RequestAddTicklite(
-					MakeShareable(new TL_SphereCast(temp)), Early);
-		
-				PostFireGun(FArtilleryStates::Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
-			}
+			FHitResult Hit;
+			MyDispatch->GetWorld()->LineTraceSingleByChannel(Hit, StartLocation, TraceEnd, ECC_Camera, QueryParams);
+			DrawDebugLine(MyDispatch->GetWorld(), StartLocation, TraceEnd, FColor::Blue, false, 5.0f, 0, 10.0f);
+
+			FTSphereCast temp = FTSphereCast(MyProbableOwner, 0.05f, 50000.0f, StartLocation,Rotation.Vector(), SphereFiblet->KeyIntoBarrage);
+			MyDispatch->RequestAddTicklite(
+				MakeShareable(new TL_SphereCast(temp)), Early);
+	
+			PostFireGun(FArtilleryStates::Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
 		}
 	}
 
