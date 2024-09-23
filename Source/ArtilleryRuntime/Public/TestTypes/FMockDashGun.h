@@ -71,10 +71,13 @@ public:
 	{
 		UE_LOG(LogTemp, Warning, TEXT("FMockDashGun fire"));
 		//todo: fix parametrica. RequestAdd should probably set the Anchor. tbh, atm, anchor is always the thread but
+		FBLet GameSimPhysicsObject = this->MyDispatch->GetFBLetByObjectKey(MyProbableOwner, this->MyDispatch->GetShadowNow());
+		// TODO: Maybe direct this towards movement directional instead of current velocity?
+		auto ScaledVelocityContinuation = FBarragePrimitive::GetVelocity(GameSimPhysicsObject).GetSafeNormal() * 1000;
 		FTLinearVelocity temp =
 			FTLinearVelocity(
 				MyProbableOwner,
-				ActorInfo->MovementComponent->Velocity.GetSafeNormal() * 200,
+				VelocityVec(ScaledVelocityContinuation.X, ScaledVelocityContinuation.Y, ScaledVelocityContinuation.Z),
 				20
 			);
 
