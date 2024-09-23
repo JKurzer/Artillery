@@ -52,6 +52,7 @@ public:
 			UArtilleryPerActorAbilityMinimum* PtFc = nullptr,
 			UArtilleryPerActorAbilityMinimum* FFC = nullptr) override {
 		UE_LOG(LogTemp, Warning, TEXT("FMockBeamCannon initialize"));
+		MyDispatch = GWorld->GetSubsystem<UArtilleryDispatch>();
 		
 		return ARTGUN_MACROAUTOINIT(MyCodeWillHandleKeys);
 	}
@@ -82,14 +83,12 @@ public:
 			const FVector TraceEnd = StartLocation + Rotation.Vector() * 20000.0f;
 			FCollisionQueryParams QueryParams;
 			QueryParams.AddIgnoredActor(ActorInfo->OwnerActor.Get());
-
-			UWorld* World = MyDispatch->GetWorld();
 			
 			FHitResult Hit;
-			World->LineTraceSingleByChannel(Hit, StartLocation, TraceEnd, ECC_Camera, QueryParams);
-			DrawDebugLine(World, StartLocation, TraceEnd, FColor::Blue, false, 5.0f, 0, 10.0f);
+			MyDispatch->GetWorld()->LineTraceSingleByChannel(Hit, StartLocation, TraceEnd, ECC_Camera, QueryParams);
+			DrawDebugLine(MyDispatch->GetWorld(), StartLocation, TraceEnd, FColor::Blue, false, 5.0f, 0, 10.0f);
 
-			UBarrageDispatch* Physics = World->GetSubsystem<UBarrageDispatch>();
+			UBarrageDispatch* Physics = MyDispatch->GetWorld()->GetSubsystem<UBarrageDispatch>();
 			FBLet OwnerFiblet = Physics->GetShapeRef(MyProbableOwner);
 			FTSphereCast temp = FTSphereCast(OwnerFiblet->KeyIntoBarrage, 0.05f, Range, StartLocation,Rotation.Vector());
 			MyDispatch->RequestAddTicklite(
