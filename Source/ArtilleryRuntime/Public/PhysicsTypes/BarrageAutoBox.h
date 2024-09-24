@@ -75,9 +75,13 @@ inline void UBarrageAutoBox::Register()
 	{
 		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
 		auto TransformECS =  GetWorld()->GetSubsystem<UTransformDispatch>();
-		auto AnyMesh = GetOwner()->GetComponentByClass<UPrimitiveComponent>();
+		/**auto AnyMesh = GetOwner()->GetComponentByClass<UPrimitiveComponent>();
 		auto Boxen = AnyMesh->GetLocalBounds();
-		auto extents = Boxen.BoxExtent;
+		//auto extents = Boxen.BoxExtent;
+		**/
+		// This looks like it works better?
+		auto Box = GetOwner()->CalculateComponentsBoundingBoxInLocalSpace();
+		auto extents = Box.GetSize();
 		
 		auto params = FBarrageBounder::GenerateBoxBounds(GetOwner()->GetActorLocation(),extents.X , extents.Y ,extents.Z,
 			FVector3d(OffsetCenterToMatchBoundedShapeX, OffsetCenterToMatchBoundedShapeY, OffsetCenterToMatchBoundedShapeZ));

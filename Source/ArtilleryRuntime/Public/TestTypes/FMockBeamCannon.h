@@ -85,8 +85,8 @@ public:
 		if (ActorInfo->OwnerActor.IsValid()) {
 			if (UCameraComponent* CameraComponent = ActorInfo->OwnerActor->GetComponentByClass<UCameraComponent>())
 			{
-				//FVector StartLocation = CameraComponent->GetComponentLocation() + FVector(-10.0f, 0.0f, 50.0f);
-				FVector StartLocation = ActorInfo->OwnerActor->GetActorLocation() + FVector(-10.0f, 0.0f, 100.0f);
+				FVector StartLocation = CameraComponent->GetComponentLocation() + FVector(-10.0f, 0.0f, 0.0f);
+				//FVector StartLocation = ActorInfo->OwnerActor->GetActorLocation();// + FVector(-10.0f, 0.0f, 100.0f);
 				FRotator Rotation = CameraComponent->GetRelativeRotation();
 				//ActorInfo->OwnerActor->GetActorEyesViewPoint(StartLocation, Rotation);
 			
