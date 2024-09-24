@@ -83,23 +83,27 @@ public:
 		const FGameplayEventData* TriggerEventData,
 		FGameplayAbilitySpecHandle Handle) override {
 		if (ActorInfo->OwnerActor.IsValid()) {
-			FVector StartLocation;
-			FRotator Rotation;
-			ActorInfo->OwnerActor->GetActorEyesViewPoint(StartLocation, Rotation);
+			if (UCameraComponent* CameraComponent = ActorInfo->OwnerActor->GetComponentByClass<UCameraComponent>())
+			{
+				//FVector StartLocation = CameraComponent->GetComponentLocation() + FVector(-10.0f, 0.0f, 50.0f);
+				FVector StartLocation = ActorInfo->OwnerActor->GetActorLocation() + FVector(-10.0f, 0.0f, 100.0f);
+				FRotator Rotation = CameraComponent->GetRelativeRotation();
+				//ActorInfo->OwnerActor->GetActorEyesViewPoint(StartLocation, Rotation);
 			
-			const FVector TraceEnd = StartLocation + Rotation.Vector() * 20000.0f;
-			FCollisionQueryParams QueryParams;
-			QueryParams.AddIgnoredActor(ActorInfo->OwnerActor.Get());
+				const FVector TraceEnd = StartLocation + Rotation.Vector() * 20000.0f;
+				FCollisionQueryParams QueryParams;
+				QueryParams.AddIgnoredActor(ActorInfo->OwnerActor.Get());
 
-			FHitResult Hit;
-			MyDispatch->GetWorld()->LineTraceSingleByChannel(Hit, StartLocation, TraceEnd, ECC_Camera, QueryParams);
-			DrawDebugLine(MyDispatch->GetWorld(), StartLocation, TraceEnd, FColor::Blue, false, 5.0f, 0, 10.0f);
+				FHitResult Hit;
+				MyDispatch->GetWorld()->LineTraceSingleByChannel(Hit, StartLocation, TraceEnd, ECC_Camera, QueryParams);
+				DrawDebugLine(MyDispatch->GetWorld(), StartLocation, TraceEnd, FColor::Blue, false, 5.0f, 0, 1.0f);
 
-			FTSphereCast temp = FTSphereCast(MyProbableOwner, 0.01f, 5000.0f, StartLocation,Rotation.Vector(), SphereFiblet->KeyIntoBarrage);
-			MyDispatch->RequestAddTicklite(
-				MakeShareable(new TL_SphereCast(temp)), Early);
+				FTSphereCast temp = FTSphereCast(MyProbableOwner, 0.01f, 5000.0f, StartLocation,Rotation.Vector(), SphereFiblet->KeyIntoBarrage);
+				MyDispatch->RequestAddTicklite(
+					MakeShareable(new TL_SphereCast(temp)), Early);
 	
-			PostFireGun(FArtilleryStates::Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
+				PostFireGun(FArtilleryStates::Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
+			}
 		}
 	}
 
