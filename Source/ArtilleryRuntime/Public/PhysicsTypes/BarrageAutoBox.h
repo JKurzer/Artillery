@@ -9,6 +9,8 @@
 #include "KeyCarry.h"
 #include "FBarragePrimitive.h"
 #include "FWorldSimOwner.h"
+#include "SNegativeActionButton.h"
+#include "SWarningOrErrorBox.h"
 #include "Components/ActorComponent.h"
 #include "BarrageAutoBox.generated.h"
 
@@ -75,13 +77,10 @@ inline void UBarrageAutoBox::Register()
 	{
 		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
 		auto TransformECS =  GetWorld()->GetSubsystem<UTransformDispatch>();
-		/**auto AnyMesh = GetOwner()->GetComponentByClass<UPrimitiveComponent>();
+		auto AnyMesh = GetOwner()->GetComponentByClass<UPrimitiveComponent>();
 		auto Boxen = AnyMesh->GetLocalBounds();
-		//auto extents = Boxen.BoxExtent;
-		**/
-		// This looks like it works better?
-		auto Box = GetOwner()->CalculateComponentsBoundingBoxInLocalSpace();
-		auto extents = Box.GetSize();
+		// Multiply by the scale factor, then multiply by 2 since mesh bounds is radius not diameter
+		auto extents = Boxen.BoxExtent * AnyMesh->BoundsScale * 2; 
 		
 		auto params = FBarrageBounder::GenerateBoxBounds(GetOwner()->GetActorLocation(),extents.X , extents.Y ,extents.Z,
 			FVector3d(OffsetCenterToMatchBoundedShapeX, OffsetCenterToMatchBoundedShapeY, OffsetCenterToMatchBoundedShapeZ));
