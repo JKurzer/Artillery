@@ -19,12 +19,18 @@ class ARTILLERYRUNTIME_API UBarrageBoxComponent : public UBarrageColliderBase
 
 public:	
 	// Sets default values for this component's properties
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	int XDiam = 30;
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	int YDiam = 30;
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	int ZDiam = 20;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float OffsetCenterToMatchBoundedShapeX = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float OffsetCenterToMatchBoundedShapeY = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float OffsetCenterToMatchBoundedShapeZ = 0;
 	UBarrageBoxComponent();
 	UBarrageBoxComponent(const FObjectInitializer& ObjectInitializer);
 	virtual void Register() override;
@@ -76,7 +82,8 @@ inline void UBarrageBoxComponent::Register()
 		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
 		auto TransformECS =  GetWorld()->GetSubsystem<UTransformDispatch>();
 
-		auto params = FBarrageBounder::GenerateBoxBounds(GetOwner()->GetActorLocation(), XDiam, YDiam ,ZDiam);
+		auto params = FBarrageBounder::GenerateBoxBounds(GetOwner()->GetActorLocation(), XDiam, YDiam ,ZDiam,
+					FVector3d(OffsetCenterToMatchBoundedShapeX, OffsetCenterToMatchBoundedShapeY, OffsetCenterToMatchBoundedShapeZ));
 		MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, LayersMap::MOVING);
 		//TransformECS->RegisterObjectToShadowTransform(MyObjectKey, const_cast<UE::Math::TTransform<double>*>(&GetOwner()->GetTransform()));
 		if(MyBarrageBody)
