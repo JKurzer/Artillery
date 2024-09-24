@@ -9,8 +9,6 @@
 #include "KeyCarry.h"
 #include "FBarragePrimitive.h"
 #include "FWorldSimOwner.h"
-#include "SNegativeActionButton.h"
-#include "SWarningOrErrorBox.h"
 #include "Components/ActorComponent.h"
 #include "BarrageAutoBox.generated.h"
 
