@@ -27,8 +27,6 @@ public:
 	double radius;
 	UPROPERTY()
 	double extent;
-	UPROPERTY()
-	double taper;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement, meta=(ClampMin="0", UIMin="0"))
 	float TurningBoost = 1.1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement)
@@ -132,7 +130,7 @@ inline void UBarragePlayerAgent::Register()
 	if(!IsReady && MyObjectKey != 0 && !GetOwner()->GetActorLocation().ContainsNaN()) // this could easily be just the !=, but it's better to have the whole idiom in the example
 	{
 		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
-			auto params = FBarrageBounder::GenerateCharacterBounds(GetOwner()->GetActorLocation(), radius, extent, taper);
+			auto params = FBarrageBounder::GenerateCharacterBounds(GetOwner()->GetActorLocation(), radius, extent, MaxVelocity);
 			MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, LayersMap::MOVING);
 
 			if(MyBarrageBody)
