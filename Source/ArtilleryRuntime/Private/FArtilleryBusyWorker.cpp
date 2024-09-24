@@ -211,7 +211,6 @@ uint32 FArtilleryBusyWorker::Run()
 			currentIndexBristlecone = BristleconeControlStream->highestInput;
 			TheCone::PacketElement current = 0;
 			bool RemoteInput = false;
-			ArtilleryDispatch->RunLocomotions();
 			RunStandardFrameSim(missedPrior, currentIndexCabling, burstDropDetected, current, RemoteInput);
 			/*
 			*
@@ -219,12 +218,14 @@ uint32 FArtilleryBusyWorker::Run()
 			* Note: We also have Iris performing intermittent state stomps to recover from more serious desyncs.
 			* Ultimately, rollback can never solve everything. The window's just get too wide.
 			*/
+			
 			sent = true;
 			TickliteNow = ContingentInputECSLinkage->Now(); // this updates ONCE PER CYCLE. ONCE. THIS IS INTENDED.
 			//such a simple thing, after all this work.
 			ContingentPhysicsLinkage->StackUp();
 			StartTicklitesApply->Trigger();
 			ContingentPhysicsLinkage->StepWorld(TickliteNow);
+			ArtilleryDispatch->RunLocomotions();
 		}
 
 		//unlike cabling, we do our time keeping HERE. It may be worth switching cabling to also follow this.

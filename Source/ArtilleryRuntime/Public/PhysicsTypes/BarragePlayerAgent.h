@@ -43,6 +43,19 @@ public:
 	float JumpImpulse = 1000;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement)
 	float WallJumpImpulse = 500;
+
+
+
+	[[nodiscard]] FVector Chaos_LastGameFrameRightVector() const
+	{
+		return CHAOS_LastGameFrameRightVector.IsNearlyZero() ? FVector::RightVector : CHAOS_LastGameFrameRightVector;
+	}
+
+	[[nodiscard]] FVector Chaos_LastGameFrameForwardVector() const
+	{
+		return CHAOS_LastGameFrameForwardVector.IsNearlyZero() ? FVector::ForwardVector : CHAOS_LastGameFrameForwardVector ;
+	}
+
 	UBarragePlayerAgent();
 	UBarragePlayerAgent(const FObjectInitializer& ObjectInitializer);
 	virtual void Register() override;
@@ -59,6 +72,11 @@ public:
 	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+protected:
+	UPROPERTY(BlueprintReadOnly)
+	FVector CHAOS_LastGameFrameRightVector = FVector::ZeroVector;
+	UPROPERTY(BlueprintReadOnly)
+	FVector CHAOS_LastGameFrameForwardVector = FVector::ZeroVector;
 };
 
 //CONSTRUCTORS
@@ -129,10 +147,6 @@ inline void UBarragePlayerAgent::Register()
 				IsReady = true;
 			}
 	}
-	if(IsReady)
-	{
-		PrimaryComponentTick.SetTickFunctionEnable(false);
-	}
 }
 
 inline void UBarragePlayerAgent::AddForce(float Duration)
@@ -167,5 +181,12 @@ inline void UBarragePlayerAgent::BeginPlay()
 inline void UBarragePlayerAgent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	Register();// ...
+	if(!IsReady)
+	{
+		Register();// ...
+	}
+
+	CHAOS_LastGameFrameRightVector = GetOwner()->GetActorRightVector();
+	CHAOS_LastGameFrameForwardVector = GetOwner()->GetActorForwardVector();
+	
 }
