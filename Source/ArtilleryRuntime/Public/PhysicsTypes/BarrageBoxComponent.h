@@ -19,11 +19,11 @@ class ARTILLERYRUNTIME_API UBarrageBoxComponent : public UBarrageColliderBase
 
 public:	
 	// Sets default values for this component's properties
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	int XDiam = 30;
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	int YDiam = 30;
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	int ZDiam = 20;
 	UBarrageBoxComponent();
 	UBarrageBoxComponent(const FObjectInitializer& ObjectInitializer);
