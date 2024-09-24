@@ -95,7 +95,7 @@ public:
 			MyDispatch->GetWorld()->LineTraceSingleByChannel(Hit, StartLocation, TraceEnd, ECC_Camera, QueryParams);
 			DrawDebugLine(MyDispatch->GetWorld(), StartLocation, TraceEnd, FColor::Blue, false, 5.0f, 0, 10.0f);
 
-			FTSphereCast temp = FTSphereCast(MyProbableOwner, 0.05f, 50000.0f, StartLocation,Rotation.Vector(), SphereFiblet->KeyIntoBarrage);
+			FTSphereCast temp = FTSphereCast(MyProbableOwner, 0.01f, 5000.0f, StartLocation,Rotation.Vector(), SphereFiblet->KeyIntoBarrage);
 			MyDispatch->RequestAddTicklite(
 				MakeShareable(new TL_SphereCast(temp)), Early);
 	

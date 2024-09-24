@@ -54,7 +54,7 @@ inline UBarrageBoxComponent::UBarrageBoxComponent(const FObjectInitializer& Obje
 
 inline void UBarrageBoxComponent::Register()
 {
-	if(MyObjectKey ==0 )
+	if(MyObjectKey == 0)
 	{
 		if(GetOwner())
 		{
