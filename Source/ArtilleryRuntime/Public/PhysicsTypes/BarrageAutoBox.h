@@ -13,7 +13,7 @@
 #include "BarrageAutoBox.generated.h"
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), DefaultToInstanced )
 class ARTILLERYRUNTIME_API UBarrageAutoBox : public UBarrageColliderBase
 {
 	GENERATED_BODY()
@@ -28,7 +28,6 @@ public:
 	float OffsetCenterToMatchBoundedShapeY = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float OffsetCenterToMatchBoundedShapeZ = 0;
-	UBarrageAutoBox();
 	UBarrageAutoBox(const FObjectInitializer& ObjectInitializer);
 	virtual void Register() override;
 };
@@ -36,11 +35,7 @@ public:
 //CONSTRUCTORS
 //--------------------
 //do not invoke the default constructor unless you have a really good plan. in general, let UE initialize your components.
-inline UBarrageAutoBox::UBarrageAutoBox()
-{
-	PrimaryComponentTick.bCanEverTick = true;
-	MyObjectKey = 0;
-}
+
 // Sets default values for this component's properties
 inline UBarrageAutoBox::UBarrageAutoBox(const FObjectInitializer& ObjectInitializer) : Super(
 	ObjectInitializer)
@@ -48,11 +43,11 @@ inline UBarrageAutoBox::UBarrageAutoBox(const FObjectInitializer& ObjectInitiali
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	
+	bWantsInitializeComponent = true;
 	PrimaryComponentTick.bCanEverTick = true;
 	MyObjectKey = 0;
 	
 }
-
 
 //KEY REGISTER, initializer, and failover.
 //----------------------------------

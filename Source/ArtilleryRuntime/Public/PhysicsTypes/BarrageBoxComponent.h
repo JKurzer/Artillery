@@ -31,7 +31,6 @@ public:
 	float OffsetCenterToMatchBoundedShapeY = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float OffsetCenterToMatchBoundedShapeZ = 0;
-	UBarrageBoxComponent();
 	UBarrageBoxComponent(const FObjectInitializer& ObjectInitializer);
 	virtual void Register() override;
 };
@@ -39,11 +38,7 @@ public:
 //CONSTRUCTORS
 //--------------------
 //do not invoke the default constructor unless you have a really good plan. in general, let UE initialize your components.
-inline UBarrageBoxComponent::UBarrageBoxComponent()
-{
-	PrimaryComponentTick.bCanEverTick = true;
-	MyObjectKey = 0;
-}
+
 // Sets default values for this component's properties
 inline UBarrageBoxComponent::UBarrageBoxComponent(const FObjectInitializer& ObjectInitializer) : Super(
 	ObjectInitializer)
@@ -51,6 +46,7 @@ inline UBarrageBoxComponent::UBarrageBoxComponent(const FObjectInitializer& Obje
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	
+	bWantsInitializeComponent = true;
 	PrimaryComponentTick.bCanEverTick = true;
 	MyObjectKey = 0;
 	

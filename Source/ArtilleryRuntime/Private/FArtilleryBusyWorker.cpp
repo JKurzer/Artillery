@@ -221,11 +221,12 @@ uint32 FArtilleryBusyWorker::Run()
 			
 			sent = true;
 			TickliteNow = ContingentInputECSLinkage->Now(); // this updates ONCE PER CYCLE. ONCE. THIS IS INTENDED.
+			
+			ArtilleryDispatch->RunLocomotions();
 			//such a simple thing, after all this work.
 			ContingentPhysicsLinkage->StackUp();
 			StartTicklitesApply->Trigger();
 			ContingentPhysicsLinkage->StepWorld(TickliteNow);
-			ArtilleryDispatch->RunLocomotions();
 		}
 
 		//unlike cabling, we do our time keeping HERE. It may be worth switching cabling to also follow this.
