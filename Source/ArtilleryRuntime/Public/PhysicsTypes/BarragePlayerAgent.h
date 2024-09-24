@@ -129,12 +129,10 @@ inline void UBarragePlayerAgent::Register()
 			}
 		}
 	}
-	if(!IsReady && MyObjectKey != 0) // this could easily be just the !=, but it's better to have the whole idiom in the example
+	if(!IsReady && MyObjectKey != 0 && !GetOwner()->GetActorLocation().ContainsNaN()) // this could easily be just the !=, but it's better to have the whole idiom in the example
 	{
 		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
-		auto TransformECS =  GetWorld()->GetSubsystem<UTransformDispatch>();
-
-			auto params = FBarrageBounder::GenerateCharacterBounds(TransformECS->GetKineByObjectKey(MyObjectKey)->CopyOfTransformLike()->GetLocation(), radius, extent, taper);
+			auto params = FBarrageBounder::GenerateCharacterBounds(GetOwner()->GetActorLocation(), radius, extent, taper);
 			MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, LayersMap::MOVING);
 
 			if(MyBarrageBody)
