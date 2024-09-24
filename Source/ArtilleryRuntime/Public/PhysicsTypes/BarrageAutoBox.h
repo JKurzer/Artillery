@@ -86,7 +86,9 @@ inline void UBarrageAutoBox::Register()
 		//TransformECS->RegisterObjectToShadowTransform(MyObjectKey, const_cast<UE::Math::TTransform<double>*>(&GetOwner()->GetTransform()));
 		if(MyBarrageBody)
 		{
+			AnyMesh->WakeRigidBody();
 			IsReady = true;
+			AnyMesh->SetSimulatePhysics(false);
 		}
 	}
 	if(IsReady)
