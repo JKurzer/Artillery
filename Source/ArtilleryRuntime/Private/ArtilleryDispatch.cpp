@@ -31,6 +31,7 @@ void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)
 	AttributeSetToDataMapping = MakeShareable( new TMap<FSkeletonKey, AttrMapPtr>());
 	GunByKey = MakeShareable(new TMap<FGunKey, TSharedPtr<FArtilleryGun>>());
 	TL_ThreadedImpl::ADispatch = &ArtilleryTicklitesWorker_LockstepToWorldSim;
+	SelfPtr = this;
 }
 
 void UArtilleryDispatch::PostInitialize()
@@ -214,10 +215,7 @@ AttrPtr UArtilleryDispatch::GetAttrib(FSkeletonKey Owner, AttribKey Attrib)
 		return nullptr;
 }
 
-float UArtilleryDispatch::K2_GetAttrib(FSkeletonKey Owner, E_AttribKey Attrib)
-{
-	return  GetAttrib( Owner, Attrib)->GetCurrentValue();
-}
+
 
 void UArtilleryDispatch::RunGuns()
 {

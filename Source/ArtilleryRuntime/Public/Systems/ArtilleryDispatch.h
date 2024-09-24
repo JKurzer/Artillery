@@ -13,6 +13,7 @@
 #include "LocomotionParams.h"
 #include "ConservedAttribute.h"
 #include "FArtilleryTicklitesThread.h"
+#include "KeyCarry.h"
 #include "TransformDispatch.h"
 #include "ArtilleryDispatch.generated.h"
 
@@ -66,9 +67,13 @@ UCLASS()
 class ARTILLERYRUNTIME_API UArtilleryDispatch : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
+	
 	friend class FArtilleryBusyWorker;
 	friend class FArtilleryTicklitesWorker<UArtilleryDispatch>;
 	friend class UCanonicalInputStreamECS;
+	friend class UArtilleryLibrary;
+protected:
+	static inline UArtilleryDispatch* SelfPtr = nullptr;
 public:
 	
 	OnArtilleryActivated BindToArtilleryActivated;
@@ -247,10 +252,6 @@ public:
 	
 	//TODO: convert to object key to allow the grand dance of the mesh primitives.
 	AttrPtr GetAttrib(FSkeletonKey Owner, E_AttribKey Attrib);
-
-
-	UFUNCTION(BlueprintCallable, meta = (ScriptName = "GetAttrib"))
-	float K2_GetAttrib(FSkeletonKey Owner, E_AttribKey Attrib);
 	
 	void RegisterReady(FGunKey Key, FArtilleryFireGunFromDispatch Machine)
 	{
@@ -304,4 +305,27 @@ private:
 	TUniquePtr<FRunnableThread> WorldSim_Ticklites_Thread;
 	FSharedEventRef StartTicklitesSim;
 	FSharedEventRef StartTicklitesApply;
+};
+
+UCLASS(meta=(ScriptName="AbilitySystemLibrary"))
+class ARTILLERYRUNTIME_API UArtilleryLibrary : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+public:
+	UFUNCTION(BlueprintPure, meta = (ScriptName = "GetAttribute", DisplayName = "Get Attribute Of"), Category="Artillery|Attributes")
+	static float K2_GetAttrib(FSkeletonKey Owner, E_AttribKey Attrib)
+	{
+		return  UArtilleryDispatch::SelfPtr ? UArtilleryDispatch::SelfPtr->GetAttrib( Owner, Attrib)->GetCurrentValue() : NAN;
+	}
+
+	UFUNCTION(BlueprintPure, meta = (ScriptName = "GetMyAttribute", DisplayName = "Get My Attribute", DefaultToSelf = "Actor", HidePin = "Actor"),  Category="Artillery|Attributes")
+	static float K2_GetMyAttrib(AActor *Actor, E_AttribKey Attrib)
+	{
+		auto ptr = Actor->GetComponentByClass<UKeyCarry>();
+		if(ptr)
+		{
+			return  UArtilleryDispatch::SelfPtr ? UArtilleryDispatch::SelfPtr->GetAttrib( ptr->GetObjectKey(), Attrib)->GetCurrentValue() : 0.0;			
+		}
+		return NAN;
+	}
 };
