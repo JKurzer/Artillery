@@ -74,9 +74,10 @@ inline void UBarrageAutoBox::Register()
 	{
 		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
 		auto TransformECS =  GetWorld()->GetSubsystem<UTransformDispatch>();
-		auto Box = GetOwner()->CalculateComponentsBoundingBoxInLocalSpace();
+		auto AnyMesh = GetOwner()->GetComponentByClass<UPrimitiveComponent>();
+		auto Boxen = AnyMesh->GetLocalBounds();
+		auto extents = Boxen.BoxExtent;
 		
-		auto extents = Box.GetSize();
 		auto params = FBarrageBounder::GenerateBoxBounds(GetOwner()->GetActorLocation(),extents.X , extents.Y ,extents.Z);
 		MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey,  isMovable ? Layers::MOVING : Layers::NON_MOVING);
 		//TransformECS->RegisterObjectToShadowTransform(MyObjectKey, const_cast<UE::Math::TTransform<double>*>(&GetOwner()->GetTransform()));
