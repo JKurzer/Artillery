@@ -18,42 +18,45 @@
 * 
 */
 USTRUCT(BlueprintType)
-struct ARTILLERYRUNTIME_API FMockBeamCannon : public FArtilleryGun {
+struct ARTILLERYRUNTIME_API FMockBeamCannon : public FArtilleryGun
+{
 	GENERATED_BODY()
-	
-public:
+
 	friend class UArtilleryPerActorAbilityMinimum;
 	UArtilleryDispatch* MyDispatch;
+	FHitResult HitResult;
 
 	// Gun parameters
 	float Range;
 
-	FMockBeamCannon(const FGunKey& KeyFromDispatch, float BeamGunRange) {
-		UE_LOG(LogTemp, Warning, TEXT("FMockBeamCannon constructor"));
+	FMockBeamCannon(const FGunKey& KeyFromDispatch, float BeamGunRange)
+	{
 		MyDispatch = nullptr;
 		MyGunKey = KeyFromDispatch;
 		Range = BeamGunRange;
+		HitResult.Init();
 	};
-	
-	FMockBeamCannon() {
+
+	FMockBeamCannon()
+	{
 		MyDispatch = nullptr;
 		MyGunKey = Default;
+		HitResult.Init();
 		Range = 5000.0f;
 	};
 
 	virtual bool Initialize(
-			const FGunKey& KeyFromDispatch,
-			bool MyCodeWillHandleKeys,
-			UArtilleryPerActorAbilityMinimum* PF = nullptr,
-			UArtilleryPerActorAbilityMinimum* PFC = nullptr,
-			UArtilleryPerActorAbilityMinimum* F = nullptr,
-			UArtilleryPerActorAbilityMinimum* FC = nullptr,
-			UArtilleryPerActorAbilityMinimum* PtF = nullptr,
-			UArtilleryPerActorAbilityMinimum* PtFc = nullptr,
-			UArtilleryPerActorAbilityMinimum* FFC = nullptr) override {
-		UE_LOG(LogTemp, Warning, TEXT("FMockBeamCannon initialize"));
+		const FGunKey& KeyFromDispatch,
+		bool MyCodeWillHandleKeys,
+		UArtilleryPerActorAbilityMinimum* PF = nullptr,
+		UArtilleryPerActorAbilityMinimum* PFC = nullptr,
+		UArtilleryPerActorAbilityMinimum* F = nullptr,
+		UArtilleryPerActorAbilityMinimum* FC = nullptr,
+		UArtilleryPerActorAbilityMinimum* PtF = nullptr,
+		UArtilleryPerActorAbilityMinimum* PtFc = nullptr,
+		UArtilleryPerActorAbilityMinimum* FFC = nullptr) override
+	{
 		MyDispatch = GWorld->GetSubsystem<UArtilleryDispatch>();
-		
 		return ARTGUN_MACROAUTOINIT(MyCodeWillHandleKeys);
 	}
 
@@ -63,8 +66,9 @@ public:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		const FGameplayEventData* TriggerEventData = nullptr,
 		bool RerunDueToReconcile = false,
-		int DallyFramesToOmit = 0) override {
-		FireGun(FArtilleryStates::Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData , Handle);
+		int DallyFramesToOmit = 0) override
+	{
+		FireGun(Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
 	};
 
 	virtual void FireGun(
@@ -74,42 +78,54 @@ public:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		bool RerunDueToReconcile,
 		const FGameplayEventData* TriggerEventData,
-		FGameplayAbilitySpecHandle Handle) override {
-		if (ActorInfo->OwnerActor.IsValid()) {
+		FGameplayAbilitySpecHandle Handle) override
+	{
+		if (ActorInfo->OwnerActor.IsValid())
+		{
 			if (UCameraComponent* CameraComponent = ActorInfo->OwnerActor->GetComponentByClass<UCameraComponent>())
 			{
 				FVector StartLocation = CameraComponent->GetComponentLocation() + FVector(-10.0f, 0.0f, 0.0f);
-				//FVector StartLocation = ActorInfo->OwnerActor->GetActorLocation();// + FVector(-10.0f, 0.0f, 100.0f);
 				FRotator Rotation = CameraComponent->GetRelativeRotation();
-				//ActorInfo->OwnerActor->GetActorEyesViewPoint(StartLocation, Rotation);
-			
-			const FVector TraceEnd = StartLocation + Rotation.Vector() * 20000.0f;
-			FCollisionQueryParams QueryParams;
-			QueryParams.AddIgnoredActor(ActorInfo->OwnerActor.Get());
-			
-			FHitResult Hit;
-			MyDispatch->GetWorld()->LineTraceSingleByChannel(Hit, StartLocation, TraceEnd, ECC_Camera, QueryParams);
-			DrawDebugLine(MyDispatch->GetWorld(), StartLocation, TraceEnd, FColor::Blue, false, 5.0f, 0, 10.0f);
 
-			UBarrageDispatch* Physics = MyDispatch->GetWorld()->GetSubsystem<UBarrageDispatch>();
-			FBLet OwnerFiblet = Physics->GetShapeRef(MyProbableOwner);
-			FTSphereCast temp = FTSphereCast(OwnerFiblet->KeyIntoBarrage, 0.01f, Range, StartLocation,Rotation.Vector());
-			MyDispatch->RequestAddTicklite(
-				MakeShareable(new TL_SphereCast(temp)), Early);
-	
-				PostFireGun(FArtilleryStates::Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
+				UBarrageDispatch* Physics = MyDispatch->GetWorld()->GetSubsystem<UBarrageDispatch>();
+				FBLet OwnerFiblet = Physics->GetShapeRef(MyProbableOwner);
+
+				FTSphereCast temp = FTSphereCast(
+					OwnerFiblet->KeyIntoBarrage,
+					0.01f,
+					Range,
+					StartLocation,
+					Rotation.Vector(),
+					MakeShareable<FHitResult>(&HitResult));
+				MyDispatch->RequestAddTicklite(MakeShareable(new TL_SphereCast(temp)), Early);
+
+				if (HitResult.MyItem != JPH::BodyID::cInvalidBodyID)
+				{
+					DrawDebugLine(
+						MyDispatch->GetWorld(),
+						StartLocation,
+						HitResult.Location,
+						FColor::Blue,
+						false,
+						5.0f,
+						0,
+						1.0f);
+				}
+				
+				PostFireGun(Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
 			}
 		}
 	}
 
 	virtual void PostFireGun(
-						FArtilleryStates OutcomeStates,
-						int DallyFramesToOmit,
-						const FGameplayAbilityActorInfo* ActorInfo,
-						const FGameplayAbilityActivationInfo ActivationInfo,
-						bool RerunDueToReconcile,
-						const FGameplayEventData* TriggerEventData,
-						FGameplayAbilitySpecHandle Handle) override {
+		FArtilleryStates OutcomeStates,
+		int DallyFramesToOmit,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo,
+		bool RerunDueToReconcile,
+		const FGameplayEventData* TriggerEventData,
+		FGameplayAbilitySpecHandle Handle) override
+	{
 	};
 
 private:
