@@ -318,13 +318,26 @@ public:
 		return  UArtilleryDispatch::SelfPtr ? UArtilleryDispatch::SelfPtr->GetAttrib( Owner, Attrib)->GetCurrentValue() : NAN;
 	}
 
-	UFUNCTION(BlueprintPure, meta = (ScriptName = "GetMyAttribute", DisplayName = "Get My Attribute", DefaultToSelf = "Actor", HidePin = "Actor"),  Category="Artillery|Attributes")
+	UFUNCTION(BlueprintPure, meta = (ScriptName = "GetThisActorAttribute", DisplayName = "Get My Actor's Attribute", DefaultToSelf = "Actor", HidePin = "Actor"),  Category="Artillery|Attributes")
 	static float K2_GetMyAttrib(AActor *Actor, E_AttribKey Attrib)
 	{
 		auto ptr = Actor->GetComponentByClass<UKeyCarry>();
 		if(ptr)
 		{
 			return  UArtilleryDispatch::SelfPtr ? UArtilleryDispatch::SelfPtr->GetAttrib( ptr->GetObjectKey(), Attrib)->GetCurrentValue() : 0.0;			
+		}
+		return NAN;
+	}
+
+	UFUNCTION(BlueprintPure, meta = (ScriptName = "GetPlayerAttribute", DisplayName = "Get Local Player's Attribute", WorldContext = "WorldContextObject", HidePin = "WorldContextObject"),  Category="Artillery|Attributes")
+	static float K2_GetPlayerAttrib(UObject* WorldContextObject, E_AttribKey Attrib)
+	{
+		auto ptr = WorldContextObject->GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
+		if(ptr)
+		{
+			auto streamkey = ptr->GetStreamForPlayer(PlayerKey::CABLE);
+			auto key = ptr->ActorByStream(streamkey);
+			return  UArtilleryDispatch::SelfPtr ? UArtilleryDispatch::SelfPtr->GetAttrib( key, Attrib)->GetCurrentValue() : 0.0;			
 		}
 		return NAN;
 	}
