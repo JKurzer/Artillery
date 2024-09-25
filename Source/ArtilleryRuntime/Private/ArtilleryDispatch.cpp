@@ -31,6 +31,7 @@ void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)
 	AttributeSetToDataMapping = MakeShareable( new TMap<FSkeletonKey, AttrMapPtr>());
 	GunByKey = MakeShareable(new TMap<FGunKey, TSharedPtr<FArtilleryGun>>());
 	TL_ThreadedImpl::ADispatch = &ArtilleryTicklitesWorker_LockstepToWorldSim;
+	SelfPtr = this;
 }
 
 void UArtilleryDispatch::PostInitialize()
@@ -70,18 +71,15 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		//TARRAY IS A VALUE TYPE. SO IS TRIPLEBUFF I THINK.
 		ArtilleryAsyncWorldSim.RequestorQueue_Abilities_TripleBuffer = RequestorQueue_Abilities_TripleBuffer;//OH BOY. REFERENCE TIME. GWAHAHAHA.
 		ArtilleryAsyncWorldSim.RequestorQueue_Locomos_TripleBuffer = RequestorQueue_Locomos_TripleBuffer;
+		UBarrageDispatch* PhysicsECS = GetWorld()->GetSubsystem<UBarrageDispatch>();
+		PhysicsECS->GrantFeed();
 		
 		WorldSim_Thread.Reset(FRunnableThread::Create(&ArtilleryAsyncWorldSim, TEXT("ARTILLERY_ONLINE.")));
 		WorldSim_Ticklites_Thread.Reset(FRunnableThread::Create(&ArtilleryTicklitesWorker_LockstepToWorldSim ,TEXT("BARRAGE_ONLINE.")));
 
-		UBarrageDispatch* PhysicsECS = GetWorld()->GetSubsystem<UBarrageDispatch>();
-		PhysicsECS->GrantFeed();
+
 	}
 	
-
-	// Q: how do we get PlayerKey?
-	// ANS: Currently, we don't. 
-	// controlStream = 
 }
 
 void UArtilleryDispatch::Deinitialize()
@@ -123,7 +121,6 @@ AttrMapPtr UArtilleryDispatch::GetAttribSetShadowByObjectKey(FSkeletonKey Target
 void UArtilleryDispatch::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	RunLocomotions();
 	RunGuns(); // ALL THIS WORK. FOR THIS?! (Okay, that's really cool)
 
 	auto PhysicsECSPillar = GetWorld()->GetSubsystem<UBarrageDispatch>();
@@ -218,10 +215,7 @@ AttrPtr UArtilleryDispatch::GetAttrib(FSkeletonKey Owner, AttribKey Attrib)
 		return nullptr;
 }
 
-float UArtilleryDispatch::K2_GetAttrib(FSkeletonKey Owner, E_AttribKey Attrib)
-{
-	return  GetAttrib( Owner, Attrib)->GetCurrentValue();
-}
+
 
 void UArtilleryDispatch::RunGuns()
 {

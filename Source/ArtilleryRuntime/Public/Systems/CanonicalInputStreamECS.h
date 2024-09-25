@@ -84,7 +84,8 @@ public:
 		return MySquire->Now();
 	};
 
-
+	ActorKey ActorByStream(InputStreamKey Stream);
+	InputStreamKey StreamByActor(ActorKey Stream);
 	static const uint32_t InputConservationWindow = 8192;
 	static const uint32_t AddressableInputConservationWindow = InputConservationWindow - (2 *
 		TheCone::LongboySendHertz);
@@ -287,7 +288,7 @@ public:
 				return std::optional<FArtilleryShell>(CurrentHistory[input]);
 			}
 		};
-
+	public:
 		ActorKey GetActorByInputStream()
 		{
 			return ECSParent->ActorByStream(MyKey); // this lets us avoid exposing the key.
@@ -349,8 +350,7 @@ protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
-	ActorKey ActorByStream(InputStreamKey Stream);
-	InputStreamKey StreamByActor(ActorKey Stream);
+
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 	TSharedPtr<FConservedInputStream> getNewStreamConstruct( PlayerKey ByPlayerConcept);

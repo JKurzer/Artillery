@@ -27,8 +27,6 @@ public:
 	double radius;
 	UPROPERTY()
 	double extent;
-	UPROPERTY()
-	double taper;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement, meta=(ClampMin="0", UIMin="0"))
 	float TurningBoost = 1.1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement)
@@ -43,7 +41,19 @@ public:
 	float JumpImpulse = 1000;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Movement)
 	float WallJumpImpulse = 500;
-	UBarragePlayerAgent();
+
+
+
+	[[nodiscard]] FVector Chaos_LastGameFrameRightVector() const
+	{
+		return CHAOS_LastGameFrameRightVector.IsNearlyZero() ? FVector::RightVector : CHAOS_LastGameFrameRightVector;
+	}
+
+	[[nodiscard]] FVector Chaos_LastGameFrameForwardVector() const
+	{
+		return CHAOS_LastGameFrameForwardVector.IsNearlyZero() ? FVector::ForwardVector : CHAOS_LastGameFrameForwardVector ;
+	}
+
 	UBarragePlayerAgent(const FObjectInitializer& ObjectInitializer);
 	virtual void Register() override;
 	void AddForce(float Duration);
@@ -59,16 +69,17 @@ public:
 	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+protected:
+	UPROPERTY(BlueprintReadOnly)
+	FVector CHAOS_LastGameFrameRightVector = FVector::ZeroVector;
+	UPROPERTY(BlueprintReadOnly)
+	FVector CHAOS_LastGameFrameForwardVector = FVector::ZeroVector;
 };
 
 //CONSTRUCTORS
 //--------------------
 //do not invoke the default constructor unless you have a really good plan. in general, let UE initialize your components.
-inline UBarragePlayerAgent::UBarragePlayerAgent()
-{
-	PrimaryComponentTick.bCanEverTick = true;
-	MyObjectKey = 0;
-}
+
 // Sets default values for this component's properties
 inline UBarragePlayerAgent::UBarragePlayerAgent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -116,22 +127,16 @@ inline void UBarragePlayerAgent::Register()
 			}
 		}
 	}
-	if(!IsReady && MyObjectKey != 0) // this could easily be just the !=, but it's better to have the whole idiom in the example
+	if(!IsReady && MyObjectKey != 0 && !GetOwner()->GetActorLocation().ContainsNaN()) // this could easily be just the !=, but it's better to have the whole idiom in the example
 	{
 		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
-		auto TransformECS =  GetWorld()->GetSubsystem<UTransformDispatch>();
-
-			auto params = FBarrageBounder::GenerateCharacterBounds(TransformECS->GetKineByObjectKey(MyObjectKey)->CopyOfTransformLike()->GetLocation(), radius, extent, taper);
+			auto params = FBarrageBounder::GenerateCharacterBounds(GetOwner()->GetActorLocation(), radius, extent, MaxVelocity);
 			MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, LayersMap::MOVING);
 
 			if(MyBarrageBody)
 			{
 				IsReady = true;
 			}
-	}
-	if(IsReady)
-	{
-		PrimaryComponentTick.SetTickFunctionEnable(false);
 	}
 }
 
@@ -167,5 +172,12 @@ inline void UBarragePlayerAgent::BeginPlay()
 inline void UBarragePlayerAgent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	Register();// ...
+	if(!IsReady)
+	{
+		Register();// ...
+	}
+
+	CHAOS_LastGameFrameRightVector = GetOwner()->GetActorRightVector();
+	CHAOS_LastGameFrameForwardVector = GetOwner()->GetActorForwardVector();
+	
 }

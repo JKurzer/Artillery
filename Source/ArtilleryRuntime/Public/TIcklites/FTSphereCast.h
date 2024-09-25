@@ -15,7 +15,7 @@ private:
 	FVector RayDirection;
 	
 public:
-	FTSphereCast() : TicksRemaining(20), ShapeCastSourceObject(0), Radius(20), Distance(20) {
+	FTSphereCast() : TicksRemaining(1), ShapeCastSourceObject(0), Radius(0.01), Distance(5000), SphereIntoBarrageKey(0) {
 	}
 	
 	FTSphereCast(
@@ -24,7 +24,7 @@ public:
 		float CastDistance,
 		const FVector& StartLocation,
 		const FVector& Direction)
-	: TicksRemaining(20),
+	: TicksRemaining(1),
 	ShapeCastSourceObject(ShapeCastSource),
 	Radius(SphereRadius), Distance(CastDistance),
 	RayStart(StartLocation),
@@ -44,6 +44,7 @@ public:
 				if (HitObjectHealthPtr.IsValid()) {
 					float HitObjectHealthVal = HitObjectHealthPtr->GetCurrentValue();
 					UE_LOG(LogTemp, Warning, TEXT("Hit Object Health = '%f'"), HitObjectHealthVal);
+					HitObjectHealthPtr->SetCurrentValue(HitObjectHealthPtr->GetCurrentValue() - 5);
 				} else {
 					UE_LOG(LogTemp, Warning, TEXT("Could not get object health"));
 				}

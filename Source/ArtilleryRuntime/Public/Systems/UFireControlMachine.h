@@ -174,9 +174,7 @@ public:
 		MyAttributes = MakeShareable(new FAttributeMap(ParentKey, MyDispatch, Attributes));
 
 		UE_LOG(LogTemp, Warning, TEXT("FCM Mana: %f"), MyDispatch->GetAttrib(ParentKey, Attr::Mana)->GetCurrentValue());
-
-		//DO NOT DO THIS. This is ONLY here until jolt is in place and WILL crash the game.
-		TransformDispatch->RegisterObjectToShadowTransform(ParentKey, GetOwner());
+		
 		return ParentKey;
 
 		//right now, we can push all our patterns here as well, and we can use a static set of patterns for
