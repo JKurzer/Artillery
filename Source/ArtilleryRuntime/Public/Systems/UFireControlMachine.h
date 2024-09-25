@@ -168,7 +168,7 @@ public:
 			AddTestGun(Intents::A, dummy, IPM::GPress);
 			auto dash = new FMockDashGun(FGunKey("DummyDash", 2));
 			AddTestGun(Intents::B, dash, IPM::GPerPress);
-			auto beam = new FMockBeamCannon(FGunKey("DummyBeam", 3));
+			auto beam = new FMockBeamCannon(FGunKey("DummyBeam", 3), 5000.0f);
 			AddTestGun(Intents::RTrigger, beam, IPM::GPerPress);
 		}
 		MyAttributes = MakeShareable(new FAttributeMap(ParentKey, MyDispatch, Attributes));
