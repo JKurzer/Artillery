@@ -13,7 +13,7 @@
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class UBarrageStaticAutoMesh : public UBarrageColliderBase
+class ARTILLERYRUNTIME_API UBarrageStaticAutoMesh : public UBarrageColliderBase
 {
 	GENERATED_BODY()
 

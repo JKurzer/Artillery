@@ -7,7 +7,6 @@
 #include "BarrageDispatch.h"
 #include "SkeletonTypes.h"
 #include "KeyCarry.h"
-#include "FBarragePrimitive.h"
 #include "FWorldSimOwner.h"
 #include "Components/ActorComponent.h"
 #include "BarrageAutoBox.generated.h"
@@ -81,7 +80,7 @@ inline void UBarrageAutoBox::Register()
 		auto extents = Boxen.BoxExtent * AnyMesh->BoundsScale * 2; 
 		
 		auto params = FBarrageBounder::GenerateBoxBounds(GetOwner()->GetActorLocation(),extents.X , extents.Y ,extents.Z,
-			FVector3d(OffsetCenterToMatchBoundedShapeX, OffsetCenterToMatchBoundedShapeY, OffsetCenterToMatchBoundedShapeZ));
+			FVector3d(OffsetCenterToMatchBoundedShapeX, OffsetCenterToMatchBoundedShapeY, extents.Z/2));
 		MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey,  isMovable ? Layers::MOVING : Layers::NON_MOVING);
 		//TransformECS->RegisterObjectToShadowTransform(MyObjectKey, const_cast<UE::Math::TTransform<double>*>(&GetOwner()->GetTransform()));
 		if(MyBarrageBody)
