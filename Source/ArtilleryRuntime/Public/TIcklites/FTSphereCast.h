@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <functional>
 #include "Ticklite.h"
 #include "ArtilleryDispatch.h"
 #include "FArtilleryTicklitesThread.h"
@@ -14,10 +15,12 @@ class FTSphereCast : public UArtilleryDispatch::TL_ThreadedImpl
 	FVector RayStart;
 	FVector RayDirection;
 	TSharedPtr<FHitResult> HitResultPtr;
+	std::function<void(FVector, TSharedPtr<FHitResult>)> Callback;
 
 public:
-	FTSphereCast() : TicksRemaining(2), ShapeCastSourceObject(0), Radius(0.01), Distance(5000), HitResultPtr()
+	FTSphereCast() : TicksRemaining(2), ShapeCastSourceObject(0), Radius(0.01), Distance(5000), Callback(nullptr)
 	{
+		HitResultPtr = MakeShared<FHitResult>();
 	}
 
 	FTSphereCast(
@@ -26,14 +29,16 @@ public:
 		float CastDistance,
 		const FVector& StartLocation,
 		const FVector& Direction,
-		const TSharedPtr<FHitResult>& HitResult)
+		const std::function<void(FVector, TSharedPtr<FHitResult>)> CallbackFunc
+		)
 		: TicksRemaining(1),
 		  ShapeCastSourceObject(ShapeCastSource),
 		  Radius(SphereRadius), Distance(CastDistance),
 		  RayStart(StartLocation),
 		  RayDirection(Direction),
-		  HitResultPtr(HitResult)
+	      Callback(CallbackFunc)
 	{
+		HitResultPtr = MakeShared<FHitResult>();
 	}
 
 	void TICKLITE_StateReset()
@@ -49,16 +54,9 @@ public:
 
 			if (HitResultPtr->MyItem != JPH::BodyID::cInvalidBodyID)
 			{
-				FBarrageKey HitBarrageKey = Physics->GenerateBarrageKeyFromBodyId(
-					static_cast<uint32>(HitResultPtr->MyItem));
-				FBLet HitObjectFiblet = Physics->GetShapeRef(HitBarrageKey);
-
-				FSkeletonKey ObjectKey = HitObjectFiblet->KeyOutOfBarrage;
-				AttrPtr HitObjectHealthPtr = this->ADispatch->GetAttrib(ObjectKey, HEALTH);
-
-				if (HitObjectHealthPtr.IsValid())
+				if (Callback)
 				{
-					HitObjectHealthPtr->SetCurrentValue(HitObjectHealthPtr->GetCurrentValue() - 5);
+					Callback(RayStart, HitResultPtr);
 				}
 			}
 		}

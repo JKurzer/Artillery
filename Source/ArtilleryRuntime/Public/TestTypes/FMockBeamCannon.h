@@ -24,7 +24,6 @@ struct ARTILLERYRUNTIME_API FMockBeamCannon : public FArtilleryGun
 
 	friend class UArtilleryPerActorAbilityMinimum;
 	UArtilleryDispatch* MyDispatch;
-	FHitResult HitResult;
 
 	// Gun parameters
 	float Range;
@@ -34,14 +33,12 @@ struct ARTILLERYRUNTIME_API FMockBeamCannon : public FArtilleryGun
 		MyDispatch = nullptr;
 		MyGunKey = KeyFromDispatch;
 		Range = BeamGunRange;
-		HitResult.Init();
 	};
 
 	FMockBeamCannon()
 	{
 		MyDispatch = nullptr;
 		MyGunKey = Default;
-		HitResult.Init();
 		Range = 5000.0f;
 	};
 
@@ -89,33 +86,49 @@ struct ARTILLERYRUNTIME_API FMockBeamCannon : public FArtilleryGun
 
 				UBarrageDispatch* Physics = MyDispatch->GetWorld()->GetSubsystem<UBarrageDispatch>();
 				FBLet OwnerFiblet = Physics->GetShapeRef(MyProbableOwner);
-
+				
 				FTSphereCast temp = FTSphereCast(
 					OwnerFiblet->KeyIntoBarrage,
 					0.01f,
 					Range,
 					StartLocation,
 					Rotation.Vector(),
-					MakeShareable<FHitResult>(&HitResult));
+					// TODO: This possibly horribly fails when trying to synchronize network state
+					// Not sure what pattern we want to enforce for hit reg callbacks though, so this temporarily works
+					std::bind(&FMockBeamCannon::ResolveHit, this, std::placeholders::_1, std::placeholders::_2));
 				MyDispatch->RequestAddTicklite(MakeShareable(new TL_SphereCast(temp)), Early);
-
-				if (HitResult.MyItem != JPH::BodyID::cInvalidBodyID)
-				{
-					DrawDebugLine(
-						MyDispatch->GetWorld(),
-						StartLocation,
-						HitResult.Location,
-						FColor::Blue,
-						false,
-						5.0f,
-						0,
-						1.0f);
-				}
 				
 				PostFireGun(Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
 			}
 		}
 	}
+
+	void ResolveHit(UE::Math::TVector<double> RayStart, TSharedPtr<FHitResult> HitResult)
+	{
+		DrawDebugLine(
+						MyDispatch->GetWorld(),
+						RayStart,
+						HitResult->Location,
+						FColor::Blue,
+						false,
+						5.0f,
+						0,
+						1.0f);
+
+		UBarrageDispatch* Physics = MyDispatch->GetWorld()->GetSubsystem<UBarrageDispatch>();
+		FBarrageKey HitBarrageKey = Physics->GenerateBarrageKeyFromBodyId(
+					static_cast<uint32>(HitResult->MyItem));
+		FBLet HitObjectFiblet = Physics->GetShapeRef(HitBarrageKey);
+
+		FSkeletonKey ObjectKey = HitObjectFiblet->KeyOutOfBarrage;
+		AttrPtr HitObjectHealthPtr = MyDispatch->GetAttrib(ObjectKey, HEALTH);
+
+		if (HitObjectHealthPtr.IsValid())
+		{
+			HitObjectHealthPtr->SetCurrentValue(HitObjectHealthPtr->GetCurrentValue() - 5);
+		}
+
+	};
 
 	virtual void PostFireGun(
 		FArtilleryStates OutcomeStates,
