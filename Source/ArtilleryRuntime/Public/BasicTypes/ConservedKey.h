@@ -9,7 +9,7 @@
 #include "AttributeSet.h"
 #include "SkeletonTypes.h"
 #include "Containers/CircularBuffer.h"
-#include "ConservedAttribute.generated.h"
+#include "ConservedKey.generated.h"
 /**
  * Conserved key attributes record their last 128 changes.
  * Currently, this is for debug purposes, but it will be necessary for rollback.
@@ -23,20 +23,17 @@ struct ARTILLERYRUNTIME_API FConservedAttributeKey
 	TCircularBuffer<FSkeletonKey> BaseHistory = TCircularBuffer<FSkeletonKey>(128);
 
 	UPROPERTY(BlueprintReadOnly, Category = "Attribute")
-	float BaseValue;
+	FSkeletonKey BaseValue;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Attribute")
-	float CurrentValue;
+	FSkeletonKey CurrentValue;
 
 	void SetCurrentValue(FSkeletonKey NewValue) {
 		CurrentHistory[CurrentHistory.GetNextIndex(CurrentHead)] = CurrentValue;
 		CurrentValue = NewValue;
 		++CurrentHead;
 	};
-
-	void SetRemoteValue(FSkeletonKey NewValue) {
-		SetRemoteValue(NewValue);
-	};
+	
 	
 	void SetRemoteValue(FSkeletonKey NewValue) {
 		RemoteHistory[RemoteHistory.GetNextIndex(RemoteHead)] = NewValue;
