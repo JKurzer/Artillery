@@ -9,7 +9,7 @@
 #include "AttributeSet.h"
 #include "SkeletonTypes.h"
 #include "Containers/CircularBuffer.h"
-#include "ConservedAttribute.generated.h"
+#include "ConservedKey.generated.h"
 /**
  * Conserved key attributes record their last 128 changes.
  * Currently, this is for debug purposes, but it will be necessary for rollback.
@@ -33,10 +33,7 @@ struct ARTILLERYRUNTIME_API FConservedAttributeKey
 		CurrentValue = NewValue;
 		++CurrentHead;
 	};
-
-	void SetRemoteValue(FSkeletonKey NewValue) {
-		SetRemoteValue(NewValue);
-	};
+	
 	
 	void SetRemoteValue(FSkeletonKey NewValue) {
 		RemoteHistory[RemoteHistory.GetNextIndex(RemoteHead)] = NewValue;

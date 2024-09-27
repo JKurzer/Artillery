@@ -256,7 +256,7 @@ public:
 	
 	//TODO: convert to object key to allow the grand dance of the mesh primitives.
 	AttrPtr GetAttrib(FSkeletonKey Owner, E_AttribKey Attrib);
-	IdentPtr UArtilleryDispatch::GetIdent(FSkeletonKey Owner, Ident Attrib);
+	IdentPtr GetIdent(FSkeletonKey Owner, Ident Attrib);
 	
 	void RegisterReady(FGunKey Key, FArtilleryFireGunFromDispatch Machine)
 	{
