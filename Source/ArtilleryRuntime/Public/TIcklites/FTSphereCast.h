@@ -1,69 +1,84 @@
 ﻿#pragma once
 
+#include <functional>
 #include "Ticklite.h"
 #include "ArtilleryDispatch.h"
 #include "FArtilleryTicklitesThread.h"
 #include "FWorldSimOwner.h"
 
-class FTSphereCast : public UArtilleryDispatch::TL_ThreadedImpl {
-private:
+class FTSphereCast : public UArtilleryDispatch::TL_ThreadedImpl
+{
 	uint32 TicksRemaining;
 	FBarrageKey ShapeCastSourceObject;
 	float Radius;
 	float Distance;
 	FVector RayStart;
 	FVector RayDirection;
-	
+	TSharedPtr<FHitResult> HitResultPtr;
+	std::function<void(FVector, TSharedPtr<FHitResult>)> Callback;
+
 public:
-	FTSphereCast() : TicksRemaining(1), ShapeCastSourceObject(0), Radius(0.01), Distance(5000), SphereIntoBarrageKey(0) {
+	FTSphereCast() : TicksRemaining(2), ShapeCastSourceObject(0), Radius(0.01), Distance(5000), Callback(nullptr)
+	{
+		HitResultPtr = MakeShared<FHitResult>();
 	}
-	
+
 	FTSphereCast(
 		FBarrageKey ShapeCastSource,
 		float SphereRadius,
 		float CastDistance,
 		const FVector& StartLocation,
-		const FVector& Direction)
-	: TicksRemaining(1),
-	ShapeCastSourceObject(ShapeCastSource),
-	Radius(SphereRadius), Distance(CastDistance),
-	RayStart(StartLocation),
-	RayDirection(Direction) {
+		const FVector& Direction,
+		const std::function<void(FVector, TSharedPtr<FHitResult>)> CallbackFunc
+		)
+		: TicksRemaining(1),
+		  ShapeCastSourceObject(ShapeCastSource),
+		  Radius(SphereRadius), Distance(CastDistance),
+		  RayStart(StartLocation),
+		  RayDirection(Direction),
+	      Callback(CallbackFunc)
+	{
+		HitResultPtr = MakeShared<FHitResult>();
 	}
-	
-	void TICKLITE_StateReset() {
+
+	void TICKLITE_StateReset()
+	{
 	}
-	
-	void TICKLITE_Calculate() {
+
+	void TICKLITE_Calculate()
+	{
 		UBarrageDispatch* Physics = this->ADispatch->DispatchOwner->GetWorld()->GetSubsystem<UBarrageDispatch>();
-		if (Physics) {
-			FBLet* HitObject = Physics->SphereCast(ShapeCastSourceObject, Radius, Distance, RayStart, RayDirection);
-			if (HitObject) {
-				FSkeletonKey ObjectKey = HitObject->Get()->KeyOutOfBarrage;
-				AttrPtr HitObjectHealthPtr = this->ADispatch->GetAttrib(ObjectKey, HEALTH);
-				if (HitObjectHealthPtr.IsValid()) {
-					float HitObjectHealthVal = HitObjectHealthPtr->GetCurrentValue();
-					UE_LOG(LogTemp, Warning, TEXT("Hit Object Health = '%f'"), HitObjectHealthVal);
-					HitObjectHealthPtr->SetCurrentValue(HitObjectHealthPtr->GetCurrentValue() - 5);
-				} else {
-					UE_LOG(LogTemp, Warning, TEXT("Could not get object health"));
+		if (Physics)
+		{
+			Physics->SphereCast(ShapeCastSourceObject, Radius, Distance, RayStart, RayDirection, HitResultPtr);
+
+			if (HitResultPtr->MyItem != JPH::BodyID::cInvalidBodyID)
+			{
+				if (Callback)
+				{
+					Callback(RayStart, HitResultPtr);
 				}
 			}
 		}
 	}
-	
-	void TICKLITE_Apply() {
+
+	void TICKLITE_Apply()
+	{
 		--TicksRemaining;
 	}
-	void TICKLITE_CoreReset() {
+
+	void TICKLITE_CoreReset()
+	{
 	}
 
-	bool TICKLITE_CheckForExpiration() {
+	bool TICKLITE_CheckForExpiration()
+	{
 		return TicksRemaining == 0;
 	}
 
-	void TICKLITE_OnExpiration() {
+	void TICKLITE_OnExpiration()
+	{
 	}
 };
 
-typedef Ticklites::Ticklite<FTSphereCast> TL_SphereCast;
+using TL_SphereCast = Ticklites::Ticklite<FTSphereCast>;
