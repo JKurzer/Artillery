@@ -2,16 +2,16 @@
 
 
 #include "ArtilleryDispatch.h"
-#include <FTRecharger.h>
+#include <FTFinalTickResolver.h>
 #include <FTJumpTimer.h>
 
 
 //Place at the end of the latest initialization-like phase.
 //should we move this lil guy over into ya boy Dispatch? It feels real dispatchy.
-void UArtilleryDispatch::GENERATE_RECHARGE(FSkeletonKey Self)
+void UArtilleryDispatch::REGISTER_FINAL_TICK_RESOLVER(FSkeletonKey Self)
 {
-	TLRecharger temp = TLRecharger(Self); //this semantic sucks. gotta fix it.
-	this->RequestAddTicklite(MakeShareable(new Recharger(temp)), RECHARGE);
+	TLFinalTickResolver temp = TLFinalTickResolver(Self); //this semantic sucks. gotta fix it.
+	this->RequestAddTicklite(MakeShareable(new FinalTickResolver(temp)), FINAL_TICK_RESOLVE);
 };
 
 void UArtilleryDispatch::INITIATE_JUMP_TIMER(FSkeletonKey Self)
