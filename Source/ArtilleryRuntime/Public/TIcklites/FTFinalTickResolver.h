@@ -11,15 +11,15 @@
 	//TICKLITE_CoreReset on the impl aspect
 	//TICKLITE_CheckForExpiration on the impl aspect
 	//TICKLITE_OnExpiration
-	class TLRecharger : public UArtilleryDispatch::TL_ThreadedImpl /*Facaded*/
+	class TLFinalTickResolver : public UArtilleryDispatch::TL_ThreadedImpl /*Facaded*/
 	{
 	public:
 		FSkeletonKey RechargeTarget;
-		TLRecharger(): TL_ThreadedImpl()
+		TLFinalTickResolver(): TL_ThreadedImpl()
 		{
 		}
 
-		TLRecharger(
+		TLFinalTickResolver(
 			FSkeletonKey Target
 			) : TL_ThreadedImpl(), RechargeTarget(Target)
 		{
@@ -77,5 +77,5 @@
 		}
 	};
 
-typedef Ticklites::Ticklite<TLRecharger> Recharger;
+typedef Ticklites::Ticklite<TLFinalTickResolver> FinalTickResolver;
 

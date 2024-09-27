@@ -68,26 +68,26 @@ class FArtilleryTicklitesWorker : public FRunnable {
 	{
 		switch (Group)
 		{
-		case TicklitePhase::RECHARGE :
-			{
-				ExecutionGroups[0].Add(AllocatedTL);
-				return true;
-			}			
 		case TicklitePhase::Early :
 			{
-				ExecutionGroups[1].Add(AllocatedTL);
+				ExecutionGroups[0].Add(AllocatedTL);
 				return true;
 			}
 		case TicklitePhase::Normal :
 			{
-				ExecutionGroups[2].Add( AllocatedTL);
+				ExecutionGroups[1].Add( AllocatedTL);
 				return true;
 			}
 		case TicklitePhase::Late :
 			{
-				ExecutionGroups[3].Add(AllocatedTL);
+				ExecutionGroups[2].Add(AllocatedTL);
 				return true;
 			}
+		case TicklitePhase::FINAL_TICK_RESOLVE :
+			{
+				ExecutionGroups[3].Add(AllocatedTL);
+				return true;
+			}	
 		}
 		return false;
 	}
