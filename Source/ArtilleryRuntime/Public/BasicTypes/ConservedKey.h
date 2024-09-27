@@ -23,10 +23,10 @@ struct ARTILLERYRUNTIME_API FConservedAttributeKey
 	TCircularBuffer<FSkeletonKey> BaseHistory = TCircularBuffer<FSkeletonKey>(128);
 
 	UPROPERTY(BlueprintReadOnly, Category = "Attribute")
-	float BaseValue;
+	FSkeletonKey BaseValue;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Attribute")
-	float CurrentValue;
+	FSkeletonKey CurrentValue;
 
 	void SetCurrentValue(FSkeletonKey NewValue) {
 		CurrentHistory[CurrentHistory.GetNextIndex(CurrentHead)] = CurrentValue;

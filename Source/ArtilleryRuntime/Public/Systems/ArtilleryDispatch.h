@@ -159,6 +159,8 @@ protected:
 	
 	// NOTTODO: It's built!
 	TSharedPtr<TMap<FSkeletonKey, AttrMapPtr>> AttributeSetToDataMapping;
+	
+	TSharedPtr<TMap<FSkeletonKey, IdMapPtr>> IdentSetToDataMapping;
 	TSharedPtr<TransformUpdatesForGameThread> TransformUpdateQueue;
 public:
 	virtual void PostInitialize() override;
@@ -169,7 +171,9 @@ protected:
 	//todo: convert conserved attribute to use a timestamp for versioning to create a true temporal shadowstack.
 	AttrMapPtr GetAttribSetShadowByObjectKey(
 		FSkeletonKey Target, ArtilleryTime Now) const;
-
+	
+	IdMapPtr GetIdSetShadowByObjectKey(
+	FSkeletonKey Target, ArtilleryTime Now) const;
 	TSharedPtr<BufferedMoveEvents> RequestorQueue_Locomos_TripleBuffer;
 
 	static inline long long TotalFirings = 0; //2024 was rough.
@@ -252,6 +256,7 @@ public:
 	
 	//TODO: convert to object key to allow the grand dance of the mesh primitives.
 	AttrPtr GetAttrib(FSkeletonKey Owner, E_AttribKey Attrib);
+	IdentPtr UArtilleryDispatch::GetIdent(FSkeletonKey Owner, Ident Attrib);
 	
 	void RegisterReady(FGunKey Key, FArtilleryFireGunFromDispatch Machine)
 	{
@@ -312,33 +317,82 @@ class ARTILLERYRUNTIME_API UArtilleryLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 public:
-	UFUNCTION(BlueprintPure, meta = (ScriptName = "GetAttribute", DisplayName = "Get Attribute Of"), Category="Artillery|Attributes")
-	static float K2_GetAttrib(FSkeletonKey Owner, E_AttribKey Attrib)
+	UFUNCTION(BlueprintPure, meta = (ScriptName = "GetAttribute", DisplayName = "Get Attribute Of", ExpandBoolAsExecs="bFound"), Category="Artillery|Attributes")
+	static float K2_GetAttrib(FSkeletonKey Owner, E_AttribKey Attrib, bool& bFound)
 	{
-		return  UArtilleryDispatch::SelfPtr ? UArtilleryDispatch::SelfPtr->GetAttrib( Owner, Attrib)->GetCurrentValue() : NAN;
-	}
-
-	UFUNCTION(BlueprintPure, meta = (ScriptName = "GetThisActorAttribute", DisplayName = "Get My Actor's Attribute", DefaultToSelf = "Actor", HidePin = "Actor"),  Category="Artillery|Attributes")
-	static float K2_GetMyAttrib(AActor *Actor, E_AttribKey Attrib)
-	{
-		auto ptr = Actor->GetComponentByClass<UKeyCarry>();
-		if(ptr)
-		{
-			return  UArtilleryDispatch::SelfPtr ? UArtilleryDispatch::SelfPtr->GetAttrib( ptr->GetObjectKey(), Attrib)->GetCurrentValue() : 0.0;			
-		}
+		 if(UArtilleryDispatch::SelfPtr)
+		 {
+		 	if(UArtilleryDispatch::SelfPtr->GetAttrib( Owner, Attrib))
+		 	{
+		 		bFound = true;
+		 		return UArtilleryDispatch::SelfPtr->GetAttrib( Owner, Attrib)->GetCurrentValue();
+		 	}
+		 }
+		bFound = false;
 		return NAN;
 	}
+	UFUNCTION(BlueprintPure, meta = (ScriptName = "GetRelatedKey", DisplayName = "Get Related Key From", ExpandBoolAsExecs="bFound"), Category="Artillery|Keys")
+	static FSkeletonKey K2_GetIdentity(FSkeletonKey Owner, E_IdentityAttrib Attrib, bool& bFound)
+	{
+		if(UArtilleryDispatch::SelfPtr)
+		{
+			auto ident = UArtilleryDispatch::SelfPtr->GetIdent( Owner, Attrib);
+			if(ident)
+			{
+				bFound = true;
+				return ident->CurrentValue;
+			}
+		}
+		bFound = false;
+		return FSkeletonKey();
+	}
 
-	UFUNCTION(BlueprintPure, meta = (ScriptName = "GetPlayerAttribute", DisplayName = "Get Local Player's Attribute", WorldContext = "WorldContextObject", HidePin = "WorldContextObject"),  Category="Artillery|Attributes")
-	static float K2_GetPlayerAttrib(UObject* WorldContextObject, E_AttribKey Attrib)
+	UFUNCTION(BlueprintPure, meta = (ScriptName = "GetPlayerRelatedKey", DisplayName = "Get Local Player's Related Key", WorldContext = "WorldContextObject", HidePin = "WorldContextObject", ExpandBoolAsExecs="bFound"),  Category="Artillery|Keys")
+	static FSkeletonKey K2_GetPlayerIdentity(UObject* WorldContextObject, E_IdentityAttrib Attrib, bool& bFound)
 	{
 		auto ptr = WorldContextObject->GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
 		if(ptr)
 		{
 			auto streamkey = ptr->GetStreamForPlayer(PlayerKey::CABLE);
 			auto key = ptr->ActorByStream(streamkey);
-			return  UArtilleryDispatch::SelfPtr ? UArtilleryDispatch::SelfPtr->GetAttrib( key, Attrib)->GetCurrentValue() : 0.0;			
+			if(key)
+			{
+				return  K2_GetIdentity(key, Attrib, bFound);
+			}
 		}
+		bFound = false;
+		return FSkeletonKey();
+	}
+
+	UFUNCTION(BlueprintPure, meta = (ScriptName = "GetThisActorAttribute", DisplayName = "Get My Actor's Attribute", DefaultToSelf = "Actor", HidePin = "Actor", ExpandBoolAsExecs="bFound"),  Category="Artillery|Attributes")
+	static float K2_GetMyAttrib(AActor *Actor, E_AttribKey Attrib, bool& bFound)
+	{
+		auto ptr = Actor->GetComponentByClass<UKeyCarry>();
+		if(ptr)
+		{
+			if(FSkeletonKey key = ptr->GetObjectKey())
+			{
+				return K2_GetAttrib(key, Attrib, bFound);
+			}
+		}
+		bFound = false;
+		return NAN;
+	}
+
+	UFUNCTION(BlueprintPure, meta = (ScriptName = "GetPlayerAttribute", DisplayName = "Get Local Player's Attribute", WorldContext = "WorldContextObject", HidePin = "WorldContextObject", ExpandBoolAsExecs="bFound"),  Category="Artillery|Attributes")
+	static float K2_GetPlayerAttrib(UObject* WorldContextObject, E_AttribKey Attrib, bool& bFound)
+	{
+		auto ptr = WorldContextObject->GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
+		if(ptr)
+		{
+			auto streamkey = ptr->GetStreamForPlayer(PlayerKey::CABLE);
+			auto key = ptr->ActorByStream(streamkey);
+			if(key)
+			{
+				return  K2_GetAttrib(key, Attrib, bFound);
+			}
+		}
+		bFound = false;
 		return NAN;
 	}
 };

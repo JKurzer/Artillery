@@ -29,6 +29,7 @@ void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)
 	GunToFiringFunctionMapping = MakeShareable(new TMap<FGunKey, FArtilleryFireGunFromDispatch>());
 	ActorToLocomotionMapping = MakeShareable(new TMap<ActorKey, FArtilleryRunLocomotionFromDispatch>());
 	AttributeSetToDataMapping = MakeShareable( new TMap<FSkeletonKey, AttrMapPtr>());
+	IdentSetToDataMapping = MakeShareable(new TMap<FSkeletonKey, IdMapPtr>());
 	GunByKey = MakeShareable(new TMap<FGunKey, TSharedPtr<FArtilleryGun>>());
 	TL_ThreadedImpl::ADispatch = &ArtilleryTicklitesWorker_LockstepToWorldSim;
 	SelfPtr = this;
@@ -104,6 +105,7 @@ void UArtilleryDispatch::Deinitialize()
 		WorldSim_Ticklites_Thread->Kill(false);
 	}
 	AttributeSetToDataMapping->Empty();
+	IdentSetToDataMapping->Empty();
 	GunToFiringFunctionMapping->Empty();
 	ActorToLocomotionMapping->Empty();
 }
@@ -116,6 +118,12 @@ AttrMapPtr UArtilleryDispatch::GetAttribSetShadowByObjectKey(FSkeletonKey Target
 	ArtilleryTime Now) const
 {
 	return AttributeSetToDataMapping->FindChecked(Target);
+}
+
+IdMapPtr UArtilleryDispatch::GetIdSetShadowByObjectKey(FSkeletonKey Target,
+	ArtilleryTime Now) const
+{
+	return IdentSetToDataMapping->FindChecked(Target);
 }
 
 void UArtilleryDispatch::Tick(float DeltaTime)
@@ -209,10 +217,23 @@ AttrPtr UArtilleryDispatch::GetAttrib(FSkeletonKey Owner, AttribKey Attrib)
 			auto a = AttributeSetToDataMapping->FindChecked(Owner);
 			if(a->Contains(Attrib))
 			{
-				return AttributeSetToDataMapping->FindChecked(Owner)->FindChecked(Attrib);
+				return a->FindChecked(Attrib);
 			}
 		}
 		return nullptr;
+}
+
+IdentPtr UArtilleryDispatch::GetIdent(FSkeletonKey Owner, Ident Attrib)
+{
+	if(IdentSetToDataMapping->Contains(Owner))
+	{
+		auto a = IdentSetToDataMapping->FindChecked(Owner);
+		if(a->Contains(Attrib))
+		{
+			return a->FindChecked(Attrib);
+		}
+	}
+	return nullptr;
 }
 
 

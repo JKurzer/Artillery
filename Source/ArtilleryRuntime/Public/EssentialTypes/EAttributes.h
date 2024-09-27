@@ -2,6 +2,8 @@
 #include "CoreMinimal.h"
 #include "ConservedAttribute.h"
 #include <array>
+
+#include "ConservedKey.h"
 #include "EAttributes.generated.h"
 
 UENUM(BlueprintType, Blueprintable)
@@ -23,6 +25,18 @@ enum class E_AttribKey : uint8
 	Damage,
 	CooldownTicker
 };
+
+UENUM(BlueprintType, Blueprintable)
+enum class E_IdentityAttrib : uint8
+{
+	Target,
+	EquippedMainGun,
+	EquippedSecondaryGun,
+	EquippedMoveAbility,
+	EquippedDefAbility,
+	EquippedDashAbility
+};
+
 namespace Arty
 {
 	//gonna need to ditch the stupid attributes from gameplay or rework them
@@ -36,14 +50,18 @@ namespace Arty
 	//MANA should always be granted in multiples of 10 since 10m/t is our standard recharge.
 	using AttribKey = E_AttribKey;
 	using Attr = AttribKey;
+	using Ident = E_IdentityAttrib;
 	constexpr AttribKey HEALTH = Arty::AttribKey::Health;
 	constexpr AttribKey MAX_HEALTH = Arty::AttribKey::MaxHealth;
 	constexpr AttribKey MANA = Arty::AttribKey::Mana;
 	constexpr AttribKey DASH_CURRENCY = MANA;
 	constexpr AttribKey MAX_MANA = Arty::AttribKey::MaxMana;
 	typedef TSharedPtr<FConservedAttributeData> AttrPtr;
+	typedef TSharedPtr<FConservedAttributeKey> IdentPtr;
 	typedef TMap<AttribKey, AttrPtr> AttributeMap;
+	typedef TMap<Ident, IdentPtr> IdentityMap;
 	typedef TSharedPtr<AttributeMap> AttrMapPtr;
+	typedef TSharedPtr<IdentityMap> IdMapPtr;
 
 
 }
