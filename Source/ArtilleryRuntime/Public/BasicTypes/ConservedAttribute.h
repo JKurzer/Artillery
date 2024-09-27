@@ -8,6 +8,7 @@
 #include "Engine/DataTable.h"
 #include "AttributeSet.h"
 #include "Containers/CircularBuffer.h"
+
 #include "ConservedAttribute.generated.h"
 /**
  * Conserved attributes record their last 128 changes.
