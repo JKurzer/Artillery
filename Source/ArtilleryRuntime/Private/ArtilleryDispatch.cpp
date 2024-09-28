@@ -2,6 +2,7 @@
 
 
 #include "ArtilleryDispatch.h"
+#include "FArtilleryGun.h"
 #include <FTFinalTickResolver.h>
 #include <FTJumpTimer.h>
 
@@ -159,18 +160,22 @@ FGunKey UArtilleryDispatch::GetGun(FString GunDefinitionID, ActorKey ProbableOwn
 	//See you soon, Chief.
 	GunDefinitionID = GunDefinitionID.IsEmpty() ? "M6D" : GunDefinitionID; //joking aside, an obvious debug val is needed.
 	FGunKey Key = FGunKey(GunDefinitionID, monotonkey++);
+	TMap<AttribKey, double> InitialGunAttributes = TMap<AttribKey, double>();
+	// TODO: load more stats and dynamically rather than fixed demo values
+	InitialGunAttributes.Add(AMMO, 30);
+	InitialGunAttributes.Add(MAX_AMMO, 30);
 	if(PooledGuns.Contains(GunDefinitionID))
 	{
 		TSharedPtr<FArtilleryGun> repurposing = *PooledGuns.Find(GunDefinitionID);
 		PooledGuns.RemoveSingle(GunDefinitionID, repurposing);
-		repurposing->Initialize(Key, false);
+		repurposing->Initialize(Key, InitialGunAttributes, false);
 		repurposing->UpdateProbableOwner(ProbableOwner);
 		GunByKey->Add(Key, repurposing);
 	}
 	else
 	{
 		TSharedPtr<FArtilleryGun> NewGun = MakeShareable(new FArtilleryGun(Key));
-		NewGun->Initialize(Key, false);
+		NewGun->Initialize(Key, InitialGunAttributes, false);
 		NewGun->UpdateProbableOwner(ProbableOwner);
 		GunByKey->Add(Key, NewGun);
 	}

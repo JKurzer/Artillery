@@ -15,7 +15,7 @@ struct ARTILLERYRUNTIME_API FAttributeMap
 	GENERATED_BODY()
 	
 	AttrMapPtr MyAttributes;
-	ActorKey ParentKey;
+	FSkeletonKey ParentKey;
 	UArtilleryDispatch* MyDispatch = nullptr;
 	bool ReadyToUse = false;
 
@@ -25,12 +25,12 @@ struct ARTILLERYRUNTIME_API FAttributeMap
 		
 	};
 
-	FAttributeMap(ActorKey ParentKeyIn, UArtilleryDispatch* MyDispatchIn, TMap<AttribKey, double> DefaultAttributesIn)
+	FAttributeMap(FSkeletonKey ParentKeyIn, UArtilleryDispatch* MyDispatchIn, TMap<AttribKey, double> DefaultAttributesIn)
 	{
 		Initialize(ParentKeyIn, MyDispatchIn, DefaultAttributesIn);
 	};
 
-	void Initialize(ActorKey ParentKeyIn, UArtilleryDispatch* MyDispatchIn, TMap<AttribKey, double> DefaultAttributesIn)
+	void Initialize(FSkeletonKey ParentKeyIn, UArtilleryDispatch* MyDispatchIn, TMap<AttribKey, double> DefaultAttributesIn)
 	{
 		this->ParentKey = ParentKeyIn;
 		this->MyDispatch = MyDispatchIn;

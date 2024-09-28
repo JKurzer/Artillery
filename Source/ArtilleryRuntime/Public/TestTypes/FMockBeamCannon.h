@@ -23,28 +23,26 @@ struct ARTILLERYRUNTIME_API FMockBeamCannon : public FArtilleryGun
 	GENERATED_BODY()
 
 	friend class UArtilleryPerActorAbilityMinimum;
-	UArtilleryDispatch* MyDispatch;
 
 	// Gun parameters
 	float Range;
 
 	FMockBeamCannon(const FGunKey& KeyFromDispatch, float BeamGunRange)
 	{
-		MyDispatch = nullptr;
 		MyGunKey = KeyFromDispatch;
 		Range = BeamGunRange;
 	};
 
 	FMockBeamCannon()
 	{
-		MyDispatch = nullptr;
 		MyGunKey = Default;
 		Range = 5000.0f;
 	};
 
 	virtual bool Initialize(
 		const FGunKey& KeyFromDispatch,
-		bool MyCodeWillHandleKeys,
+		const TMap<AttribKey, double> Attributes,
+		const bool MyCodeWillHandleKeys,
 		UArtilleryPerActorAbilityMinimum* PF = nullptr,
 		UArtilleryPerActorAbilityMinimum* PFC = nullptr,
 		UArtilleryPerActorAbilityMinimum* F = nullptr,
@@ -53,7 +51,6 @@ struct ARTILLERYRUNTIME_API FMockBeamCannon : public FArtilleryGun
 		UArtilleryPerActorAbilityMinimum* PtFc = nullptr,
 		UArtilleryPerActorAbilityMinimum* FFC = nullptr) override
 	{
-		MyDispatch = GWorld->GetSubsystem<UArtilleryDispatch>();
 		return ARTGUN_MACROAUTOINIT(MyCodeWillHandleKeys);
 	}
 
@@ -139,6 +136,10 @@ struct ARTILLERYRUNTIME_API FMockBeamCannon : public FArtilleryGun
 		const FGameplayEventData* TriggerEventData,
 		FGameplayAbilitySpecHandle Handle) override
 	{
+		// TODO: revisit ammo, this is just proof of concept
+		AttrPtr AmmoPtr = MyDispatch->GetAttrib(MyGunKey, AMMO);
+		AmmoPtr->SetCurrentValue(AmmoPtr->GetCurrentValue() - 1);
+		UE_LOG(LogTemp, Warning, TEXT("Remaining Ammo %f"), AmmoPtr->GetCurrentValue());
 	};
 
 private:

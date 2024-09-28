@@ -9,7 +9,6 @@
 #include "ArtilleryCommonTypes.h"
 #include "Containers/TripleBuffer.h"
 #include "FArtilleryBusyWorker.h"
-#include "FArtilleryGun.h"
 #include "LocomotionParams.h"
 #include "ConservedAttribute.h"
 #include "FArtilleryTicklitesThread.h"
@@ -43,6 +42,7 @@
  * 
  * Iris does normal replication on a slow cadence as a fall back and to provide attribute sync reassurances.
  */
+struct FArtilleryGun;
 namespace Arty
 {
 	DECLARE_MULTICAST_DELEGATE(OnArtilleryActivated);

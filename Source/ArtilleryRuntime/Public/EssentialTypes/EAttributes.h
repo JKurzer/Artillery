@@ -17,6 +17,7 @@ enum class E_AttribKey : uint8
 	MaxShields,
 	ShieldsRechargePerTick,
 	Ammo,
+	MaxAmmo,
 	Mana,
 	MaxMana,
 	ManaRechargePerTick,
@@ -51,6 +52,8 @@ namespace Arty
 	using AttribKey = E_AttribKey;
 	using Attr = AttribKey;
 	using Ident = E_IdentityAttrib;
+	constexpr AttribKey AMMO = Arty::AttribKey::Ammo;
+	constexpr AttribKey MAX_AMMO = Arty::AttribKey::MaxAmmo;
 	constexpr AttribKey HEALTH = Arty::AttribKey::Health;
 	constexpr AttribKey MAX_HEALTH = Arty::AttribKey::MaxHealth;
 	constexpr AttribKey MANA = Arty::AttribKey::Mana;

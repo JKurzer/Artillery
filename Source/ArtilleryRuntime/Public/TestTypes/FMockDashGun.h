@@ -99,14 +99,17 @@ public:
 		UE_LOG(LogTemp, Warning, TEXT("FMockDashGun post"));
 	};
 
-	virtual bool Initialize(const FGunKey& KeyFromDispatch, bool MyCodeWillHandleKeys,
-	UArtilleryPerActorAbilityMinimum* PF = nullptr,
-	UArtilleryPerActorAbilityMinimum* PFC = nullptr,
-	UArtilleryPerActorAbilityMinimum* F = nullptr,
-	UArtilleryPerActorAbilityMinimum* FC = nullptr,
-	UArtilleryPerActorAbilityMinimum* PtF = nullptr,
-	UArtilleryPerActorAbilityMinimum* PtFc = nullptr,
-	UArtilleryPerActorAbilityMinimum* FFC = nullptr)
+	virtual bool Initialize(
+		const FGunKey& KeyFromDispatch,
+		const TMap<AttribKey, double> Attributes,
+		const bool MyCodeWillHandleKeys,
+		UArtilleryPerActorAbilityMinimum* PF = nullptr,
+		UArtilleryPerActorAbilityMinimum* PFC = nullptr,
+		UArtilleryPerActorAbilityMinimum* F = nullptr,
+		UArtilleryPerActorAbilityMinimum* FC = nullptr,
+		UArtilleryPerActorAbilityMinimum* PtF = nullptr,
+		UArtilleryPerActorAbilityMinimum* PtFc = nullptr,
+		UArtilleryPerActorAbilityMinimum* FFC = nullptr)
 		override
 	{
 		MyDispatch = GWorld->GetSubsystem<UArtilleryDispatch>();

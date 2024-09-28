@@ -140,7 +140,11 @@ public:
 	{
 		FActionBitMask IntentBitPattern;
 		IntentBitPattern.buttons = BindIntent;
-		Gun->Initialize(Gun->MyGunKey, false);
+		TMap<AttribKey, double> InitialGunAttributes = TMap<AttribKey, double>();
+		// TODO: load more stats and dynamically rather than fixed demo values
+		InitialGunAttributes.Add(AMMO, 30);
+		InitialGunAttributes.Add(MAX_AMMO, 30);
+		Gun->Initialize(Gun->MyGunKey, InitialGunAttributes, false);
 		auto key = MyDispatch->RegisterExistingGun(Gun, ParentKey);
 		pushPatternToRunner(Pattern, APlayer::CABLE, IntentBitPattern, key);
 	}

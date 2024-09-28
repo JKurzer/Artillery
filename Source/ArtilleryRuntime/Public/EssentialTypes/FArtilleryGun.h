@@ -7,6 +7,7 @@
 #include <unordered_map>
 
 #include "ArtilleryCommonTypes.h"
+#include "FAttributeMap.h"
 #include "FGunKey.h"
 #include "GameplayEffectTypes.h"
 #include "GameplayEffect.h"
@@ -38,6 +39,9 @@ public:
 	FGunKey MyGunKey;
 	ActorKey MyProbableOwner;
 	bool ReadyToFire = false;
+
+	UArtilleryDispatch* MyDispatch;
+	TSharedPtr<FAttributeMap> MyAttributes;
 
 	//As these are UProperties, they should NOT need to become strong pointers or get attached to root
 	//to _exist_ when created off main thread, but that doesn't solve the bulk of the issues and the guarantee
@@ -208,8 +212,11 @@ public:
 	//for a variety of reasons, a gunkey might not be null, but might not be usable or desirable.
 	//please ensure your child classes respect this as well. thank you!
 	//returns readytofire
-#define ARTGUN_MACROAUTOINIT(MyCodeWillHandleKeys) Super::Initialize(KeyFromDispatch, MyCodeWillHandleKeys, PF, PFC,F,FC,PtF,PtFc,FFC)
-	virtual bool Initialize(const FGunKey& KeyFromDispatch, bool MyCodeWillSetGunKey,
+#define ARTGUN_MACROAUTOINIT(MyCodeWillHandleKeys) Super::Initialize(KeyFromDispatch, Attributes, MyCodeWillHandleKeys, PF, PFC,F,FC,PtF,PtFc,FFC)
+	virtual bool Initialize(
+		const FGunKey& KeyFromDispatch,
+		const TMap<AttribKey, double> Attributes,
+		const bool MyCodeWillSetGunKey,
 		UArtilleryPerActorAbilityMinimum* PF = nullptr,
 		UArtilleryPerActorAbilityMinimum* PFC = nullptr,
 		UArtilleryPerActorAbilityMinimum* F = nullptr,
@@ -221,6 +228,9 @@ public:
 	{
 		MyGunKey = KeyFromDispatch;
 		//assign gunkey
+		
+		MyDispatch = GWorld->GetSubsystem<UArtilleryDispatch>();
+		MyAttributes = MakeShareable(new FAttributeMap(MyGunKey, MyDispatch, Attributes));
 		
 		//we'd like to do it earlier, but there's actually not a great moment to do this.
 		if(Prefire == nullptr)
