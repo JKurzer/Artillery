@@ -144,6 +144,9 @@ public:
 		// TODO: load more stats and dynamically rather than fixed demo values
 		InitialGunAttributes.Add(AMMO, 30);
 		InitialGunAttributes.Add(MAX_AMMO, 30);
+		InitialGunAttributes.Add(TICKS_SINCE_GUN_LAST_FIRED, 0);
+		InitialGunAttributes.Add(AttribKey::LastFiredTimestamp, 0);
+		
 		Gun->Initialize(Gun->MyGunKey, InitialGunAttributes, false);
 		auto key = MyDispatch->RegisterExistingGun(Gun, ParentKey);
 		pushPatternToRunner(Pattern, APlayer::CABLE, IntentBitPattern, key);
@@ -173,7 +176,7 @@ public:
 			auto dash = new FMockDashGun(FGunKey("DummyDash", 2));
 			AddTestGun(Intents::B, dash, IPM::GPerPress);
 			auto beam = new FMockBeamCannon(FGunKey("DummyBeam", 3), 5000.0f);
-			AddTestGun(Intents::RTrigger, beam, IPM::GPerPress);
+			AddTestGun(Intents::RTrigger, beam, IPM::GPress);
 		}
 		MyAttributes = MakeShareable(new FAttributeMap(ParentKey, MyDispatch, Attributes));
 

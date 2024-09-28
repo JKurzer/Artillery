@@ -164,6 +164,8 @@ FGunKey UArtilleryDispatch::GetGun(FString GunDefinitionID, ActorKey ProbableOwn
 	// TODO: load more stats and dynamically rather than fixed demo values
 	InitialGunAttributes.Add(AMMO, 30);
 	InitialGunAttributes.Add(MAX_AMMO, 30);
+	InitialGunAttributes.Add(TICKS_SINCE_GUN_LAST_FIRED, 0);
+	
 	if(PooledGuns.Contains(GunDefinitionID))
 	{
 		TSharedPtr<FArtilleryGun> repurposing = *PooledGuns.Find(GunDefinitionID);

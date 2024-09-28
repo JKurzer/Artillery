@@ -6,6 +6,9 @@
 #include "UArtilleryAbilityMinimum.h"
 #include "Camera/CameraComponent.h"
 
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
+
 #include "FMockBeamCannon.generated.h"
 
 #define SCREEN_MESSAGE(str) if (GEngine) \
@@ -22,21 +25,38 @@ struct ARTILLERYRUNTIME_API FMockBeamCannon : public FArtilleryGun
 {
 	GENERATED_BODY()
 
+public:
 	friend class UArtilleryPerActorAbilityMinimum;
+	UArtilleryDispatch* MyDispatch;
+	FHitResult HitResult;
 
+	FTSphereCast* SphereCastTicklite;
+	
 	// Gun parameters
 	float Range;
+	
+	// Beam effect
+	UPROPERTY()
+	UNiagaraSystem* Beam;
 
-	FMockBeamCannon(const FGunKey& KeyFromDispatch, float BeamGunRange)
+	FMockBeamCannon(const FGunKey& KeyFromDispatch, float BeamGunRange) : Super(KeyFromDispatch)
 	{
-		MyGunKey = KeyFromDispatch;
+		MyDispatch = nullptr;
+		HitResult.Init();
+		SphereCastTicklite = nullptr;
+		
 		Range = BeamGunRange;
+		Beam = nullptr;
 	};
-
-	FMockBeamCannon()
+	
+	FMockBeamCannon() : Super()
 	{
-		MyGunKey = Default;
+		MyDispatch = nullptr;
+		HitResult.Init();
+		SphereCastTicklite = nullptr;
+		
 		Range = 5000.0f;
+		Beam = nullptr;
 	};
 
 	virtual bool Initialize(
@@ -51,6 +71,11 @@ struct ARTILLERYRUNTIME_API FMockBeamCannon : public FArtilleryGun
 		UArtilleryPerActorAbilityMinimum* PtFc = nullptr,
 		UArtilleryPerActorAbilityMinimum* FFC = nullptr) override
 	{
+		MyDispatch = GWorld->GetSubsystem<UArtilleryDispatch>();
+
+		Beam = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/Blueprints/BeamCannon/BeamSystem.BeamSystem"), nullptr, LOAD_None, nullptr);
+		check(Beam != nullptr);
+		
 		return ARTGUN_MACROAUTOINIT(MyCodeWillHandleKeys);
 	}
 
@@ -93,28 +118,36 @@ struct ARTILLERYRUNTIME_API FMockBeamCannon : public FArtilleryGun
 					// TODO: This possibly horribly fails when trying to synchronize network state
 					// Not sure what pattern we want to enforce for hit reg callbacks though, so this temporarily works
 					std::bind(&FMockBeamCannon::ResolveHit, this, std::placeholders::_1, std::placeholders::_2));
+				
 				MyDispatch->RequestAddTicklite(MakeShareable(new TL_SphereCast(temp)), Early);
+
+				// Fire particles
+				FVector FireParticleLocation = CameraComponent->GetComponentLocation() + FVector(0.f, 0.f, -10.f);
+				UNiagaraComponent* BeamComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(CameraComponent, Beam, FireParticleLocation, Rotation, FVector(1.f), true, true, ENCPoolMethod::AutoRelease);
+				BeamComp->SetVariablePosition(FName("Beam_End"), Rotation.Vector() * Range);
+
+				UE_LOG(LogTemp, Warning, TEXT("Target for particle is '%s'"), *(Rotation.Vector() * Range).ToString());
 				
 				PostFireGun(Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
 			}
 		}
 	}
 
-	void ResolveHit(UE::Math::TVector<double> RayStart, TSharedPtr<FHitResult> HitResult)
+	void ResolveHit(UE::Math::TVector<double> RayStart, TSharedPtr<FHitResult> HitResultFromTicklite) const
 	{
-		DrawDebugLine(
-						MyDispatch->GetWorld(),
-						RayStart,
-						HitResult->Location,
-						FColor::Blue,
-						false,
-						5.0f,
-						0,
-						1.0f);
+		// DrawDebugLine(
+		// 				MyDispatch->GetWorld(),
+		// 				RayStart,
+		// 				HitResultFromTicklite->Location,
+		// 				FColor::Blue,
+		// 				false,
+		// 				5.0f,
+		// 				0,
+		// 				1.0f);
 
 		UBarrageDispatch* Physics = MyDispatch->GetWorld()->GetSubsystem<UBarrageDispatch>();
 		FBarrageKey HitBarrageKey = Physics->GenerateBarrageKeyFromBodyId(
-					static_cast<uint32>(HitResult->MyItem));
+					static_cast<uint32>(HitResultFromTicklite->MyItem));
 		FBLet HitObjectFiblet = Physics->GetShapeRef(HitBarrageKey);
 
 		FSkeletonKey ObjectKey = HitObjectFiblet->KeyOutOfBarrage;
@@ -124,7 +157,6 @@ struct ARTILLERYRUNTIME_API FMockBeamCannon : public FArtilleryGun
 		{
 			HitObjectHealthPtr->SetCurrentValue(HitObjectHealthPtr->GetCurrentValue() - 5);
 		}
-
 	};
 
 	virtual void PostFireGun(
@@ -140,6 +172,9 @@ struct ARTILLERYRUNTIME_API FMockBeamCannon : public FArtilleryGun
 		AttrPtr AmmoPtr = MyDispatch->GetAttrib(MyGunKey, AMMO);
 		AmmoPtr->SetCurrentValue(AmmoPtr->GetCurrentValue() - 1);
 		UE_LOG(LogTemp, Warning, TEXT("Remaining Ammo %f"), AmmoPtr->GetCurrentValue());
+		
+		MyDispatch->GetAttrib(MyGunKey, TICKS_SINCE_GUN_LAST_FIRED)->SetCurrentValue(0.f);
+		MyDispatch->GetAttrib(MyGunKey, AttribKey::LastFiredTimestamp)->SetCurrentValue(static_cast<double>(MyDispatch->GetShadowNow()));
 	};
 
 private:
