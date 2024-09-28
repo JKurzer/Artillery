@@ -24,7 +24,10 @@ enum class E_AttribKey : uint8
 	TicksTilJumpAvailable,
 	JumpHeight,
 	Damage,
-	CooldownTicker
+	CooldownTicker,
+	Range,
+	TicksSinceLastFired,
+	LastFiredTimestamp,
 };
 
 UENUM(BlueprintType, Blueprintable)
@@ -59,6 +62,7 @@ namespace Arty
 	constexpr AttribKey MANA = Arty::AttribKey::Mana;
 	constexpr AttribKey DASH_CURRENCY = MANA;
 	constexpr AttribKey MAX_MANA = Arty::AttribKey::MaxMana;
+	constexpr AttribKey TICKS_SINCE_GUN_LAST_FIRED = Arty::AttribKey::TicksSinceLastFired;
 	typedef TSharedPtr<FConservedAttributeData> AttrPtr;
 	typedef TSharedPtr<FConservedAttributeKey> IdentPtr;
 	typedef TMap<AttribKey, AttrPtr> AttributeMap;
