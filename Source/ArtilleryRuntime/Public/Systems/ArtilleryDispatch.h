@@ -279,11 +279,18 @@ public:
 	{
 		AttributeSetToDataMapping->Add(in, Attributes);
 	}
+	void RegisterRelationships(FSkeletonKey in, IdMapPtr Relationships)
+	{
+		IdentSetToDataMapping->Add(in, Relationships);
+	}
 	void DeregisterAttributes(FSkeletonKey in)
 	{
 		AttributeSetToDataMapping->Remove(in);
 	}
-	
+	void DeregisterRelationships(FSkeletonKey in)
+	{
+		IdentSetToDataMapping->Remove(in);
+	}
 
 	std::atomic_bool UseNetworkInput;
 	bool missedPrior = false;
