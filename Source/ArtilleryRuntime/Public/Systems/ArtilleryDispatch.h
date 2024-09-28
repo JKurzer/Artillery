@@ -83,7 +83,8 @@ const
 	{
 		return ArtilleryAsyncWorldSim.TickliteNow;
 	};
-	void REGISTER_FINAL_TICK_RESOLVER(FSkeletonKey Self);
+	void REGISTER_ENTITY_FINAL_TICK_RESOLVER(ActorKey Self);
+	void REGISTER_GUN_FINAL_TICK_RESOLVER(FGunKey Self);
 	void INITIATE_JUMP_TIMER(FSkeletonKey Self);
 
 	//Forwarding for the TickliteThread.

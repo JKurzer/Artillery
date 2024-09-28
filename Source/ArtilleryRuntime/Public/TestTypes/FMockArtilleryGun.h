@@ -89,7 +89,6 @@ public:
 	
 	virtual bool Initialize(
 		const FGunKey& KeyFromDispatch,
-		const TMap<AttribKey, double> Attributes,
 		const bool MyCodeWillHandleKeys,
 		UArtilleryPerActorAbilityMinimum* PF = nullptr,
 		UArtilleryPerActorAbilityMinimum* PFC = nullptr,

@@ -28,9 +28,6 @@ struct ARTILLERYRUNTIME_API FMockBeamCannon : public FArtilleryGun
 public:
 	friend class UArtilleryPerActorAbilityMinimum;
 	UArtilleryDispatch* MyDispatch;
-	FHitResult HitResult;
-
-	FTSphereCast* SphereCastTicklite;
 	
 	// Gun parameters
 	float Range;
@@ -39,11 +36,13 @@ public:
 	UPROPERTY()
 	UNiagaraSystem* Beam;
 
-	FMockBeamCannon(const FGunKey& KeyFromDispatch, float BeamGunRange) : Super(KeyFromDispatch)
+	FMockBeamCannon(const FGunKey& KeyFromDispatch, int MaxAmmoIn, int FirerateIn, int ReloadTimeIn, float BeamGunRange)
 	{
+		MyGunKey = KeyFromDispatch;
+		MaxAmmo = MaxAmmoIn;
+		Firerate = FirerateIn;
+		ReloadTime = ReloadTimeIn;
 		MyDispatch = nullptr;
-		HitResult.Init();
-		SphereCastTicklite = nullptr;
 		
 		Range = BeamGunRange;
 		Beam = nullptr;
@@ -52,16 +51,17 @@ public:
 	FMockBeamCannon() : Super()
 	{
 		MyDispatch = nullptr;
-		HitResult.Init();
-		SphereCastTicklite = nullptr;
 		
+		MyGunKey = Default;
+		MaxAmmo = 100;
+		Firerate = 2;
+		ReloadTime = 150;
 		Range = 5000.0f;
 		Beam = nullptr;
 	};
 
 	virtual bool Initialize(
 		const FGunKey& KeyFromDispatch,
-		const TMap<AttribKey, double> Attributes,
 		const bool MyCodeWillHandleKeys,
 		UArtilleryPerActorAbilityMinimum* PF = nullptr,
 		UArtilleryPerActorAbilityMinimum* PFC = nullptr,
@@ -87,6 +87,19 @@ public:
 		bool RerunDueToReconcile = false,
 		int DallyFramesToOmit = 0) override
 	{
+		AttrPtr CooldownRemainingPtr = MyDispatch->GetAttrib(MyGunKey, COOLDOWN_REMAINING);
+		AttrPtr AmmoRemainingPtr = MyDispatch->GetAttrib(MyGunKey, AMMO);
+		if (!CooldownRemainingPtr.IsValid() || CooldownRemainingPtr->GetCurrentValue() > 0.f)
+		{
+			// Cooldown not up yet!
+			return;
+		}
+
+		if (!AmmoRemainingPtr.IsValid() || AmmoRemainingPtr->GetCurrentValue() <= 0.f)
+		{
+			// No ammo!
+			return;
+		}
 		FireGun(Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
 	};
 
@@ -122,11 +135,11 @@ public:
 				MyDispatch->RequestAddTicklite(MakeShareable(new TL_SphereCast(temp)), Early);
 
 				// Fire particles
-				FVector FireParticleLocation = CameraComponent->GetComponentLocation() + FVector(0.f, 0.f, -10.f);
-				UNiagaraComponent* BeamComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(CameraComponent, Beam, FireParticleLocation, Rotation, FVector(1.f), true, true, ENCPoolMethod::AutoRelease);
+				FVector FireParticleLocation = CameraComponent->GetComponentLocation() + FVector(-10.f, 0.f, 0.f);
+				UNiagaraComponent* BeamComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(MyDispatch->GetWorld(), Beam, FireParticleLocation, FRotator::ZeroRotator, FVector(1.f), true, true, ENCPoolMethod::AutoRelease);
 				BeamComp->SetVariablePosition(FName("Beam_End"), Rotation.Vector() * Range);
 
-				UE_LOG(LogTemp, Warning, TEXT("Target for particle is '%s'"), *(Rotation.Vector() * Range).ToString());
+				// UE_LOG(LogTemp, Warning, TEXT("Target for particle is '%s'"), *(Rotation.Vector() * Range).ToString());
 				
 				PostFireGun(Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
 			}
@@ -168,10 +181,17 @@ public:
 		const FGameplayEventData* TriggerEventData,
 		FGameplayAbilitySpecHandle Handle) override
 	{
-		// TODO: revisit ammo, this is just proof of concept
 		AttrPtr AmmoPtr = MyDispatch->GetAttrib(MyGunKey, AMMO);
-		AmmoPtr->SetCurrentValue(AmmoPtr->GetCurrentValue() - 1);
-		UE_LOG(LogTemp, Warning, TEXT("Remaining Ammo %f"), AmmoPtr->GetCurrentValue());
+		if (AmmoPtr.IsValid())
+		{
+			AmmoPtr->SetCurrentValue(AmmoPtr->GetCurrentValue() - 1);
+		}
+		AttrPtr CooldownPtr = MyDispatch->GetAttrib(MyGunKey, COOLDOWN);
+		AttrPtr CooldownRemainingPtr = MyDispatch->GetAttrib(MyGunKey, COOLDOWN_REMAINING);
+		if (CooldownPtr.IsValid() && CooldownRemainingPtr.IsValid())
+		{
+			CooldownRemainingPtr->SetCurrentValue(CooldownPtr->GetCurrentValue());
+		}
 		
 		MyDispatch->GetAttrib(MyGunKey, TICKS_SINCE_GUN_LAST_FIRED)->SetCurrentValue(0.f);
 		MyDispatch->GetAttrib(MyGunKey, AttribKey::LastFiredTimestamp)->SetCurrentValue(static_cast<double>(MyDispatch->GetShadowNow()));

@@ -3,16 +3,23 @@
 
 #include "ArtilleryDispatch.h"
 #include "FArtilleryGun.h"
-#include <FTFinalTickResolver.h>
+#include <FTEntityFinalTickResolver.h>
+#include <FTGunFinalTickResolver.h>
 #include <FTJumpTimer.h>
 
 
 //Place at the end of the latest initialization-like phase.
 //should we move this lil guy over into ya boy Dispatch? It feels real dispatchy.
-void UArtilleryDispatch::REGISTER_FINAL_TICK_RESOLVER(FSkeletonKey Self)
+void UArtilleryDispatch::REGISTER_ENTITY_FINAL_TICK_RESOLVER(ActorKey Self)
 {
-	TLFinalTickResolver temp = TLFinalTickResolver(Self); //this semantic sucks. gotta fix it.
-	this->RequestAddTicklite(MakeShareable(new FinalTickResolver(temp)), FINAL_TICK_RESOLVE);
+	TLEntityFinalTickResolver temp = TLEntityFinalTickResolver(Self); //this semantic sucks. gotta fix it.
+	this->RequestAddTicklite(MakeShareable(new EntityFinalTickResolver(temp)), FINAL_TICK_RESOLVE);
+};
+
+void UArtilleryDispatch::REGISTER_GUN_FINAL_TICK_RESOLVER(FGunKey Self)
+{
+	TLGunFinalTickResolver temp = TLGunFinalTickResolver(Self); //this semantic sucks. gotta fix it.
+	this->RequestAddTicklite(MakeShareable(new GunFinalTickResolver(temp)), FINAL_TICK_RESOLVE);
 };
 
 void UArtilleryDispatch::INITIATE_JUMP_TIMER(FSkeletonKey Self)
@@ -161,23 +168,18 @@ FGunKey UArtilleryDispatch::GetGun(FString GunDefinitionID, ActorKey ProbableOwn
 	GunDefinitionID = GunDefinitionID.IsEmpty() ? "M6D" : GunDefinitionID; //joking aside, an obvious debug val is needed.
 	FGunKey Key = FGunKey(GunDefinitionID, monotonkey++);
 	TMap<AttribKey, double> InitialGunAttributes = TMap<AttribKey, double>();
-	// TODO: load more stats and dynamically rather than fixed demo values
-	InitialGunAttributes.Add(AMMO, 30);
-	InitialGunAttributes.Add(MAX_AMMO, 30);
-	InitialGunAttributes.Add(TICKS_SINCE_GUN_LAST_FIRED, 0);
-	
 	if(PooledGuns.Contains(GunDefinitionID))
 	{
 		TSharedPtr<FArtilleryGun> repurposing = *PooledGuns.Find(GunDefinitionID);
 		PooledGuns.RemoveSingle(GunDefinitionID, repurposing);
-		repurposing->Initialize(Key, InitialGunAttributes, false);
+		repurposing->Initialize(Key, false);
 		repurposing->UpdateProbableOwner(ProbableOwner);
 		GunByKey->Add(Key, repurposing);
 	}
 	else
 	{
 		TSharedPtr<FArtilleryGun> NewGun = MakeShareable(new FArtilleryGun(Key));
-		NewGun->Initialize(Key, InitialGunAttributes, false);
+		NewGun->Initialize(Key, false);
 		NewGun->UpdateProbableOwner(ProbableOwner);
 		GunByKey->Add(Key, NewGun);
 	}
