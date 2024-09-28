@@ -200,6 +200,10 @@ class FArtilleryTicklitesWorker : public FRunnable {
 
 			//if we have any ticklite requests, perform their calculations here and then
 			//add them.
+			//TODO: Reassess 12/10/24
+			//this may cause consistency issues during resim, as artillery guns are fired on the main thread
+			//which is not cadence-locked to the artillery threads. however, during resim, I believe this can be
+			//resolved with the ticklite's add timestamp. and until we have resim, this is a non-issue.
 			while(!QueuedAdds->IsEmpty())
 			{
 				const StampLiteRequest AddTup = *QueuedAdds->Peek();
