@@ -169,6 +169,7 @@ public:
 			auto dash = new FMockDashGun(FGunKey("DummyDash", 2));
 			AddTestGun(Intents::B, dash, IPM::GPerPress);
 			auto beam = new FMockBeamCannon(FGunKey("DummyBeam", 3), 200, 4, 150, 5000.0f);
+			beam->UpdateProbableOwner(ParentKey);
 			AddTestGun(Intents::RTrigger, beam, IPM::GPress);
 		}
 		MyAttributes = MakeShareable(new FAttributeMap(ParentKey, MyDispatch, Attributes));
@@ -203,10 +204,10 @@ public:
 			-1
 		);
 		FGameplayAbilitySpecHandle FireHandle = BackboneFiring.Handle;
-		Gun->PreFireGun(FireHandle,
-		AbilityActorInfo.Get(), 
-		FGameplayAbilityActivationInfo(EGameplayAbilityActivationMode::Authority)
-		);
+		Gun->PreFireGun(
+			FireHandle,
+			AbilityActorInfo.Get(),
+			FGameplayAbilityActivationInfo(EGameplayAbilityActivationMode::Authority));
 	};
 
 	void InitializeComponent() override
