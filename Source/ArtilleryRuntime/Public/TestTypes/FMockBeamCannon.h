@@ -81,10 +81,7 @@ public:
 		check(Beam != nullptr);
 
 		UTransformDispatch* TransformDispatch = MyDispatch->GetWorld()->GetSubsystem<UTransformDispatch>();
-		TSharedPtr<Kine> ProbableOwnerKine = TransformDispatch->GetKineByObjectKey(MyProbableOwner);
-		check(ProbableOwnerKine.IsValid());
-		ActorKine* KineAsActor = reinterpret_cast<ActorKine*>(ProbableOwnerKine.Get());
-		TWeakObjectPtr<AActor> ActorPointer = KineAsActor->MySelf;
+		TWeakObjectPtr<AActor> ActorPointer = TransformDispatch->GetAActorByObjectKey(MyProbableOwner);
 		check(ActorPointer.IsValid());
 
 		PlayerCameraComponent = ActorPointer->GetComponentByClass<UCameraComponent>();
