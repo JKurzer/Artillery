@@ -79,7 +79,7 @@ inline void UBarrageAutoBox::Register()
 		// Multiply by the scale factor, then multiply by 2 since mesh bounds is radius not diameter
 		auto extents = Boxen.BoxExtent * AnyMesh->BoundsScale * 2; 
 		
-		auto params = FBarrageBounder::GenerateBoxBounds(GetOwner()->GetActorLocation(),extents.X , extents.Y ,extents.Z,
+		auto params = FBarrageBounder::GenerateBoxBounds(GetOwner()->GetActorLocation(),extents.X, extents.Y, extents.Z,
 			FVector3d(OffsetCenterToMatchBoundedShapeX, OffsetCenterToMatchBoundedShapeY, extents.Z/2));
 		MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey,  isMovable ? Layers::MOVING : Layers::NON_MOVING);
 		//TransformECS->RegisterObjectToShadowTransform(MyObjectKey, const_cast<UE::Math::TTransform<double>*>(&GetOwner()->GetTransform()));
