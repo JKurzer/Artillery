@@ -52,12 +52,9 @@ public:
 		{
 			Physics->SphereCast(ShapeCastSourceObject, Radius, Distance, RayStart, RayDirection, HitResultPtr);
 
-			if (HitResultPtr->MyItem != JPH::BodyID::cInvalidBodyID)
+			if (Callback && HitResultPtr->MyItem != JPH::BodyID::cInvalidBodyID)
 			{
-				if (Callback)
-				{
-					Callback(RayStart, HitResultPtr);
-				}
+				Callback(RayStart, HitResultPtr);
 			}
 		}
 	}

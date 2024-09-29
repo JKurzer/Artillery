@@ -31,6 +31,10 @@ public:
 	
 	// Gun parameters
 	float Range;
+
+	// Owner Components
+	TWeakObjectPtr<UCameraComponent> PlayerCameraComponent;
+	TWeakObjectPtr<USceneComponent> FiringPointComponent;
 	
 	// Beam effect
 	UPROPERTY()
@@ -75,6 +79,13 @@ public:
 
 		Beam = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/Blueprints/BeamCannon/BeamSystem.BeamSystem"), nullptr, LOAD_None, nullptr);
 		check(Beam != nullptr);
+
+		UTransformDispatch* TransformDispatch = MyDispatch->GetWorld()->GetSubsystem<UTransformDispatch>();
+		TWeakObjectPtr<AActor> ActorPointer = TransformDispatch->GetAActorByObjectKey(MyProbableOwner);
+		check(ActorPointer.IsValid());
+
+		PlayerCameraComponent = ActorPointer->GetComponentByClass<UCameraComponent>();
+		FiringPointComponent = Cast<USceneComponent, UObject>(ActorPointer->GetDefaultSubobjectByName(TEXT("WeaponFiringPoint")));
 		
 		return ARTGUN_MACROAUTOINIT(MyCodeWillHandleKeys);
 	}
@@ -112,52 +123,46 @@ public:
 		const FGameplayEventData* TriggerEventData,
 		FGameplayAbilitySpecHandle Handle) override
 	{
-		if (ActorInfo->OwnerActor.IsValid())
+		if (PlayerCameraComponent.IsValid() && FiringPointComponent.IsValid())
 		{
-			if (UCameraComponent* CameraComponent = ActorInfo->OwnerActor->GetComponentByClass<UCameraComponent>())
-			{
-				FVector StartLocation = CameraComponent->GetComponentLocation() + FVector(-10.0f, 0.0f, 0.0f);
-				FRotator Rotation = CameraComponent->GetRelativeRotation();
+			FVector StartLocation = PlayerCameraComponent->GetComponentLocation() + FVector(-10.0f, 0.0f, 0.0f);
+			FRotator Rotation = PlayerCameraComponent->GetRelativeRotation();
 
-				UBarrageDispatch* Physics = MyDispatch->GetWorld()->GetSubsystem<UBarrageDispatch>();
-				FBLet OwnerFiblet = Physics->GetShapeRef(MyProbableOwner);
-				
-				FTSphereCast temp = FTSphereCast(
-					OwnerFiblet->KeyIntoBarrage,
-					0.01f,
-					Range,
-					StartLocation,
-					Rotation.Vector(),
-					// TODO: This possibly horribly fails when trying to synchronize network state
-					// Not sure what pattern we want to enforce for hit reg callbacks though, so this temporarily works
-					std::bind(&FMockBeamCannon::ResolveHit, this, std::placeholders::_1, std::placeholders::_2));
-				
-				MyDispatch->RequestAddTicklite(MakeShareable(new TL_SphereCast(temp)), Early);
+			UBarrageDispatch* Physics = MyDispatch->GetWorld()->GetSubsystem<UBarrageDispatch>();
+			FBLet OwnerFiblet = Physics->GetShapeRef(MyProbableOwner);
+			
+			FTSphereCast temp = FTSphereCast(
+				OwnerFiblet->KeyIntoBarrage,
+				0.01f,
+				Range,
+				StartLocation,
+				Rotation.Vector(),
+				// TODO: This possibly horribly fails when trying to synchronize network state
+				// Not sure what pattern we want to enforce for hit reg callbacks though, so this temporarily works
+				std::bind(&FMockBeamCannon::ResolveHit, this, std::placeholders::_1, std::placeholders::_2));
+			
+			MyDispatch->RequestAddTicklite(MakeShareable(new TL_SphereCast(temp)), Early);
 
-				// Fire particles
-				FVector FireParticleLocation = CameraComponent->GetComponentLocation() + FVector(-10.f, 0.f, 0.f);
-				UNiagaraComponent* BeamComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(MyDispatch->GetWorld(), Beam, FireParticleLocation, FRotator::ZeroRotator, FVector(1.f), true, true, ENCPoolMethod::AutoRelease);
-				BeamComp->SetVariablePosition(FName("Beam_End"), Rotation.Vector() * Range);
+			// Fire particles
+			UNiagaraComponent* BeamComp = UNiagaraFunctionLibrary::SpawnSystemAttached(
+				Beam,
+				FiringPointComponent.Get(),
+				NAME_None,
+				FVector(0.f),
+				FRotator::ZeroRotator,
+				EAttachLocation::Type::SnapToTarget,
+				true,
+				true,
+				ENCPoolMethod::AutoRelease);
+			BeamComp->SetVariablePosition(FName("Beam_End"), Rotation.Vector() * Range);
 
-				// UE_LOG(LogTemp, Warning, TEXT("Target for particle is '%s'"), *(Rotation.Vector() * Range).ToString());
-				
-				PostFireGun(Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
-			}
+			PostFireGun(Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
 		}
 	}
 
 	void ResolveHit(UE::Math::TVector<double> RayStart, TSharedPtr<FHitResult> HitResultFromTicklite) const
 	{
-		// DrawDebugLine(
-		// 				MyDispatch->GetWorld(),
-		// 				RayStart,
-		// 				HitResultFromTicklite->Location,
-		// 				FColor::Blue,
-		// 				false,
-		// 				5.0f,
-		// 				0,
-		// 				1.0f);
-
+		// DrawDebugLine(MyDispatch->GetWorld(), RayStart, HitResultFromTicklite->Location, FColor::Blue, false, 5.0f, 0, 1.0f);
 		UBarrageDispatch* Physics = MyDispatch->GetWorld()->GetSubsystem<UBarrageDispatch>();
 		FBarrageKey HitBarrageKey = Physics->GenerateBarrageKeyFromBodyId(
 					static_cast<uint32>(HitResultFromTicklite->MyItem));
