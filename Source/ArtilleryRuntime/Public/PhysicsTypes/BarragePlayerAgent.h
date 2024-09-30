@@ -131,7 +131,7 @@ inline void UBarragePlayerAgent::Register()
 	{
 		auto Physics =  GetWorld()->GetSubsystem<UBarrageDispatch>();
 			auto params = FBarrageBounder::GenerateCharacterBounds(GetOwner()->GetActorLocation(), radius, extent, MaxVelocity);
-			MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, LayersMap::MOVING);
+			MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, Layers::MOVING);
 
 			if(MyBarrageBody)
 			{

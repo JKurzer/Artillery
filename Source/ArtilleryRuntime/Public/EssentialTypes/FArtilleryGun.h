@@ -7,12 +7,14 @@
 #include <unordered_map>
 
 #include "ArtilleryCommonTypes.h"
+#include "ArtilleryProjectileDispatch.h"
 #include "FAttributeMap.h"
 #include "FGunKey.h"
 #include "GameplayEffectTypes.h"
 #include "GameplayEffect.h"
 #include "Abilities/GameplayAbility.h"
 #include "UArtilleryAbilityMinimum.h"
+#include "Camera/CameraComponent.h"
 #include "FArtilleryGun.generated.h"
 
 
@@ -41,7 +43,12 @@ public:
 	bool ReadyToFire = false;
 
 	UArtilleryDispatch* MyDispatch;
+	UArtilleryProjectileDispatch* MyProjectileDispatch;
 	TSharedPtr<FAttributeMap> MyAttributes;
+
+	// Owner Components
+	TWeakObjectPtr<UCameraComponent> PlayerCameraComponent;
+	TWeakObjectPtr<USceneComponent> FiringPointComponent;
 
 	// 0 MaxAmmo = No Ammo system required
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -90,6 +97,7 @@ public:
 	FArtilleryGun(const FGunKey& KeyFromDispatch)
 	{
 		MyDispatch = nullptr;
+		MyProjectileDispatch = nullptr;
 		MyGunKey = KeyFromDispatch;
 	};
 
@@ -109,7 +117,7 @@ public:
 
 	void UpdateProbableOwner(ActorKey ProbableOwner)
 	{
-		MyProbableOwner= ProbableOwner;
+		MyProbableOwner = ProbableOwner;
 	}
 	//I'm sick and tired of the endless layers of abstraction.
 	//Here's how it works. we fire the abilities from the gun.
@@ -240,6 +248,7 @@ public:
 		//assign gunkey
 		
 		MyDispatch = GWorld->GetSubsystem<UArtilleryDispatch>();
+		MyProjectileDispatch = GWorld->GetSubsystem<UArtilleryProjectileDispatch>();
 
 		TMap<AttribKey, double> InitialGunAttributes = TMap<AttribKey, double>();
 		// TODO: load more stats and dynamically rather than fixed demo values
@@ -253,6 +262,13 @@ public:
 		InitialGunAttributes.Add(AttribKey::LastFiredTimestamp, 0);
 		MyAttributes = MakeShareable(new FAttributeMap(MyGunKey, MyDispatch, InitialGunAttributes));
 		MyDispatch->REGISTER_GUN_FINAL_TICK_RESOLVER(MyGunKey);
+
+		UTransformDispatch* TransformDispatch = MyDispatch->GetWorld()->GetSubsystem<UTransformDispatch>();
+		TWeakObjectPtr<AActor> ActorPointer = TransformDispatch->GetAActorByObjectKey(MyProbableOwner);
+		check(ActorPointer.IsValid());
+PlayerCameraComponent
+		 = ActorPointer->GetComponentByClass<UCameraComponent>();
+		FiringPointComponent = Cast<USceneComponent, UObject>(ActorPointer->GetDefaultSubobjectByName(TEXT("WeaponFiringPoint")));
 		
 		//we'd like to do it earlier, but there's actually not a great moment to do this.
 		if(Prefire == nullptr)
