@@ -21,6 +21,7 @@
 #include "FAttributeMap.h"
 #include "FMockArtilleryGun.h"
 #include "FMockBeamCannon.h"
+#include "FMockChairCannon.h"
 #include "FMockDashGun.h"
 #include "TransformDispatch.h"
 #include "Components/ActorComponent.h"
@@ -140,6 +141,7 @@ public:
 	{
 		FActionBitMask IntentBitPattern;
 		IntentBitPattern.buttons = BindIntent;
+		Gun->UpdateProbableOwner(ParentKey);
 		Gun->Initialize(Gun->MyGunKey, false);
 		auto key = MyDispatch->RegisterExistingGun(Gun, ParentKey);
 		pushPatternToRunner(Pattern, APlayer::CABLE, IntentBitPattern, key);
@@ -169,8 +171,9 @@ public:
 			auto dash = new FMockDashGun(FGunKey("DummyDash", 2));
 			AddTestGun(Intents::B, dash, IPM::GPerPress);
 			auto beam = new FMockBeamCannon(FGunKey("DummyBeam", 3), 200, 4, 150, 5000.0f);
-			beam->UpdateProbableOwner(ParentKey);
 			AddTestGun(Intents::RTrigger, beam, IPM::GPress);
+			auto chairs = new FMockChairCannon(FGunKey("ChairCannon", 4), 10, 20, 150);
+			AddTestGun(Intents::LTrigger, chairs, IPM::GPerPress);
 		}
 		MyAttributes = MakeShareable(new FAttributeMap(ParentKey, MyDispatch, Attributes));
 

@@ -4,7 +4,6 @@
 #include "FArtilleryGun.h"
 #include "FTSphereCast.h"
 #include "UArtilleryAbilityMinimum.h"
-#include "Camera/CameraComponent.h"
 
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
@@ -27,14 +26,9 @@ struct ARTILLERYRUNTIME_API FMockBeamCannon : public FArtilleryGun
 
 public:
 	friend class UArtilleryPerActorAbilityMinimum;
-	UArtilleryDispatch* MyDispatch;
 	
 	// Gun parameters
 	float Range;
-
-	// Owner Components
-	TWeakObjectPtr<UCameraComponent> PlayerCameraComponent;
-	TWeakObjectPtr<USceneComponent> FiringPointComponent;
 	
 	// Beam effect
 	UPROPERTY()
@@ -75,17 +69,8 @@ public:
 		UArtilleryPerActorAbilityMinimum* PtFc = nullptr,
 		UArtilleryPerActorAbilityMinimum* FFC = nullptr) override
 	{
-		MyDispatch = GWorld->GetSubsystem<UArtilleryDispatch>();
-
 		Beam = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/Blueprints/BeamCannon/BeamSystem.BeamSystem"), nullptr, LOAD_None, nullptr);
 		check(Beam != nullptr);
-
-		UTransformDispatch* TransformDispatch = MyDispatch->GetWorld()->GetSubsystem<UTransformDispatch>();
-		TWeakObjectPtr<AActor> ActorPointer = TransformDispatch->GetAActorByObjectKey(MyProbableOwner);
-		check(ActorPointer.IsValid());
-
-		PlayerCameraComponent = ActorPointer->GetComponentByClass<UCameraComponent>();
-		FiringPointComponent = Cast<USceneComponent, UObject>(ActorPointer->GetDefaultSubobjectByName(TEXT("WeaponFiringPoint")));
 		
 		return ARTGUN_MACROAUTOINIT(MyCodeWillHandleKeys);
 	}
@@ -125,6 +110,7 @@ public:
 	{
 		if (PlayerCameraComponent.IsValid() && FiringPointComponent.IsValid())
 		{
+			UE_LOG(LogTemp, Warning, TEXT("firing"));
 			FVector StartLocation = PlayerCameraComponent->GetComponentLocation() + FVector(-10.0f, 0.0f, 0.0f);
 			FRotator Rotation = PlayerCameraComponent->GetRelativeRotation();
 

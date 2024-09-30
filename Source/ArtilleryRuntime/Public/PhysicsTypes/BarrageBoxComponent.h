@@ -80,7 +80,7 @@ inline void UBarrageBoxComponent::Register()
 
 		auto params = FBarrageBounder::GenerateBoxBounds(GetOwner()->GetActorLocation(), XDiam, YDiam ,ZDiam,
 					FVector3d(OffsetCenterToMatchBoundedShapeX, OffsetCenterToMatchBoundedShapeY, OffsetCenterToMatchBoundedShapeZ));
-		MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, LayersMap::MOVING);
+		MyBarrageBody = Physics->CreatePrimitive(params, MyObjectKey, Layers::MOVING);
 		//TransformECS->RegisterObjectToShadowTransform(MyObjectKey, const_cast<UE::Math::TTransform<double>*>(&GetOwner()->GetTransform()));
 		if(MyBarrageBody)
 		{

@@ -7,6 +7,8 @@
 #include <FTGunFinalTickResolver.h>
 #include <FTJumpTimer.h>
 
+#include "FTProjectileFinalTickResolver.h"
+
 
 //Place at the end of the latest initialization-like phase.
 //should we move this lil guy over into ya boy Dispatch? It feels real dispatchy.
@@ -14,19 +16,25 @@ void UArtilleryDispatch::REGISTER_ENTITY_FINAL_TICK_RESOLVER(ActorKey Self)
 {
 	TLEntityFinalTickResolver temp = TLEntityFinalTickResolver(Self); //this semantic sucks. gotta fix it.
 	this->RequestAddTicklite(MakeShareable(new EntityFinalTickResolver(temp)), FINAL_TICK_RESOLVE);
-};
+}
+
+void UArtilleryDispatch::REGISTER_PROJECTILE_FINAL_TICK_RESOLVER(uint32 MaximumLifespanInTicks, FSkeletonKey Self)
+{
+	TLProjectileFinalTickResolver temp = TLProjectileFinalTickResolver(MaximumLifespanInTicks, Self);
+	this->RequestAddTicklite(MakeShareable(new ProjectileFinalTickResolver(temp)), FINAL_TICK_RESOLVE);
+}
 
 void UArtilleryDispatch::REGISTER_GUN_FINAL_TICK_RESOLVER(FGunKey Self)
 {
 	TLGunFinalTickResolver temp = TLGunFinalTickResolver(Self); //this semantic sucks. gotta fix it.
 	this->RequestAddTicklite(MakeShareable(new GunFinalTickResolver(temp)), FINAL_TICK_RESOLVE);
-};
+}
 
 void UArtilleryDispatch::INITIATE_JUMP_TIMER(FSkeletonKey Self)
 {
 	FTJumpTimer JumpTimer = FTJumpTimer(Self);
 	this->RequestAddTicklite(MakeShareable(new TL_JumpTimer(JumpTimer)), Normal);
-};
+}
 
 void UArtilleryDispatch::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -152,6 +160,7 @@ void UArtilleryDispatch::Tick(float DeltaTime)
 			<TSharedPtr<TransformUpdatesForGameThread>>
 			(PhysicsECSPillar->GameTransformPump);
 		}
+		PhysicsECSPillar->BroadcastContactEvents();
 	}
 }
 
