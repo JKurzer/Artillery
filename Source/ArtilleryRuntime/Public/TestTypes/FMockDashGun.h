@@ -6,6 +6,7 @@
 #include "CoreTypes.h"
 #include <unordered_map>
 
+#include "ArtilleryBPLibs.h"
 #include "ArtilleryDispatch.h"
 #include "AssetTypeCategories.h"
 #include "FGunKey.h"
@@ -74,10 +75,13 @@ public:
 		FBLet GameSimPhysicsObject = this->MyDispatch->GetFBLetByObjectKey(MyProbableOwner, this->MyDispatch->GetShadowNow());
 		// TODO: Maybe direct this towards movement directional instead of current velocity?
 		auto ScaledVelocityContinuation = FBarragePrimitive::GetVelocity(GameSimPhysicsObject).GetSafeNormal() * 1000;
+		FVector ForwardInitial;
+		UArtilleryLibrary::SimpleEstimator(ForwardInitial);
+
 		FTLinearVelocity temp =
 			FTLinearVelocity(
 				MyProbableOwner,
-				VelocityVec(ScaledVelocityContinuation.X, ScaledVelocityContinuation.Y, ScaledVelocityContinuation.Z),
+				VelocityVec(ForwardInitial.X *3, ForwardInitial.Y *3, 0),
 				20
 			);
 

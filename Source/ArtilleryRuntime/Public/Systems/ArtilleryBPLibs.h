@@ -8,22 +8,26 @@ class ARTILLERYRUNTIME_API UInputECSLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 public:
-	UFUNCTION(BlueprintPure, meta = (ScriptName = "Get15PlayerInputs", DisplayName = "Get Last 15 of Local Player's Inputs", WorldContext = "WorldContextObject", HidePin = "WorldContextObject"),  Category="Artillery|Inputs")
-	static void K2_Get15LocalHistoricalInputs(UObject* WorldContextObject, TArray<FArtilleryShell> &Inputs)
+	static void GetHistoricalInputs(TArray<FArtilleryShell>& Inputs, int Count)
 	{
-		auto ptr = WorldContextObject->GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
+		auto ptr = UCanonicalInputStreamECS::SelfPtr;
 		if(ptr)
 		{
 			auto streamkey = ptr->GetStreamForPlayer(PlayerKey::CABLE);
 			auto sptr = ptr->GetStream(streamkey);
-			for(int i = 0; i <= 15; ++i)
+			for(int i = 0; i <= Count; ++i)
 			{
-				auto input =  sptr.Get()->peek( sptr->GetHighestGuaranteedInput());
+				auto input =  sptr.Get()->peek( sptr->GetHighestGuaranteedInput()-i);
 				Inputs.Add(input.has_value() ? input.value() : FArtilleryShell());
 			}
 		}
 	}
 
+	UFUNCTION(BlueprintPure, meta = (ScriptName = "Get15PlayerInputs", DisplayName = "Get Last 15 of Local Player's Inputs", WorldContext = "WorldContextObject", HidePin = "WorldContextObject"),  Category="Artillery|Inputs")
+	static void K2_Get15LocalHistoricalInputs(UObject* WorldContextObject, TArray<FArtilleryShell> &Inputs)
+	{
+		GetHistoricalInputs(Inputs, 15);
+	}
 };
 
 UCLASS(meta=(ScriptName="AbilitySystemLibrary"))
@@ -176,15 +180,45 @@ public:
 		GetLocalPlayerVectors(Forward, Right);
 	}
 
-	UFUNCTION(BlueprintPure, meta = (ScriptName = "GetPlayerDirectionEstimator", DisplayName = "Get Local Player's Attribute"),  Category="Artillery|Character")
-	static void K2_GetPlayerDirectionEstimator(FVector& Forward)
+	static void SimpleEstimator(FVector& Forward, double Counter = 15)
 	{
 		FVector Right;
 		GetLocalPlayerVectors(Forward, Right);
-		
+		TArray<FArtilleryShell> In;
+		UInputECSLibrary::GetHistoricalInputs(In, Counter);
+		double accumulateX = 0;
+		double accumulateY = 0;
+		for(auto& shell : In)
+		{
+			accumulateX += shell.GetStickLeftX();
+			accumulateY += shell.GetStickLeftY();
+		}
+		accumulateX = accumulateX/Counter;
+		accumulateY = accumulateY/Counter;
+		//for serious work, replace this.
+		accumulateX += In[0].GetStickLeftX();
+		accumulateX += In[0].GetStickLeftX();
+		accumulateX += In[0].GetStickLeftX();
+		accumulateY += In[0].GetStickLeftY();
+		accumulateY += In[0].GetStickLeftY();
+		accumulateY += In[0].GetStickLeftY();
+		accumulateX = accumulateX/4.0;
+		accumulateY = accumulateY/4.0;
+		auto bind = GetLocalPlayerBarrageAgent();
+		if(bind)
+		{
+			auto moveX = accumulateX * bind->Acceleration * Right;
+			auto moveX = accumulateY * bind->Acceleration * Forward;
+			Forward = moveX + moveX;
+		}
 	}
 
-	
+	UFUNCTION(BlueprintPure, meta = (ScriptName = "GetPlayerDirectionEstimator", DisplayName = "Get Local Player's Direction Estimator"),  Category="Artillery|Character")
+	static void K2_GetPlayerDirectionEstimator(FVector& Forward)
+	{
+		 SimpleEstimator(Forward, 15);
+	}
+
 private:
 	static inline TObjectPtr<UBarragePlayerAgent> CurrentPlayerAgent = nullptr;
 };
