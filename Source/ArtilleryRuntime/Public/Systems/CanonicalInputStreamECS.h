@@ -380,29 +380,6 @@ private:
 	UBristleconeWorldSubsystem* MySquire; // World Subsystems are the last to go, making this a fairly safe idiom. ish.
 };
 
-UCLASS(meta=(ScriptName="InputSystemLibrary"))
-class ARTILLERYRUNTIME_API UInputECSLibrary : public UBlueprintFunctionLibrary
-{
-	GENERATED_BODY()
-public:
-	UFUNCTION(BlueprintPure, meta = (ScriptName = "Get15PlayerInputs", DisplayName = "Get Last 15 of Local Player's Inputs", WorldContext = "WorldContextObject", HidePin = "WorldContextObject"),  Category="Artillery|Inputs")
-	static void K2_Get15LocalHistoricalInputs(UObject* WorldContextObject, TArray<FArtilleryShell> &Inputs)
-	{
-		auto ptr = WorldContextObject->GetWorld()->GetSubsystem<UCanonicalInputStreamECS>();
-		if(ptr)
-		{
-			auto streamkey = ptr->GetStreamForPlayer(PlayerKey::CABLE);
-			auto sptr = ptr->GetStream(streamkey);
-			for(int i = 0; i <= 15; ++i)
-			{
-				auto input =  sptr.Get()->peek( sptr->GetHighestGuaranteedInput());
-				Inputs.Add(input.has_value() ? input.value() : FArtilleryShell());
-			}
-		}
-	}
-
-};
-
 typedef UCanonicalInputStreamECS UCISArty;
 typedef UCISArty::FConservedInputStream ArtilleryControlStream;
 typedef ArtilleryControlStream FAControlStream;
