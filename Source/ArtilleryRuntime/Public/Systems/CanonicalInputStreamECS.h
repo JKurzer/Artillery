@@ -86,7 +86,7 @@ public:
 
 	ActorKey ActorByStream(InputStreamKey Stream);
 	InputStreamKey StreamByActor(ActorKey Stream);
-	
+	static inline UCanonicalInputStreamECS* SelfPtr = nullptr;
 	static const uint32_t InputConservationWindow = 8192;
 	static const uint32_t AddressableInputConservationWindow = InputConservationWindow - (2 *
 		TheCone::LongboySendHertz);

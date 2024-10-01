@@ -425,4 +425,21 @@ public:
 		bFound = false;
 		return NAN;
 	}
+	UFUNCTION(BlueprintCallable, meta = (ScriptName = "GetPlayerAttribute", DisplayName = "Get Local Player's Attribute"),  Category="Artillery|Character")
+	static float GetLocalPlayerFRVectors(UObject* WorldContextObject, E_AttribKey Attrib, bool& bFound)
+	{
+		bFound = false;
+		auto ptr = UCanonicalInputStreamECS::SelfPtr;
+		if(ptr)
+		{
+			auto streamkey = ptr->GetStreamForPlayer(PlayerKey::CABLE);
+			auto key = ptr->ActorByStream(streamkey);
+			if(key)
+			{
+				return  implK2_GetAttrib(key, Attrib, bFound);
+			}
+		}
+		bFound = false;
+		return NAN;
+	}
 };
