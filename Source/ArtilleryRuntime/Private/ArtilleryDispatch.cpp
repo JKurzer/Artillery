@@ -71,6 +71,7 @@ void UArtilleryDispatch::OnWorldBeginPlay(UWorld& InWorld)
 		UseNetworkInput.store(true);
 		UBristleconeWorldSubsystem* NetworkAndControls = GetWorld()->GetSubsystem<UBristleconeWorldSubsystem>();
 		UBarrageDispatch* GameSimPhysics = GetWorld()->GetSubsystem<UBarrageDispatch>();
+		HoldOpen = GameSimPhysics->JoltGameSim;
 		ArtilleryTicklitesWorker_LockstepToWorldSim.DispatchOwner = this;
 		ArtilleryTicklitesWorker_LockstepToWorldSim.StartTicklitesApply = StartTicklitesApply;
 		ArtilleryTicklitesWorker_LockstepToWorldSim.StartTicklitesSim = StartTicklitesSim;
@@ -124,6 +125,7 @@ void UArtilleryDispatch::Deinitialize()
 	IdentSetToDataMapping->Empty();
 	GunToFiringFunctionMapping->Empty();
 	ActorToLocomotionMapping->Empty();
+	HoldOpen.Reset();
 }
 
 

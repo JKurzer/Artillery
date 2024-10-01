@@ -146,6 +146,7 @@ protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
+	TSharedPtr< JOLT::FWorldSimOwner> HoldOpen;
 	
 
 	//this is the underlying function mapping we use to queue up Gun Activations.
