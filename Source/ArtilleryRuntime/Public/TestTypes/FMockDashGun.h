@@ -6,6 +6,7 @@
 #include "CoreTypes.h"
 #include <unordered_map>
 
+#include "ArtilleryBPLibs.h"
 #include "ArtilleryDispatch.h"
 #include "AssetTypeCategories.h"
 #include "FGunKey.h"
@@ -15,6 +16,7 @@
 #include "UArtilleryAbilityMinimum.h"
 #include "FArtilleryGun.h"
 #include "FTLinearVelocity.h"
+#include "FTPlayerEstimatorWithForce.h"
 #include "GameFramework/MovementComponent.h"
 #include "FMockDashGun.generated.h"
 
@@ -74,15 +76,18 @@ public:
 		FBLet GameSimPhysicsObject = this->MyDispatch->GetFBLetByObjectKey(MyProbableOwner, this->MyDispatch->GetShadowNow());
 		// TODO: Maybe direct this towards movement directional instead of current velocity?
 		auto ScaledVelocityContinuation = FBarragePrimitive::GetVelocity(GameSimPhysicsObject).GetSafeNormal() * 1000;
-		FTLinearVelocity temp =
-			FTLinearVelocity(
+		FVector ForwardInitial;
+		UArtilleryLibrary::SimpleEstimator(ForwardInitial);
+		
+		FTPlayerEstimatorWithForce temp =
+			FTPlayerEstimatorWithForce(
 				MyProbableOwner,
-				VelocityVec(ScaledVelocityContinuation.X, ScaledVelocityContinuation.Y, ScaledVelocityContinuation.Z),
-				20
+				VelocityVec(ForwardInitial.X * 7, ForwardInitial.Y * 7, 0),
+				10
 			);
 
 		MyDispatch->RequestAddTicklite(
-			MakeShareable(new TL_LinearVelocity(temp)), Early);
+			MakeShareable(new TL_PlayerDirectedForce(temp)), Early);
 		PostFireGun(FArtilleryStates::Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
 	}
 
