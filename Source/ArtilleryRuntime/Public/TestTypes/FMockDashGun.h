@@ -16,6 +16,7 @@
 #include "UArtilleryAbilityMinimum.h"
 #include "FArtilleryGun.h"
 #include "FTLinearVelocity.h"
+#include "FTPlayerEstimatorWithForce.h"
 #include "GameFramework/MovementComponent.h"
 #include "FMockDashGun.generated.h"
 
@@ -77,16 +78,16 @@ public:
 		auto ScaledVelocityContinuation = FBarragePrimitive::GetVelocity(GameSimPhysicsObject).GetSafeNormal() * 1000;
 		FVector ForwardInitial;
 		UArtilleryLibrary::SimpleEstimator(ForwardInitial);
-
-		FTLinearVelocity temp =
-			FTLinearVelocity(
+		
+		FTPlayerEstimatorWithForce temp =
+			FTPlayerEstimatorWithForce(
 				MyProbableOwner,
-				VelocityVec(ForwardInitial.X *3, ForwardInitial.Y *3, 0),
-				20
+				VelocityVec(ForwardInitial.X * 7, ForwardInitial.Y * 7, 0),
+				10
 			);
 
 		MyDispatch->RequestAddTicklite(
-			MakeShareable(new TL_LinearVelocity(temp)), Early);
+			MakeShareable(new TL_PlayerDirectedForce(temp)), Early);
 		PostFireGun(FArtilleryStates::Fired, 0, ActorInfo, ActivationInfo, false, TriggerEventData, Handle);
 	}
 

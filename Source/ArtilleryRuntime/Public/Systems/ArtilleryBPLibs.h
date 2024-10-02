@@ -1,7 +1,8 @@
-﻿
+﻿#pragma once
 #include "ArtilleryDispatch.h"
 #include "CanonicalInputStreamECS.h"
 #include "PhysicsTypes/BarragePlayerAgent.h"
+#include "ArtilleryBPLibs.generated.h"
 
 UCLASS(meta=(ScriptName="InputSystemLibrary"))
 class ARTILLERYRUNTIME_API UInputECSLibrary : public UBlueprintFunctionLibrary
@@ -137,19 +138,21 @@ public:
 	//TODO: This needs to be replaced by GetPlayerBarrageAgent(PlayerKey)
 	static TObjectPtr<UBarragePlayerAgent> GetLocalPlayerBarrageAgent()
 	{
-		if(CurrentPlayerAgent && CurrentPlayerAgent->GetOwner() && CurrentPlayerAgent->GetOwner()->IsActorTickEnabled())
+		if (UTransformDispatch::SelfPtr && UArtilleryDispatch::SelfPtr && UCanonicalInputStreamECS::SelfPtr)
 		{
-			return CurrentPlayerAgent;
-		}
-		else if(UTransformDispatch::SelfPtr && UArtilleryDispatch::SelfPtr && UCanonicalInputStreamECS::SelfPtr)
-		{
+			if (CurrentPlayerAgent && CurrentPlayerAgent->IsValidLowLevelFast() && CurrentPlayerAgent->GetOwner()->
+				IsActorTickEnabled())
+			{
+				return CurrentPlayerAgent;
+			}
+
 			CurrentPlayerAgent = nullptr;
 			auto local = UCanonicalInputStreamECS::SelfPtr->GetStreamForPlayer(PlayerKey::CABLE);
-			if(local != 0)
+			if (local != 0)
 			{
 				auto playerkey = UCanonicalInputStreamECS::SelfPtr->ActorByStream(local);
-				TObjectPtr<AActor> SecretName =  UTransformDispatch::SelfPtr->GetAActorByObjectKey(playerkey).Get();
-				if(SecretName)
+				TObjectPtr<AActor> SecretName = UTransformDispatch::SelfPtr->GetAActorByObjectKey(playerkey).Get();
+				if (SecretName)
 				{
 					CurrentPlayerAgent = SecretName->GetComponentByClass<UBarragePlayerAgent>();
 					return CurrentPlayerAgent;
@@ -180,10 +183,10 @@ public:
 		GetLocalPlayerVectors(Forward, Right);
 	}
 
-	static void SimpleEstimator(FVector& Forward, double Counter = 15)
+	static void SimpleEstimator(FVector& Forwardish, double Counter = 15)
 	{
 		FVector Right;
-		GetLocalPlayerVectors(Forward, Right);
+		GetLocalPlayerVectors(Forwardish, Right);
 		TArray<FArtilleryShell> In;
 		UInputECSLibrary::GetHistoricalInputs(In, Counter);
 		double accumulateX = 0;
@@ -208,8 +211,8 @@ public:
 		if(bind)
 		{
 			auto moveX = accumulateX * bind->Acceleration * Right;
-			auto moveX = accumulateY * bind->Acceleration * Forward;
-			Forward = moveX + moveX;
+			auto moveY = accumulateY * bind->Acceleration * Forwardish;
+			Forwardish = moveX + moveY;
 		}
 	}
 
