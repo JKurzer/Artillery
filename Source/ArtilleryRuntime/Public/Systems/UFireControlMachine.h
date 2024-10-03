@@ -171,6 +171,7 @@ public:
 			auto dash = new FMockDashGun(FGunKey("DummyDash", 2));
 			AddTestGun(Intents::B, dash, IPM::GPerPress);
 			auto beam = new FMockBeamCannon(FGunKey("DummyBeam", 3), 200, 4, 150, 5000.0f);
+			beam->UpdateProbableOwner(ParentKey);
 			AddTestGun(Intents::RTrigger, beam, IPM::GPress);
 			auto chairs = new FMockChairCannon(FGunKey("ChairCannon", 4), 10, 20, 150);
 			AddTestGun(Intents::LTrigger, chairs, IPM::GPerPress);

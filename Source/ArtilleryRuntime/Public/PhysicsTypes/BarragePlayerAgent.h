@@ -69,11 +69,19 @@ public:
 	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	void ApplyAimFriction(const ActorKey& ActorsKey, const FVector3d& ActorLocation, const FVector3d& Direction, FVector2d& OutAimVector);
+	
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	FVector CHAOS_LastGameFrameRightVector = FVector::ZeroVector;
 	UPROPERTY(BlueprintReadOnly)
 	FVector CHAOS_LastGameFrameForwardVector = FVector::ZeroVector;
+
+private:
+	// Currently targeted object
+	FBLet TargetFiblet;
+	TWeakObjectPtr<AActor> TargetPtr;
 };
 
 //CONSTRUCTORS
@@ -88,7 +96,6 @@ inline UBarragePlayerAgent::UBarragePlayerAgent(const FObjectInitializer& Object
 	
 	PrimaryComponentTick.bCanEverTick = true;
 	MyObjectKey = 0;
-	
 }
 
 inline FVector3f UBarragePlayerAgent::GetVelocity()
@@ -180,4 +187,64 @@ inline void UBarragePlayerAgent::TickComponent(float DeltaTime, ELevelTick TickT
 	CHAOS_LastGameFrameRightVector = GetOwner()->GetActorRightVector();
 	CHAOS_LastGameFrameForwardVector = GetOwner()->GetActorForwardVector();
 	
+}
+
+inline void UBarragePlayerAgent::ApplyAimFriction(
+	const ActorKey& ActorsKey,
+	const FVector3d& ActorLocation,
+	const FVector3d& Direction,
+	FVector2d& OutAimVector)
+{
+	double TotalFriction = 1.0f;
+	
+	UBarrageDispatch* Physics = GetWorld()->GetSubsystem<UBarrageDispatch>();
+	check(Physics);
+	
+	FBLet MyFiblet = Physics->GetShapeRef(ActorsKey);
+	check(MyFiblet); // The actor calling this sure as hell better be allocated already
+
+	TSharedPtr<FHitResult> HitObjectResult = MakeShared<FHitResult>();
+	Physics->SphereCast(
+		MyFiblet->KeyIntoBarrage,
+		0.01f,
+		1000.0f, // Hard-coding range for now until we determine how we want to handle range on this
+		ActorLocation,
+		Direction,
+		HitObjectResult);
+
+	FBarrageKey HitBarrageKey = Physics->GetBarrageKeyFromFHitResult(HitObjectResult);
+
+	// Determine if we've changed targets
+	if (HitBarrageKey != 0)
+	{
+		if (!TargetFiblet.IsValid() || HitBarrageKey != TargetFiblet->KeyIntoBarrage)
+		{
+			TargetFiblet = Physics->GetShapeRef(HitBarrageKey);
+			check(TargetFiblet.IsValid());
+		
+			UTransformDispatch* TransformDispatch = GetWorld()->GetSubsystem<UTransformDispatch>();
+			check(TransformDispatch);
+
+			FBLet PotentialTargetFiblet = Physics->GetShapeRef(HitBarrageKey);
+			TWeakObjectPtr<AActor> PotentialNewTarget = TransformDispatch->GetAActorByObjectKey(TargetFiblet->KeyOutOfBarrage);
+			if (PotentialNewTarget.IsValid() && PotentialNewTarget.Get()->Tags.Contains(FName("enemy")))
+			{
+				TargetPtr = PotentialNewTarget;
+			}
+		}
+	}
+	else
+	{
+		TargetFiblet.Reset();
+		TargetPtr.Reset();
+	}
+
+	if (TargetPtr.IsValid())
+	{
+		// TODO - determine if aim vector is moving towards or away from a friction point
+		TotalFriction = 0.5f;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Target found, applying friction to reticle ('%f')"), TotalFriction);
+	OutAimVector *= TotalFriction;
 }
