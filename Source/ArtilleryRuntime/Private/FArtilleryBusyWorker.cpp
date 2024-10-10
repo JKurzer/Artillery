@@ -198,6 +198,7 @@ uint32 FArtilleryBusyWorker::Run()
 	//where we can, so we're trying to hide the barrage dependency here in a sense. We can't fully, but.
 	auto ArtilleryDispatch = ContingentInputECSLinkage->GetWorld()->GetSubsystem<UArtilleryDispatch>();
 	ArtilleryDispatch->ThreadSetup();
+	timeBeginPeriod(2);
 	while (running)
 	{
 		if (!sent &&
@@ -244,7 +245,7 @@ uint32 FArtilleryBusyWorker::Run()
 		std::this_thread::sleep_for(Step);
 		lsbTime = ContingentInputECSLinkage->Now();
 	}
-
+	timeEndPeriod(2);
 	UE_LOG(LogTemp, Display, TEXT("Artillery:BusyWorker: Run Ended."));
 	return 0;
 }
