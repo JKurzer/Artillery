@@ -194,10 +194,6 @@ class FArtilleryTicklitesWorker : public FRunnable {
 					CalcINE(Tickable);
 				}
 			}
-
-			StartTicklitesApply->Wait();
-			StartTicklitesApply->Reset(); // we can run long on sim, not on apply.
-
 			//if we have any ticklite requests, perform their calculations here and then
 			//add them.
 			//TODO: Reassess 12/10/24
@@ -215,16 +211,34 @@ class FArtilleryTicklitesWorker : public FRunnable {
 				QueuedAdds->Dequeue();
 			}
 			
+			StartTicklitesApply->Wait();
+			StartTicklitesApply->Reset(); // we can run long on sim, not on apply.
+
+
 			for (auto& Group : ExecutionGroups)
 			{
-				for(auto Tickable : Group)
+				//this is just to make it clearer, 0 works just as well.
+				int finalsize =  Group.IsEmpty() ? -1 : Group.Num();
+				for(int index = 0; index < finalsize;)
 				{
-					ApplyINE(Tickable);
+					//either a ticklite expires, and the count remaining drops by one, or we process it and move to next.
+					if(Group[index]->ShouldExpireTickable())
+					{
+						Group[index]->OnExpireTickable();
+						//TODO good chance we must save the ticklites from older frames that have expired if we want any hope at determinism
+						//TODO THIS VIOLATES ORDERING. ...kinda. it's complicated. look, you almost certainly don't want it here.
+						//we probably need to use sorted array anyway.
+						Group.RemoveAtSwap(index, EAllowShrinking::No); //Determinism risk 
+						
+						--finalsize;//hohoho. merry nothingmas.
+					}
+					else
+					{
+						Group[index]->ApplyTickable();
+						index++;
+					}
 				}
 			}
-
-
-				
 		}
 	
 		return 0;
