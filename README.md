@@ -1,7 +1,8 @@
 # Artillery: Guns & Abilities Plugin 
-Determinism, threaded input processing, and access management primitives married to a core set of basic tools used to bind to a weapon or character actor in a compositional and elegant way, loosely backwards compatible with GAS while simplifying its usage considerably. Artillery provides, as of right now:
+Determinism, threaded input processing, and access management primitives married to a core set of basic tools used to bind to a weapon or character actor in a compositional and elegant way, loosely backwards compatible with GAS while simplifying its usage considerably. Artillery is at 0.1 and is not yet in pre-alpha. It provides, as of right now:
 
 - Integration with GAS through ArtilleryGuns
+- Full support for the Jolt physics engine for game simulation through Barrage
 - Elision of issues around complexity and reuse through ArtilleryGuns & DDG
     - Deprioritization of the concept of gameplay effects.
     - Direct access to attributes by safe key look-ups.
@@ -23,10 +24,11 @@ By collating all input streams and using an underlying game simulation, we allow
 Artillery depends on a number of other plugins maintained by Breach Dogs. These form a loosely coupled ecosystem that provides a powerful range of threading and simulation capabilities suitable for use with any UE5 game where control responsivity or multiplayer are a priority. 
 ### [Dependency Map](https://miro.com/app/board/uXjVKg1J6qo=/?share_link_id=795066474192)
 
+## Update Schedule
+The next major update involves a fairly significant number of new features, many of which do not yet have cohered APIs. Estimated release is currently January of 2025, but small bug fixes may get shipped before then. This is a great time to take a look at artillery, get familiar with the concepts, and take it for a quick test drive.
 
 ## Upcoming Features
 The main two upcoming features are:  
-- **Integration of the jolt physics engine**: We'll be using jolt to create a two-layer simulation model and allow true outcome determinism. Jolt has excellent performance, strong support for multithreaded usage, an excellent developer community, and built-in support for rollbacks.
 - **Non-Jank Multiplayer Support**: The big goal of artillery is that if you use it, multiplayer should just mostly work. I know, it's a lofty goal, and I don't promise that you can get to shippable without work, but my goal is to make prototyping multiplayer games far less miserable.
 - **FP Determinism**: This will likely be broken into another plugin, but I've started building the mathematical framework required to allow floating point math to be correct without enforced operation ordering for small precisions.
 - **Threaded Abilities**: In the longer term, abilities will run on the ArtilleryBusyWorker thread, allowing us to complete a rollback without interacting with the game thread in conjunction with the other features. This is the grail.
